@@ -1,6 +1,6 @@
 // Shared renderer for the measured five-paragraph, five-highlight cover-letter contract.
-#import "../application.typ": validate-application
-#import "../line-contract.typ": measured-line, measured-lines
+#import "../application.typ": cover-letter-contract, validate-application
+#import "../line-contract.typ": line-contract-mode, measured-line, measured-lines
 #import "../profile.typ": profile
 #import "header.typ": application-header
 
@@ -44,14 +44,6 @@
       letter.paragraphs.at(index).lines,
     )
   ]
-  let paragraph-region(indices) = {
-    for (position, index) in indices.enumerate() {
-      paragraph(index)
-      if position < indices.len() - 1 {
-        v(8.4pt)
-      }
-    }
-  }
   let highlights = block(
     fill: rgb("#f8fafc"),
     stroke: (left: 2.5pt + rgb("#1e3a5f")),
@@ -68,9 +60,10 @@
       if index < 4 { v(5.25pt) }
     }
   ]
-  let top-content = [
+  let header-content = [
     #application-header(locale: if is-german { "de-ch" } else { "en-ch" })
-    #v(13.125pt)
+  ]
+  let subject-content = [
     #grid(
       columns: (1fr, auto),
       align: (left, right),
@@ -82,42 +75,129 @@
       v(13.125pt)
       align(right)[#recipient-lines.join(linebreak())]
     }
-    #v(13.125pt)
-    #salutation
-    #v(10.5pt)
-    #paragraph-region((0, 1, 2))
   ]
-  let bottom-content = align(bottom)[
-    #paragraph-region((3, 4))
-    #v(10.5pt)
-    #block(breakable: false)[
-      #closing
-      #v(5.25pt)
-      #if signature-path != none {
-        image(signature-path, height: 31.5pt)
-        v(2pt)
-      }
-      #profile.name
-    ]
+  let salutation-content = [#salutation]
+  let closing-content = block(breakable: false)[
+    #closing
+    #v(5.25pt)
+    #if signature-path != none {
+      image(signature-path, height: 31.5pt)
+      v(2pt)
+    }
+    #profile.name
   ]
 
   layout(size => {
-    let half-height = (size.height - measure(highlights, width: size.width).height) / 2
-    assert(
-      measure(top-content, width: size.width).height <= half-height,
-      message: "cover-letter header, recipient, and paragraphs 1–3 exceed their half-page region",
+    let content-blocks = (
+      header-content,
+      subject-content,
+      salutation-content,
+      paragraph(0),
+      paragraph(1),
+      paragraph(2),
+      highlights,
+      paragraph(3),
+      paragraph(4),
+      closing-content,
     )
-    assert(
-      measure(bottom-content, width: size.width).height <= half-height,
-      message: "cover-letter paragraphs 4–5 and signature exceed their half-page region",
+    let heights = content-blocks.map(item => measure(item, width: size.width).height)
+    let fixed-height = heights.fold(0pt, (total, height) => total + height)
+    let gap-count = content-blocks.len() - 1
+    let gap-height = (size.height - fixed-height) / gap-count
+    let highlight-top = heights.slice(0, 6).fold(0pt, (total, height) => total + height) + 6 * gap-height
+    let highlight-center = 100 * (highlight-top + heights.at(6) / 2) / size.height
+    let rhythm = cover-letter-contract.vertical_rhythm
+    let metrics = (
+      (
+        id: "cl.vertical-gap",
+        kind: "cl-vertical-gap",
+        text: "equal distributed gap between cover-letter content blocks",
+        actual_fill: calc.round(10 * gap-height / 1pt) / 10,
+        min_fill: rhythm.gap_pt.minimum,
+        target_fill: rhythm.gap_pt.target,
+        max_fill: rhythm.gap_pt.maximum,
+        unit: "pt",
+      ),
+      (
+        id: "cl.highlight-center",
+        kind: "cl-highlight-center",
+        text: "vertical centre of the highlight block",
+        actual_fill: calc.round(10 * highlight-center) / 10,
+        min_fill: rhythm.highlight_center_percent.minimum,
+        target_fill: rhythm.highlight_center_percent.target,
+        max_fill: rhythm.highlight_center_percent.maximum,
+        unit: "%",
+      ),
     )
+    if line-contract-mode == "enforce" {
+      for metric in metrics {
+        assert(
+          metric.actual_fill >= metric.min_fill and metric.actual_fill <= metric.max_fill,
+          message: metric.id
+            + " measured "
+            + str(metric.actual_fill)
+            + metric.unit
+            + ", target "
+            + str(metric.target_fill)
+            + metric.unit
+            + ", allowed "
+            + str(metric.min_fill)
+            + "–"
+            + str(metric.max_fill)
+            + metric.unit
+            + ". Adjust evidenced content or line allocation, then measure again.",
+        )
+      }
+    }
+    [
+      #for metric in metrics [
+        #metadata(metric) <ccvl-layout>
+      ]
+    ]
     block(width: 100%, height: size.height)[
       #grid(
-        rows: (1fr, auto, 1fr),
+        columns: (1fr,),
+        rows: (
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+          1fr,
+          auto,
+        ),
         align: (left, top),
-        top-content,
+        header-content,
+        [],
+        subject-content,
+        [],
+        salutation-content,
+        [],
+        paragraph(0),
+        [],
+        paragraph(1),
+        [],
+        paragraph(2),
+        [],
         highlights,
-        bottom-content,
+        [],
+        paragraph(3),
+        [],
+        paragraph(4),
+        [],
+        closing-content,
       )
     ]
   })

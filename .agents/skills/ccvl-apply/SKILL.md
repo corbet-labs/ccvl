@@ -22,14 +22,16 @@ Create one canonical record at
    preference.
 5. Write the target-specific CV Summary as exactly five explicit rendered
    lines.
-6. Write exactly five cover-letter paragraphs sharing 15 body lines: nine
-   across paragraphs 1–3, six across paragraphs 4–5, plus five one-line
+6. Write exactly five cover-letter paragraphs targeting 15 body lines, with
+   14–16 accepted. Target nine lines across paragraphs 1–3 and six across
+   paragraphs 4–5; either region may vary by one line. Add five one-line
    highlights. Use `../../../docs/cover-letter.md`.
 7. Run a separate review pass for truth, target fit, plain language, repetition,
    tone, and missing evidence.
 8. Run `ccvl measure`. Underfill or overflow is a failed draft: rewrite with
    verified signal and repeat until every line passes. Then render and verify
-   page counts, highlight centring, visual layout, and text extraction.
+   page counts, vertical rhythm, highlight position, visual layout, and text
+   extraction.
 
 The JSON file is authoritative. If the user explicitly connects another typed
 workspace, mutate only the corresponding typed fields. Never keep a Markdown

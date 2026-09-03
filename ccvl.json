@@ -1,6 +1,6 @@
 {
   "format": "ccvl-workspace",
-  "schema_version": 1,
+  "schema_version": 2,
   "application_schema": "schemas/application.schema.json",
   "profile_schema": "schemas/profile.schema.json",
   "applications": {
@@ -34,11 +34,15 @@
       "en-CH": "cvl/cl/en-ch/main.typ",
       "paragraphs": 5,
       "highlights": 5,
-      "body_lines": 15,
+      "body_lines": { "minimum": 14, "target": 15, "maximum": 16 },
       "line_regions": [
-        { "paragraphs": [1, 2, 3], "lines": 9 },
-        { "paragraphs": [4, 5], "lines": 6 }
-      ]
+        { "paragraphs": [1, 2, 3], "minimum": 8, "target": 9, "maximum": 10 },
+        { "paragraphs": [4, 5], "minimum": 5, "target": 6, "maximum": 7 }
+      ],
+      "vertical_rhythm": {
+        "gap_pt": { "minimum": 30, "target": 45, "maximum": 55 },
+        "highlight_center_percent": { "minimum": 56, "target": 61, "maximum": 67 }
+      }
     }
   }
 }

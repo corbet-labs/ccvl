@@ -85,7 +85,7 @@ def evaluate(spec: DocumentSpec) -> list[dict[str, Any]]:
     command = [
         "typst",
         "eval",
-        "query(<ccvl-line>).map(it => it.value)",
+        "query(<ccvl-line>).map(it => it.value) + query(<ccvl-layout>).map(it => it.value)",
         "--in",
         str(spec.source),
         "--root",
@@ -124,8 +124,21 @@ def validate_metric_set(spec: DocumentSpec, metrics: list[dict[str, Any]]) -> No
         for required in ("cv-heading", "cv-subheading", "cv-bullet"):
             if not counts.get(required):
                 raise MeasurementError(f"{spec.name}: no measured {required} lines found")
-    elif counts.get("cl-body") != 15 or counts.get("cl-highlight") != 5 or len(metrics) != 20:
-        raise MeasurementError(f"{spec.name}: expected 15 body lines and five one-line highlights")
+    elif spec.kind == "cl":
+        body_lines = counts.get("cl-body", 0)
+        contract = json.loads((ROOT / "ccvl.json").read_text(encoding="utf-8"))["documents"]["cover_letter"]
+        body_contract = contract["body_lines"]
+        if not body_contract["minimum"] <= body_lines <= body_contract["maximum"]:
+            raise MeasurementError(
+                f"{spec.name}: expected {body_contract['minimum']}–{body_contract['maximum']} "
+                f"body lines, found {body_lines}"
+            )
+        if counts.get("cl-highlight") != contract["highlights"]:
+            raise MeasurementError(f"{spec.name}: expected {contract['highlights']} one-line highlights")
+        if counts.get("cl-vertical-gap") != 1 or counts.get("cl-highlight-center") != 1:
+            raise MeasurementError(f"{spec.name}: expected one vertical-gap and one highlight-position metric")
+        if len(metrics) != body_lines + 7:
+            raise MeasurementError(f"{spec.name}: unexpected cover-letter metric set")
 
 
 def violation(metric: dict[str, Any]) -> str | None:
@@ -152,17 +165,20 @@ def measure(specs: list[DocumentSpec], *, show_all: bool = False, emit: bool = T
             state = violation(metric)
             if show_all or state:
                 status = "PASS" if state is None else "FAIL"
+                unit = metric.get("unit", "%")
                 line = (
-                    f"{status} {spec.name} #{index} {metric['kind']} {metric['actual_fill']:.1f}% "
-                    f"(target {metric['target_fill']}%, allowed {metric['min_fill']}–{metric['max_fill']}%): "
-                    f"{compact_text(metric['text'])}"
+                    f"{status} {spec.name} #{index} {metric['kind']} {metric['actual_fill']:.1f}{unit} "
+                    f"(target {metric['target_fill']}{unit}, allowed "
+                    f"{metric['min_fill']}–{metric['max_fill']}{unit}): {compact_text(metric['text'])}"
                 )
                 if emit:
                     print(line)
             if state:
+                unit = metric.get("unit", "%")
                 document_failures.append(
-                    f"{spec.name} #{index} {state}: {metric['actual_fill']:.1f}% outside "
-                    f"{metric['min_fill']}–{metric['max_fill']}% (target {metric['target_fill']}%)"
+                    f"{spec.name} #{index} {state}: {metric['actual_fill']:.1f}{unit} outside "
+                    f"{metric['min_fill']}–{metric['max_fill']}{unit} "
+                    f"(target {metric['target_fill']}{unit})"
                 )
         failures.extend(document_failures)
         if emit and not show_all:

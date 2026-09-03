@@ -1,4 +1,7 @@
 // Validation shared by CV and cover-letter renderers.
+#let workspace = json("/ccvl.json")
+#let cover-letter-contract = workspace.documents.cover_letter
+
 #let require-fields(value, fields, scope) = {
   for field in fields {
     assert(field in value, message: scope + "." + field + " is required")
@@ -66,15 +69,39 @@
 
   require-fields(application.tailored_cl, ("paragraphs", "highlights"), "application.tailored_cl")
   let paragraphs = application.tailored_cl.paragraphs
-  assert(paragraphs.len() == 5, message: "application.tailored_cl.paragraphs must contain exactly five items")
   assert(
-    line-count(paragraphs.slice(0, 3)) == 9,
-    message: "cover-letter paragraphs 1–3 must share exactly nine rendered lines",
+    paragraphs.len() == cover-letter-contract.paragraphs,
+    message: "application.tailored_cl.paragraphs must contain exactly "
+      + str(cover-letter-contract.paragraphs)
+      + " items",
   )
+  let body-lines = line-count(paragraphs)
+  let body-contract = cover-letter-contract.body_lines
   assert(
-    line-count(paragraphs.slice(3, 5)) == 6,
-    message: "cover-letter paragraphs 4–5 must share exactly six rendered lines",
+    body-lines >= body-contract.minimum and body-lines <= body-contract.maximum,
+    message: "cover-letter body must contain "
+      + str(body-contract.minimum)
+      + "–"
+      + str(body-contract.maximum)
+      + " rendered lines",
   )
+  for region in cover-letter-contract.line_regions {
+    let start = region.paragraphs.first() - 1
+    let end = region.paragraphs.last()
+    let region-lines = line-count(paragraphs.slice(start, end))
+    assert(
+      region-lines >= region.minimum and region-lines <= region.maximum,
+      message: "cover-letter paragraphs "
+        + str(region.paragraphs.first())
+        + "–"
+        + str(region.paragraphs.last())
+        + " must contain "
+        + str(region.minimum)
+        + "–"
+        + str(region.maximum)
+        + " rendered lines",
+    )
+  }
   for (paragraph-index, paragraph) in paragraphs.enumerate() {
     require-fields(paragraph, ("lines",), "application.tailored_cl.paragraphs." + str(paragraph-index + 1))
     assert(paragraph.lines.len() > 0, message: "every cover-letter paragraph needs at least one rendered line")
@@ -87,8 +114,10 @@
     }
   }
   assert(
-    application.tailored_cl.highlights.len() == 5,
-    message: "application.tailored_cl.highlights must contain exactly five one-line items",
+    application.tailored_cl.highlights.len() == cover-letter-contract.highlights,
+    message: "application.tailored_cl.highlights must contain exactly "
+      + str(cover-letter-contract.highlights)
+      + " one-line items",
   )
   for (index, line) in application.tailored_cl.highlights.enumerate() {
     validate-line-contract(line, "application.tailored_cl.highlights." + str(index + 1), require-text: require-cl)

@@ -22,10 +22,12 @@ It verifies:
   Git whitespace;
 - binary asset integrity and all four bundled Archivo variants;
 - all six CV variants and both cover letters with zero Typst diagnostics;
-- exactly five Summary lines, 15 cover-letter body lines, and five one-line
-  highlights per locale;
+- exactly five Summary lines, 14–16 cover-letter body lines around a target of
+  15, and five one-line highlights per locale;
 - measured minimum and maximum fill for CV headings, subtitles, bullets,
   Summary lines, cover-letter body lines, and highlights;
+- bounded vertical gaps and highlight position so the cover letter fills A4
+  with distributed rhythm rather than large elastic whitespace blocks;
 - exact A4 page counts, usable text layers, embedded, subsetted, and
   Unicode-mapped Archivo fonts;
 - unencrypted PDFs without forms, JavaScript, attachments, or fallback fonts;

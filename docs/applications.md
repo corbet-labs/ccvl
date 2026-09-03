@@ -11,8 +11,8 @@ Create it from `templates/application.json`. Schema version 2 contains:
 - `job`: vacancy, organisation, source, description, context, notes, and
   recipient;
 - `tailored_cv.summary`: exactly five measured line objects;
-- `tailored_cl.paragraphs`: exactly five paragraphs sharing a 9+6 body-line
-  budget;
+- `tailored_cl.paragraphs`: exactly five paragraphs targeting a 9+6 body-line
+  allocation, with one line of tolerance per region and 14–16 lines overall;
 - `tailored_cl.highlights`: exactly five measured one-line highlights.
 
 Every measured line has this portable shape:

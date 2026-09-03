@@ -25,7 +25,8 @@ content is visible for professional evaluation, but is not a reusable template.
   an always-five-line Summary.
 - A target-neutral cover letter with five paragraphs and five highlights.
 - One schema-validated `application.json` per concrete opportunity.
-- Measured minimum, target, and maximum fill for every controlled content line.
+- Measured minimum, target, and maximum bounds for controlled line width,
+  cover-letter spacing, and highlight position.
 - Shared Typst components, bundled fonts, and reproducible build commands.
 - Eight agent skills for setup, evidence-backed profiles, target research, CV
   work, applications, interview preparation, upskilling, and outcome tracking.

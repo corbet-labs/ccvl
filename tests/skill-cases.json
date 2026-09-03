@@ -221,7 +221,7 @@
         },
         {
           "id": "build-review-verify",
-          "text": "Draft a five-line Summary, five paragraphs sharing 15 lines, and five one-line highlights; review, measure, iterate, and verify."
+          "text": "Draft a five-line Summary, five paragraphs targeting 15 body lines with one-line tolerance, and five one-line highlights; review, measure, iterate, and verify."
         },
         {
           "id": "follow-posting-instructions",

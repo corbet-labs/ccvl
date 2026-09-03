@@ -23,13 +23,22 @@ def validate_line_contracts(application: dict[str, object], location: str, *, re
         validate_line_contract(line, f"{location}.tailored_cv.summary[{index}]", require_text=require_text)
 
     paragraphs = application["tailored_cl"]["paragraphs"]
-    expected_regions = ((0, 3, 9), (3, 5, 6))
-    for start, end, expected_lines in expected_regions:
+    contract = load_json(ROOT / "ccvl.json")["documents"]["cover_letter"]
+    body_lines = sum(len(paragraph["lines"]) for paragraph in paragraphs)
+    body_contract = contract["body_lines"]
+    if not body_contract["minimum"] <= body_lines <= body_contract["maximum"]:
+        raise ValidationError(
+            f"{location}.tailored_cl.paragraphs: expected {body_contract['minimum']}–"
+            f"{body_contract['maximum']} body lines, found {body_lines}"
+        )
+    for region in contract["line_regions"]:
+        start = region["paragraphs"][0] - 1
+        end = region["paragraphs"][-1]
         actual_lines = sum(len(paragraph["lines"]) for paragraph in paragraphs[start:end])
-        if actual_lines != expected_lines:
+        if not region["minimum"] <= actual_lines <= region["maximum"]:
             raise ValidationError(
                 f"{location}.tailored_cl.paragraphs[{start + 1}:{end}]: "
-                f"expected a shared budget of {expected_lines} lines, found {actual_lines}"
+                f"expected {region['minimum']}–{region['maximum']} shared lines, found {actual_lines}"
             )
     for paragraph_index, paragraph in enumerate(paragraphs, start=1):
         for line_index, line in enumerate(paragraph["lines"], start=1):
@@ -44,7 +53,7 @@ def validate_line_contracts(application: dict[str, object], location: str, *, re
 
 def validate_manifest() -> None:
     manifest = load_json(ROOT / "ccvl.json")
-    if manifest.get("format") != "ccvl-workspace" or manifest.get("schema_version") != 1:
+    if manifest.get("format") != "ccvl-workspace" or manifest.get("schema_version") != 2:
         raise ValidationError("ccvl.json: unsupported workspace format or schema version")
     path_fields = [
         manifest["application_schema"],
@@ -68,11 +77,15 @@ def validate_manifest() -> None:
     expected = {
         "paragraphs": 5,
         "highlights": 5,
-        "body_lines": 15,
+        "body_lines": {"minimum": 14, "target": 15, "maximum": 16},
         "line_regions": [
-            {"paragraphs": [1, 2, 3], "lines": 9},
-            {"paragraphs": [4, 5], "lines": 6},
+            {"paragraphs": [1, 2, 3], "minimum": 8, "target": 9, "maximum": 10},
+            {"paragraphs": [4, 5], "minimum": 5, "target": 6, "maximum": 7},
         ],
+        "vertical_rhythm": {
+            "gap_pt": {"minimum": 30, "target": 45, "maximum": 55},
+            "highlight_center_percent": {"minimum": 56, "target": 61, "maximum": 67},
+        },
     }
     if any(cover_letter.get(key) != value for key, value in expected.items()):
         raise ValidationError("ccvl.json: cover-letter line and structure contract changed")
