@@ -5,6 +5,7 @@ export LC_ALL=C
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="$repo_root/.cache/ccvl/bin:$PATH"
+managed_python="$repo_root/.cache/ccvl/venv/bin/python3"
 validation_dir="$(mktemp -d "${TMPDIR:-/tmp}/ccvl-check.XXXXXXXX")"
 trap 'rm -rf -- "$validation_dir"' EXIT
 
@@ -12,9 +13,9 @@ cd "$repo_root"
 
 bash scripts/doctor.sh >/dev/null
 bash scripts/check-fonts.sh
-python3 scripts/validate_workspace.py
-python3 scripts/station_plan.py --verify-sources
-python3 -m unittest discover -s tests -p 'test_*.py'
+"$managed_python" scripts/validate_workspace.py
+"$managed_python" scripts/station_plan.py --verify-sources
+"$managed_python" -m unittest discover -s tests -p 'test_*.py'
 bash tests/test_bootstrap.sh
 for shell_script in scripts/*.sh; do
   bash -n "$shell_script"
@@ -22,12 +23,26 @@ done
 typstyle --check --line-width 120 cvl
 
 profile_value() {
-  python3 - "$1" <<'PY'
+  "$managed_python" - "$1" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 print(json.loads(Path("cvl/general/profile.json").read_text(encoding="utf-8"))[sys.argv[1]])
+PY
+}
+
+same_document() {
+  PYTHONPATH="$repo_root/scripts" "$managed_python" - "$1" "$2" <<'PY'
+import sys
+from pathlib import Path
+
+from check import semantic_pdf_signature
+
+raise SystemExit(
+    semantic_pdf_signature(Path(sys.argv[1]))
+    != semantic_pdf_signature(Path(sys.argv[2]))
+)
 PY
 }
 
@@ -152,7 +167,7 @@ for locale in de-ch en-ch; do
       printf 'CV build is not byte-reproducible: %s %s pages\n' "$locale" "$pages" >&2
       exit 1
     }
-    cmp --silent "$pdf" "cvl/cv/output/$locale/${pages}pager/cv.pdf" || {
+    same_document "$pdf" "cvl/cv/output/$locale/${pages}pager/cv.pdf" || {
       printf 'Tracked CV output is stale: %s %s pages\n' "$locale" "$pages" >&2
       exit 1
     }
@@ -164,7 +179,7 @@ for locale in de-ch en-ch; do
     printf 'Cover-letter build is not byte-reproducible: %s\n' "$locale" >&2
     exit 1
   }
-  cmp --silent "$pdf" "cvl/cl/output/$locale/cl.pdf" || {
+  same_document "$pdf" "cvl/cl/output/$locale/cl.pdf" || {
     printf 'Tracked cover-letter output is stale: %s\n' "$locale" >&2
     exit 1
   }
