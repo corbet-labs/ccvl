@@ -6,6 +6,10 @@
 
 #let cover-letter(locale, application, signature-path: none) = {
   validate-application(application, expected-language: locale, require-cl: true)
+  set document(
+    title: (if locale == "de-CH" { "Anschreiben" } else { "Cover Letter" }) + " | " + profile.name,
+    author: (profile.name,),
+  )
   let job = application.job
   let letter = application.tailored_cl
   let recipient = job.cl_recipient

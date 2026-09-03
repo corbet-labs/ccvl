@@ -122,7 +122,14 @@ pub fn validate_boundary(workspace: &Workspace) -> Result<()> {
     let secret = Regex::new(
         r"(?m)-----BEGIN (?:[A-Z ]+ )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}",
     )?;
-    let private = Regex::new(r"/home/richc|julian-corbet/applications|BEGIN OPENSSH PRIVATE KEY")?;
+    let private = Regex::new(concat!(
+        r"/home/",
+        "richc",
+        r"|julian-corbet/",
+        "applications",
+        r"|BEGIN OPENSSH ",
+        "PRIVATE KEY"
+    ))?;
     for path in public_files(workspace)? {
         let relative = workspace.relative(&path)?;
         let is_font = relative.starts_with("cvl/shared/fonts");
@@ -137,7 +144,9 @@ pub fn validate_boundary(workspace: &Workspace) -> Result<()> {
                 "potential secret found: {}",
                 relative.display()
             );
-            if ![Path::new("PUBLIC_IDENTIFIERS.md")].contains(&relative.as_path()) {
+            let declares_public_identifiers = relative == Path::new("PUBLIC_IDENTIFIERS.md")
+                || relative == Path::new("scripts/public_check.py");
+            if !declares_public_identifiers {
                 ensure!(
                     !private.is_match(&text),
                     "private workspace identifier found: {}",

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -14,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from pypdf import PdfReader
+from pypdf.generic import ArrayObject, DictionaryObject, IndirectObject, StreamObject
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -108,6 +110,59 @@ def resources_have_image(resources: Any, seen: set[int] | None = None) -> bool:
 def page_content(page: Any) -> bytes:
     contents = page.get_contents()
     return contents.get_data() if contents else b""
+
+
+def semantic_pdf_object(value: Any) -> Any:
+    """Return a stable PDF representation independent of stream compression."""
+    if isinstance(value, IndirectObject):
+        return ("reference", value.idnum, value.generation)
+    if isinstance(value, StreamObject):
+        attributes = tuple(
+            (str(key), semantic_pdf_object(item))
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+            if str(key) not in {"/DecodeParms", "/Filter", "/Length"}
+        )
+        data = re.sub(
+            rb"(<xmpMM:InstanceID>)[^<]*(</xmpMM:InstanceID>)",
+            rb"\1CCVL-DETERMINISTIC-INSTANCE\2",
+            value.get_data(),
+        )
+        return ("stream", attributes, hashlib.sha256(data).hexdigest())
+    if isinstance(value, DictionaryObject):
+        return (
+            "dictionary",
+            tuple(
+                (str(key), semantic_pdf_object(item))
+                for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+            ),
+        )
+    if isinstance(value, ArrayObject):
+        return ("array", tuple(semantic_pdf_object(item) for item in value))
+    if isinstance(value, bytes):
+        return ("bytes", value.hex())
+    return (type(value).__name__, str(value))
+
+
+def semantic_pdf_signature(path: Path) -> str:
+    """Hash every logical PDF object while excluding the rendition identifier."""
+    reader = PdfReader(path, strict=True)
+    identifiers = reader.trailer.get("/ID", ())
+    document_identifier = str(identifiers[0]) if identifiers else ""
+    objects = []
+    for generation, entries in sorted(reader.xref.items()):
+        for object_number in sorted(entries):
+            if object_number == 0:
+                continue
+            reference = IndirectObject(object_number, generation, reader)
+            objects.append((object_number, generation, semantic_pdf_object(reader.get_object(reference))))
+    payload = repr((document_identifier, objects)).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def require_tracked_pdf(generated: Path, tracked: Path, description: str) -> None:
+    """Require equal PDF semantics across the CLI and embedded Rust compilers."""
+    if semantic_pdf_signature(generated) != semantic_pdf_signature(tracked):
+        raise CheckError(f"tracked {description} output is stale or platform-dependent")
 
 
 def check_pdf(path: Path, expected_pages: int, contacts: list[str], require_image: bool = False) -> PdfReader:
@@ -213,8 +268,7 @@ def run_checks() -> None:
                 if generated.read_bytes() != (second / generated.name).read_bytes():
                     raise CheckError(f"CV build is not byte-reproducible: {locale} {pages} pages")
                 tracked = ROOT / "cvl" / "cv" / "output" / locale / f"{pages}pager" / "cv.pdf"
-                if generated.read_bytes() != tracked.read_bytes():
-                    raise CheckError(f"tracked CV output is stale or platform-dependent: {locale} {pages} pages")
+                require_tracked_pdf(generated, tracked, f"CV {locale} {pages}-page")
             for page_index in (0, 1):
                 baseline = page_content(readers[2].pages[page_index])
                 if any(page_content(readers[pages].pages[page_index]) != baseline for pages in (3, 4)):
@@ -225,8 +279,7 @@ def run_checks() -> None:
             if generated_cl.read_bytes() != (second / generated_cl.name).read_bytes():
                 raise CheckError(f"cover-letter build is not byte-reproducible: {locale}")
             tracked_cl = ROOT / "cvl" / "cl" / "output" / locale / "cl.pdf"
-            if generated_cl.read_bytes() != tracked_cl.read_bytes():
-                raise CheckError(f"tracked cover-letter output is stale or platform-dependent: {locale}")
+            require_tracked_pdf(generated_cl, tracked_cl, f"cover-letter {locale}")
 
 
 def main() -> int:

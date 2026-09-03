@@ -16,7 +16,9 @@
 #import "../../shared/components/header.typ": application-header
 #import "../../shared/application.typ": validate-application
 #import "../../shared/line-contract.typ": measured-lines
+#import "../../shared/profile.typ": profile
 #show: document-style.with(locale: "en-ch")
+#set document(title: "Curriculum Vitae | " + profile.name, author: (profile.name,))
 
 // Page count is selected at compile time: 2 = core, 3 = projects, 4 = competencies.
 #let cv-pages = int(sys.inputs.at("cv-pages", default: "4"))
