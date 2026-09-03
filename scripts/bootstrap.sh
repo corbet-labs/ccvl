@@ -61,23 +61,36 @@ tool_matches() {
 }
 
 pinned_tools=()
+pinned_tool_count=0
 if [[ "${CCVL_BOOTSTRAP_FORCE_LOCAL:-0}" == 1 ]]; then
   if [[ ! -x "$local_bin/typst" ]] \
     || ! "$local_bin/typst" --version 2>&1 | grep -Fq "typst $CCVL_TYPST_VERSION"; then
     pinned_tools+=(typst)
+    ((pinned_tool_count += 1))
   fi
   if [[ ! -x "$local_bin/typstyle" ]] \
     || ! "$local_bin/typstyle" --version 2>&1 | grep -Fq "$CCVL_TYPSTYLE_VERSION"; then
     pinned_tools+=(typstyle)
+    ((pinned_tool_count += 1))
   fi
   if [[ ! -x "$local_bin/uv" ]] \
     || ! "$local_bin/uv" --version 2>&1 | grep -Fq "uv $CCVL_UV_VERSION"; then
     pinned_tools+=(uv)
+    ((pinned_tool_count += 1))
   fi
 else
-  tool_matches typst "typst $CCVL_TYPST_VERSION" || pinned_tools+=(typst)
-  tool_matches typstyle "$CCVL_TYPSTYLE_VERSION" || pinned_tools+=(typstyle)
-  tool_matches uv "uv $CCVL_UV_VERSION" || pinned_tools+=(uv)
+  if ! tool_matches typst "typst $CCVL_TYPST_VERSION"; then
+    pinned_tools+=(typst)
+    ((pinned_tool_count += 1))
+  fi
+  if ! tool_matches typstyle "$CCVL_TYPSTYLE_VERSION"; then
+    pinned_tools+=(typstyle)
+    ((pinned_tool_count += 1))
+  fi
+  if ! tool_matches uv "uv $CCVL_UV_VERSION"; then
+    pinned_tools+=(uv)
+    ((pinned_tool_count += 1))
+  fi
 fi
 
 manager="${CCVL_BOOTSTRAP_TEST_MANAGER:-}"
@@ -95,29 +108,57 @@ if [[ -z "$manager" ]]; then
 fi
 
 missing_bootstrap=()
-if ((${#pinned_tools[@]} > 0)); then
+missing_bootstrap_count=0
+if ((pinned_tool_count > 0)); then
   if ! probe curl >/dev/null && ! probe wget >/dev/null; then
     missing_bootstrap+=(downloader)
+    ((missing_bootstrap_count += 1))
   fi
   if [[ "$platform" == Linux-* ]] && ! probe xz >/dev/null; then
     missing_bootstrap+=(xz)
+    ((missing_bootstrap_count += 1))
   fi
 fi
 
 system_packages=()
-for command_name in "${missing_bootstrap[@]}"; do
-  case "$manager:$command_name" in
-    apt:downloader | dnf:downloader | pacman:downloader | brew:downloader) system_packages+=(curl) ;;
-    apt:xz) system_packages+=(xz-utils) ;;
-    dnf:xz | pacman:xz | brew:xz) system_packages+=(xz) ;;
-    nix:downloader) system_packages+=(nixpkgs#curl) ;;
-    nix:xz) system_packages+=(nixpkgs#xz) ;;
-  esac
-done
+system_package_count=0
+if ((missing_bootstrap_count > 0)); then
+  for command_name in "${missing_bootstrap[@]}"; do
+    case "$manager:$command_name" in
+      apt:downloader | dnf:downloader | pacman:downloader | brew:downloader)
+        system_packages+=(curl)
+        ((system_package_count += 1))
+        ;;
+      apt:xz)
+        system_packages+=(xz-utils)
+        ((system_package_count += 1))
+        ;;
+      dnf:xz | pacman:xz | brew:xz)
+        system_packages+=(xz)
+        ((system_package_count += 1))
+        ;;
+      nix:downloader)
+        system_packages+=(nixpkgs#curl)
+        ((system_package_count += 1))
+        ;;
+      nix:xz)
+        system_packages+=(nixpkgs#xz)
+        ((system_package_count += 1))
+        ;;
+    esac
+  done
+fi
+
+pinned_tools_display=none
+missing_bootstrap_display=none
+system_packages_display=none
+if ((pinned_tool_count > 0)); then pinned_tools_display="${pinned_tools[*]}"; fi
+if ((missing_bootstrap_count > 0)); then missing_bootstrap_display="${missing_bootstrap[*]}"; fi
+if ((system_package_count > 0)); then system_packages_display="${system_packages[*]}"; fi
 
 printf 'ccvl bootstrap plan\n'
 printf '  platform: %s\n' "$platform"
-printf '  pinned local tools: %s\n' "${pinned_tools[*]:-none}"
+printf '  pinned local tools: %s\n' "$pinned_tools_display"
 runtime_state='synchronize'
 runtime_python="$repo_root/.cache/ccvl/venv/bin/python"
 if [[ -x "$runtime_python" ]] \
@@ -128,18 +169,18 @@ if [[ -x "$runtime_python" ]] \
 fi
 printf '  managed runtime: %s (Python %s with frozen uv.lock)\n' \
   "$runtime_state" "$(<"$repo_root/.python-version")"
-printf '  missing bootstrap commands: %s\n' "${missing_bootstrap[*]:-none}"
+printf '  missing bootstrap commands: %s\n' "$missing_bootstrap_display"
 printf '  package manager: %s\n' "${manager:-none}"
-printf '  host packages: %s\n' "${system_packages[*]:-none}"
+printf '  host packages: %s\n' "$system_packages_display"
 
-if ((${#pinned_tools[@]} == 0 && ${#missing_bootstrap[@]} == 0)); then
+if ((pinned_tool_count == 0 && missing_bootstrap_count == 0)); then
   printf 'No tool downloads or host-package changes required.\n'
 fi
 if [[ "$mode" == plan ]]; then
   printf 'No changes made. Run bash ./ccvl setup to execute this plan.\n'
   exit 0
 fi
-if [[ -z "$manager" && ${#missing_bootstrap[@]} -gt 0 ]]; then
+if [[ -z "$manager" ]] && ((missing_bootstrap_count > 0)); then
   printf 'No supported package manager found for missing bootstrap commands: %s\n' \
     "${missing_bootstrap[*]}" >&2
   exit 2
@@ -156,7 +197,7 @@ as_root() {
   fi
 }
 
-if ((${#system_packages[@]} > 0)); then
+if ((system_package_count > 0)); then
   case "$manager" in
     apt)
       as_root apt-get update
@@ -223,9 +264,11 @@ install_tool() {
 mkdir -p "$local_bin"
 bootstrap_tmp="$(mktemp -d "${TMPDIR:-/tmp}/ccvl-bootstrap.XXXXXXXX")"
 trap 'rm -rf -- "$bootstrap_tmp"' EXIT
-for tool in "${pinned_tools[@]}"; do
-  install_tool "$tool"
-done
+if ((pinned_tool_count > 0)); then
+  for tool in "${pinned_tools[@]}"; do
+    install_tool "$tool"
+  done
+fi
 
 uv_path="$(command -v uv)"
 cd "$repo_root"

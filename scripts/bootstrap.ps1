@@ -103,20 +103,20 @@ foreach ($Tool in $ExpectedTools) {
     }
 }
 
-Write-Host "ccvl bootstrap plan"
-Write-Host "  platform: $Platform"
-Write-Host "  pinned local tools: $(if ($Missing.Count) { $Missing -join ' ' } else { 'none' })"
+Write-Output "ccvl bootstrap plan"
+Write-Output "  platform: $Platform"
+Write-Output "  pinned local tools: $(if ($Missing.Count) { $Missing -join ' ' } else { 'none' })"
 $RuntimeState = "synchronize"
 $RuntimePython = Join-Path $env:UV_PROJECT_ENVIRONMENT "Scripts\python.exe"
 if (Test-Path -LiteralPath $RuntimePython -PathType Leaf) {
     & $RuntimePython -c "import platform,pypdf,sys;sys.exit(platform.python_version()!=sys.argv[1] or pypdf.__version__!=sys.argv[2])" $PythonVersion $PypdfVersion
     if ($LASTEXITCODE -eq 0) { $RuntimeState = "ready" }
 }
-Write-Host "  managed runtime: $RuntimeState (Python $PythonVersion with frozen uv.lock)"
-Write-Host "  host packages: none"
+Write-Output "  managed runtime: $RuntimeState (Python $PythonVersion with frozen uv.lock)"
+Write-Output "  host packages: none"
 
 if ($Mode -eq "plan") {
-    Write-Host "No changes made. Run .\ccvl.cmd setup to execute this plan."
+    Write-Output "No changes made. Run .\ccvl.cmd setup to execute this plan."
     return
 }
 
@@ -149,4 +149,4 @@ try {
 finally {
     Pop-Location
 }
-Write-Host "Bootstrap complete. Managed runtime ready; downloaded assets remain below .cache/ccvl/."
+Write-Output "Bootstrap complete. Managed runtime ready; downloaded assets remain below .cache/ccvl/."

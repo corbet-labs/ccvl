@@ -4,6 +4,7 @@ set -euo pipefail
 export LC_ALL=C
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+export PATH="$repo_root/.cache/ccvl/bin:$PATH"
 validation_dir="$(mktemp -d "${TMPDIR:-/tmp}/ccvl-check.XXXXXXXX")"
 trap 'rm -rf -- "$validation_dir"' EXIT
 
