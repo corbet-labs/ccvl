@@ -12,7 +12,11 @@
 /__pycache__/
 **/__pycache__/
 /result
+/target/
 /tmp/
+
+# Local review notes are not part of the public template
+/Schw*chen.md
 
 # Secrets
 .env

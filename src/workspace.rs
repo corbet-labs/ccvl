@@ -1,0 +1,117 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result, bail};
+use serde_json::Value;
+
+#[derive(Clone, Debug)]
+pub struct Workspace {
+    root: PathBuf,
+}
+
+impl Workspace {
+    pub fn discover(explicit: Option<&Path>) -> Result<Self> {
+        if let Some(root) = explicit {
+            return Self::at(root);
+        }
+        if let Ok(cwd) = std::env::current_dir()
+            && let Some(root) = find_root(&cwd)
+        {
+            return Self::at(&root);
+        }
+        if let Ok(executable) = std::env::current_exe()
+            && let Some(parent) = executable.parent()
+            && let Some(root) = find_root(parent)
+        {
+            return Self::at(&root);
+        }
+        bail!("no ccvl.json found in the current directory or its parents")
+    }
+
+    pub fn at(root: &Path) -> Result<Self> {
+        let root = root
+            .canonicalize()
+            .with_context(|| format!("cannot resolve workspace {}", root.display()))?;
+        if !root.join("ccvl.json").is_file() {
+            bail!("{} is not a ccvl workspace", root.display());
+        }
+        Ok(Self { root })
+    }
+
+    #[must_use]
+    pub fn root(&self) -> &Path {
+        &self.root
+    }
+
+    #[must_use]
+    pub fn path(&self, relative: impl AsRef<Path>) -> PathBuf {
+        self.root.join(relative)
+    }
+
+    pub fn existing_inside(&self, value: impl AsRef<Path>) -> Result<PathBuf> {
+        let value = value.as_ref();
+        let candidate = if value.is_absolute() {
+            value.to_path_buf()
+        } else {
+            self.root.join(value)
+        };
+        let resolved = candidate
+            .canonicalize()
+            .with_context(|| format!("cannot resolve {}", value.display()))?;
+        if !resolved.starts_with(&self.root) {
+            bail!(
+                "input must be inside the ccvl workspace: {}",
+                value.display()
+            );
+        }
+        Ok(resolved)
+    }
+
+    pub fn relative(&self, path: &Path) -> Result<PathBuf> {
+        path.strip_prefix(&self.root)
+            .map(Path::to_path_buf)
+            .with_context(|| format!("{} is outside the ccvl workspace", path.display()))
+    }
+
+    pub fn typst_path(&self, path: &Path) -> Result<String> {
+        let relative = self.relative(&self.existing_inside(path)?)?;
+        Ok(format!(
+            "/{}",
+            relative.to_string_lossy().replace('\\', "/")
+        ))
+    }
+
+    pub fn read_json(&self, relative: impl AsRef<Path>) -> Result<Value> {
+        read_json(&self.path(relative))
+    }
+}
+
+pub fn read_json(path: &Path) -> Result<Value> {
+    let text = fs::read_to_string(path)
+        .with_context(|| format!("cannot read JSON file {}", path.display()))?;
+    serde_json::from_str(&text).with_context(|| format!("invalid JSON in {}", path.display()))
+}
+
+fn find_root(start: &Path) -> Option<PathBuf> {
+    start
+        .ancestors()
+        .find(|candidate| candidate.join("ccvl.json").is_file())
+        .map(Path::to_path_buf)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn repository_root_is_discoverable() {
+        let workspace = Workspace::discover(None).unwrap();
+        assert!(workspace.root().join("ccvl.json").is_file());
+    }
+
+    #[test]
+    fn parent_escape_is_rejected() {
+        let workspace = Workspace::discover(None).unwrap();
+        assert!(workspace.existing_inside("../applications").is_err());
+    }
+}

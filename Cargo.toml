@@ -1,0 +1,49 @@
+[package]
+name = "ccvl"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+description = "Local-first, deterministic CV and cover-letter compiler"
+license = "FSL-1.1-ALv2"
+repository = "https://github.com/corbet-labs/ccvl"
+publish = false
+
+[lib]
+name = "ccvl"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ccvl"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+ctypst = { version = "0.1.0", default-features = false, features = ["document-fonts", "format", "pdf"] }
+lopdf = { version = "0.44", default-features = false }
+regex = "1.12"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+tempfile = "3.23"
+ureq = { version = "3.1", default-features = false, features = ["json", "rustls"] }
+unicode-normalization = "0.1"
+walkdir = "2.5"
+
+[dev-dependencies]
+pretty_assertions = "1.4"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+too_many_lines = "allow"

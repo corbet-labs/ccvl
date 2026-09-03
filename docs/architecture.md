@@ -31,8 +31,11 @@ gate requires 6–8 experience entries on page 1, exactly 10 two-bullet supporti
 entries on page 2, exactly 10 two-bullet projects on page 3, and three groups of
 three three-line competency blocks on page 4 before the master is ready.
 
-Reusable Typst rendering code, bundled fonts, and tracked general outputs also
-live below `cvl/`. They are mechanism, not a second candidate-data model.
+Document-specific Typst sources and tracked general outputs also live below
+`cvl/`. The shared `ctypst` Rust crate owns native compilation, formatting,
+metadata queries, deterministic PDF export, and the embedded font pack. ccvl
+retains the CV/CL layout contracts; neither mechanism is a second candidate-data
+model.
 
 ## `targets/`: the market map
 

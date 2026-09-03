@@ -33,7 +33,7 @@ content is visible for professional evaluation, but is not a reusable template.
 - One schema-validated `application.json` per concrete opportunity.
 - Measured minimum, target, and maximum bounds for controlled line width,
   cover-letter spacing, and highlight position.
-- Shared Typst components, bundled fonts, and reproducible build commands.
+- A shared `ctypst` Rust engine with embedded fonts and reproducible PDF output.
 - Eight agent skills for setup, evidence-backed profiles, target research, CV
   work, applications, interview preparation, upskilling, and outcome tracking.
 - Privacy and provenance rules for keeping personal application data in a
