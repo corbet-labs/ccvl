@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "revision", "job", "tailored_cv", "tailored_cl"],
   "properties": {
-    "schema_version": { "const": 3 },
+    "schema_version": { "const": 4 },
     "revision": { "type": "integer", "minimum": 0 },
     "job": {
       "type": "object",
@@ -45,8 +45,9 @@
     "tailored_cv": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["summary"],
+      "required": ["pages", "summary"],
       "properties": {
+        "pages": { "type": "integer", "minimum": 2, "maximum": 4 },
         "summary": {
           "type": "array",
           "minItems": 5,
@@ -58,8 +59,9 @@
     "tailored_cl": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["paragraphs", "highlights"],
+      "required": ["enabled"],
       "properties": {
+        "enabled": { "type": "boolean" },
         "paragraphs": {
           "type": "array",
           "minItems": 6,

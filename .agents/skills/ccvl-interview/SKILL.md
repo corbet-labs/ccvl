@@ -25,7 +25,7 @@ what the interviewer actually received, not from a newer generic CV.
    clarity, evidence, and brevity without scripting a false persona.
 
 Save private preparation beside the opportunity as
-`applications/<job-id>/interview-<stage>.md`. Do not alter the submitted
+`opportunities/<organisation-key>/<position-key>/interview-<stage>.md`. Do not alter the submitted
 documents, manufacture experience, infer private facts about interviewers, or
 contact anyone. Interview preparation never authorises recording a call or
 using concealed assistance during one.

@@ -271,7 +271,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, default=ROOT / "tests/skill-cases.json")
     parser.add_argument("--skills-root", type=Path, default=ROOT / ".agents/skills")
-    parser.add_argument("--output", type=Path, default=ROOT / "out/ai-skill-eval/report.json")
+    parser.add_argument("--output", type=Path, default=ROOT / "tmp/ai-skill-eval/report.json")
     parser.add_argument("--response-file", type=Path)
     parser.add_argument("--summary", type=Path)
     parser.add_argument("--model", default=os.environ.get("GROQ_MODEL", DEFAULT_MODEL))

@@ -23,8 +23,9 @@ def contract(text: str = "evidence", minimum: int = 75, target: int = 90, maximu
 
 def application(paragraph_lengths: tuple[int, ...] = (3, 6, 6, 5, 5, 3)) -> dict[str, object]:
     return {
-        "tailored_cv": {"summary": [contract() for _ in range(5)]},
+        "tailored_cv": {"pages": 4, "summary": [contract() for _ in range(5)]},
         "tailored_cl": {
+            "enabled": True,
             "paragraphs": [{"lines": [contract() for _ in range(length)]} for length in paragraph_lengths],
             "highlights": [contract(minimum=60, target=82) for _ in range(5)],
         },
@@ -32,6 +33,17 @@ def application(paragraph_lengths: tuple[int, ...] = (3, 6, 6, 5, 5, 3)) -> dict
 
 
 class LineContractTests(unittest.TestCase):
+    def test_cv_only_opportunity_is_valid(self) -> None:
+        draft = application()
+        draft["tailored_cl"] = {"enabled": False}
+        validate_line_contracts(draft, "fixture", require_text=True)
+
+    def test_disabled_cover_letter_cannot_retain_hidden_content(self) -> None:
+        draft = application()
+        draft["tailored_cl"]["enabled"] = False
+        with self.assertRaisesRegex(ValidationError, "disabled cover letter"):
+            validate_line_contracts(draft, "fixture", require_text=True)
+
     def test_preferred_cover_letter_distribution_is_valid(self) -> None:
         validate_line_contracts(application((3, 6, 6, 5, 5, 3)), "fixture", require_text=True)
 

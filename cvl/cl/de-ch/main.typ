@@ -2,7 +2,7 @@
 #import "../../shared/components/cover-letter.typ": cover-letter
 #show: document-style.with(locale: "de-ch")
 
-#let application-path = sys.inputs.at("application", default: "/showcase/de-ch/application.json")
+#let application-path = sys.inputs.at("application", default: "/cvl/general/de-ch/application.json")
 #let application = json(application-path)
 
 #cover-letter(

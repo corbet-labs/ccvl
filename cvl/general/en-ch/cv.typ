@@ -12,16 +12,16 @@
 // (outcome, metric, scope, reference, ownership, or method) and ask for the
 // relevant fact instead of padding or weakening the wording.
 
-#import "../../cvl/shared/styles/document.typ": *
-#import "../../cvl/shared/components/header.typ": application-header
-#import "../../cvl/shared/application.typ": validate-application
-#import "../../cvl/shared/line-contract.typ": measured-lines
+#import "../../shared/styles/document.typ": *
+#import "../../shared/components/header.typ": application-header
+#import "../../shared/application.typ": validate-application
+#import "../../shared/line-contract.typ": measured-lines
 #show: document-style.with(locale: "en-ch")
 
 // Page count is selected at compile time: 2 = core, 3 = projects, 4 = competencies.
 #let cv-pages = int(sys.inputs.at("cv-pages", default: "4"))
 #assert(cv-pages >= 2 and cv-pages <= 4, message: "cv-pages must be 2, 3, or 4")
-#let application-path = sys.inputs.at("application", default: "/showcase/en-ch/application.json")
+#let application-path = sys.inputs.at("application", default: "/cvl/general/en-ch/application.json")
 #let application = json(application-path)
 #validate-application(application, expected-language: "en-CH", require-cv: true)
 
@@ -41,6 +41,7 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Experience]
+  // ccvl-station: cenvion
   #cv-h[Infrastructure Investments & Asset Management: #brand[CENVION]]
   #v(6.3pt)
   #cv-s[Associate Intern | Infrastructure Investments · Jan 2026 – Mar 2026 (plus freelance work) · Wollerau (CH)]
@@ -51,6 +52,7 @@
   #v(8.4pt)
   #cv-b[Built Excel project-finance models; analysed cash flows, returns and financing scenarios]
   #cv-entry-gap()
+  // ccvl-station: swisscom
   #cv-h[Cloud Strategy & Transformation: #brand[Swisscom Financial Services]]
   #v(6.3pt)
   #cv-s[Executive Assistant & Consultant | B2B & Infrastructure · Jun 2024 – Mar 2025 · Bern + Zurich]
@@ -61,6 +63,7 @@
   #v(8.4pt)
   #cv-b[Modelled cloud economics and 2× compute density under DC constraints; selected for the TOM workstream]
   #cv-entry-gap()
+  // ccvl-station: airbus
   #cv-h[AI Engineering: #brand[AIRBUS Defence & Space]]
   #v(6.3pt)
   #cv-s[Risk & Compliance Analyst | AI/ML Master's Thesis · Jul 2023 – Mar 2024 · Ingolstadt]
@@ -71,6 +74,7 @@
   #v(8.4pt)
   #cv-b[Tailored 0-to-1 AI pilot to three departments’ objectives; secured stakeholder buy-in with business case]
   #cv-entry-gap()
+  // ccvl-station: covendit
   #cv-h[M&A & Corporate Finance: #brand[COVENDIT]]
   #v(6.3pt)
   #cv-s[Investment Banking Analyst | Working Student · Apr 2022 – Jun 2022 · Frankfurt]
@@ -81,6 +85,7 @@
   #v(8.4pt)
   #cv-b[Advised PE clients on targets; won a retainer and received an Associate-level return offer]
   #cv-entry-gap()
+  // ccvl-station: nexgen
   #cv-h[Strategy & Technology Consulting: #brand[NEXGEN Business Consultants]]
   #v(6.3pt)
   #cv-s[Junior Consultant (Working Student) | Banking Technology & Regulation · Apr 2022 – Jun 2022 · Frankfurt]
@@ -91,6 +96,7 @@
   #v(8.4pt)
   #cv-b[Prepared regulatory/IT analysis for thought leadership and pitches; supported business development]
   #cv-entry-gap()
+  // ccvl-station: consulting-venture
   #cv-h[Management & Technology Consulting: #brand[A Softer Space & Corbet Consulting]]
   #v(6.3pt)
   #cv-s[Head of Business Development | Management Consultant · Jan 2018 – Jun 2023 · CH, DE, IS, UK]
@@ -101,6 +107,7 @@
   #v(8.4pt)
   #cv-b[Managed project P&L end to end: acquisition, proposals, pricing, contracts, budgets, margins and cash flow]
   #cv-entry-gap()
+  // ccvl-station: student-consulting
   #cv-h[Student Management & Innovation Consulting]
   #v(6.3pt)
   #cv-s[GREEN Finance Consulting (BDSU) | Enactus | AIESEC · 2016 – 2023 · 2 semesters each · Frankfurt]
@@ -111,6 +118,7 @@
   #v(8.4pt)
   #cv-b[AIESEC: Coordinated international placements with DAX firms; digitised talent-team workflows via CRM]
   #cv-entry-gap()
+  // ccvl-station: teaching-research-venture
   #cv-h[Teaching, Market Research & Entrepreneurship]
   #v(6.3pt)
   #cv-s[Goethe University Frankfurt | multiple employers | self-employed · Frankfurt]
@@ -128,6 +136,7 @@
   #cv-compact-heading[Education]
   #cv-hu[Scholarships: *Studienstiftung (Top 1%) | CDI (Top 4%, fully funded) | Sandvoss (MSc & BSc)*]
   #cv-entry-gap()
+  // ccvl-station: executive-education
   #cv-h[Executive Education]
   #v(6.3pt)
   #cv-s[Collège des Ingénieurs (CDI) · Paris – Munich – Turin · 2024 – 2025 · Average grade: A (GPA 4.0)]
@@ -136,6 +145,7 @@
   #v(8.4pt)
   #cv-b[Case studies: Project finance (NPV/ROI), scenario analysis and capital allocation under uncertainty]
   #cv-entry-gap()
+  // ccvl-station: physics-degrees
   #cv-h[M.Sc. & B.Sc. Physics]
   #v(6.3pt)
   #cv-s[Goethe University Frankfurt · Graduated 2024 · Grade: 1.0 (DE) | 6.0 (CH) | GPA 4.0]
@@ -144,6 +154,7 @@
   #v(8.4pt)
   #cv-b[Research: Near-infrared spectroscopy | terahertz imaging | accelerator physics (LINAC)]
   #cv-entry-gap()
+  // ccvl-station: psychology-degree
   #cv-h[B.Sc. Psychology]
   #v(6.3pt)
   #cv-s[Goethe University Frankfurt · Graduated 2017 · Grade: 1.6 (DE) | 5.6 (CH) | GPA 3.7]
@@ -157,6 +168,7 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Professional Development]
+  // ccvl-station: certificates
   #cv-h[Certifications & Training]
   #v(6.3pt)
   #cv-s[Finance | Data Analytics | GenAI | Leadership]
@@ -165,6 +177,7 @@
   #v(8.4pt)
   #cv-b[Additional training: GenAI | automation | public speaking | negotiation | leadership | communication]
   #cv-entry-gap()
+  // ccvl-station: consulting-finance-networks
   #cv-h[Consulting & Finance Networks]
   #v(6.3pt)
   #cv-s[Market proximity through regular exchange with practitioners and experienced sparring partners]
@@ -173,6 +186,7 @@
   #v(8.4pt)
   #cv-b[SECA Young Member; connected with practitioners across Swiss PE, VC and Corporate Development]
   #cv-entry-gap()
+  // ccvl-station: technology-communities
   #cv-h[Tech Communities & Conferences]
   #v(6.3pt)
   #cv-s[Close to emerging technologies, tools and practical applications]
@@ -184,6 +198,7 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Engagement]
+  // ccvl-station: crisis-support
   #cv-h[Harm Reduction & Crisis Support]
   #v(6.3pt)
   #cv-s(min-fill: 25, target-fill: 35)[First aid | psychosocial de-escalation]
@@ -192,6 +207,7 @@
   #v(8.4pt)
   #cv-b[De-escalated acute psychosocial crises; stabilised, oriented and referred people to specialist support]
   #cv-entry-gap()
+  // ccvl-station: mentoring
   #cv-h[Counselling, Mentoring & Student Representation]
   #v(6.3pt)
   #cv-s[Online youth counselling | cross-disciplinary knowledge transfer]
@@ -203,6 +219,7 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Personal]
+  // ccvl-station: family-responsibility
   #cv-h[Educational Mobility & Family Responsibility]
   #v(6.3pt)
   #cv-s[First-generation academic | education | entrepreneurship | care coordination]
@@ -211,6 +228,7 @@
   #v(8.4pt)
   #cv-b[Took family care leave in 2025; coordinated care, financing & long-term support for my mother]
   #cv-entry-gap()
+  // ccvl-station: open-source-community
   #cv-h[Intercultural Community & Open-Source Software]
   #v(6.3pt)
   #cv-s[Shared living | international FOSS collaboration]

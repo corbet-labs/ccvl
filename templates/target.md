@@ -15,4 +15,4 @@ sources: []
 # Target rationale
 
 Explain why this organisation belongs in the target landscape. Keep durable
-organisation research here; store concrete vacancies under `applications/`.
+organisation research here; store concrete vacancies under `opportunities/`.

@@ -1,2 +1,2 @@
-// Stable German CV entry point. Personal showcase content is licensed separately.
-#include "/showcase/de-ch/cv.typ"
+// Stable German CV entry point. The candidate's general content is licensed separately.
+#include "/cvl/general/de-ch/cv.typ"

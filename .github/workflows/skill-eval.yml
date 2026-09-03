@@ -47,7 +47,7 @@ jobs:
         run: |
           set +e
           python3 scripts/ai_skill_eval.py \
-            --output out/ai-skill-eval/report.json \
+            --output tmp/ai-skill-eval/report.json \
             --summary "$GITHUB_STEP_SUMMARY"
           status=$?
           set -e
@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ai-skill-evaluation
-          path: out/ai-skill-eval/report.json
+          path: tmp/ai-skill-eval/report.json
           if-no-files-found: error
           retention-days: 30
 

@@ -13,9 +13,12 @@ the extracted folder in Codex or another filesystem-capable coding agent, and
 use this prompt:
 
 > Set up this ccvl workspace. Read AGENTS.md, use the ccvl-install skill and the
-> checked-in platform dispatcher, verify the complete showcase, then help me
-> build my own evidence-backed profile. Ask me about facts, not tooling, unless
-> the harness reaches an unavoidable system-permission decision.
+> checked-in platform dispatcher, verify the complete general CVL, then help me
+> replace `cvl/general/` with my evidence-backed profile and documents. Keep
+> targets and keyed applications in the visible top-level groups. Interview me
+> until the CV has enough verified material for the station contract, and keep
+> a visible journal as we go. Ask me about facts, not tooling, unless the
+> harness reaches an unavoidable system-permission decision.
 
 The agent should first run `bash ./ccvl bootstrap` on Linux/macOS or
 `.\ccvl.cmd bootstrap` on Windows. That command is read-only and shows the exact
@@ -66,8 +69,17 @@ already use Just; it is not needed to begin.
 
 ## What happens next
 
-Start with `ccvl-profile`. It builds a private, source-linked fact base before
-the public showcase is replaced. The agent must never reuse the showcase
-author's claims or wording as yours: they are reference-only personal content,
-not a template. It must ask rather than fill an evidence gap with a plausible
-statement.
+Start with `ccvl-profile`. It builds a private, source-linked fact base below
+`cvl/` before the public general CVL is replaced. You can attach or paste a CV,
+drop several sources into `cvl/imports/`, or answer one conversational question
+at a time. The agent maintains `cvl/evidence/journal.md` so you can inspect what
+has already been captured.
+
+The first CV page needs 6–8 full experience stations; the second needs 9–11
+supporting stations and targets 10. `ccvl profile-status` reports the counts and
+forces another interview or allocation pass when a page is underfilled or
+overcrowded. The agent must never reuse the showcase author's claims or wording
+as yours: they are reference-only personal content, not a template. It must ask
+rather than fill an evidence gap with a plausible statement. The complete
+algorithm is documented in [Profile interview and station
+allocation](profile-interview.md).

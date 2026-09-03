@@ -22,11 +22,17 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import doctor  # noqa: E402
 import line_metrics  # noqa: E402
 import render  # noqa: E402
+import station_plan  # noqa: E402
 from ccvl_validation import ValidationError  # noqa: E402
 from ccvl_validation.repository import validate_markdown_links, validate_text_files  # noqa: E402
 from ccvl_validation.runtime import validate_runtime_contract  # noqa: E402
 from ccvl_validation.skills import validate_skill_cases, validate_skills  # noqa: E402
-from ccvl_validation.workspace import validate_applications, validate_manifest, validate_profiles  # noqa: E402
+from ccvl_validation.workspace import (  # noqa: E402
+    validate_applications,
+    validate_manifest,
+    validate_profiles,
+    validate_station_files,
+)
 
 
 class CheckError(Exception):
@@ -175,6 +181,7 @@ def run_checks() -> None:
     validate_runtime_contract()
     validate_manifest()
     validate_profiles()
+    validate_station_files()
     validate_applications()
     validate_skills()
     validate_skill_cases()
@@ -183,13 +190,14 @@ def run_checks() -> None:
     run_python_tests()
     if os.name != "nt":
         run(["bash", "tests/test_bootstrap.sh"])
-    run(["typstyle", "--check", "--line-width", "120", "cvl", "showcase"], reject_stderr=True)
+    run(["typstyle", "--check", "--line-width", "120", "cvl"], reject_stderr=True)
+    station_plan.validate_general(require_ready=True)
     check_fonts()
-    line_failures = line_metrics.measure(line_metrics.showcase_specs(), emit=False)
+    line_failures = line_metrics.measure(line_metrics.general_specs(), emit=False)
     if line_failures:
         raise CheckError("line measurement failed: " + "; ".join(line_failures))
 
-    profile = json.loads((ROOT / "showcase" / "profile.json").read_text(encoding="utf-8"))
+    profile = json.loads((ROOT / "cvl" / "general" / "profile.json").read_text(encoding="utf-8"))
     contacts = [profile["name"], profile["email"], profile["phone_label"]]
     with tempfile.TemporaryDirectory(prefix="ccvl-check-") as directory:
         temporary = Path(directory)
@@ -227,7 +235,10 @@ def main() -> int:
     except (CheckError, KeyError, OSError, RuntimeError, ValidationError, ValueError) as exc:
         print(f"check failed: {exc}", file=sys.stderr)
         return 1
-    print("All cross-platform data, source, skill, font, reproducibility, CV, and cover-letter checks passed.")
+    print(
+        "All cross-platform data, station, source, skill, font, reproducibility, "
+        "CV, and cover-letter checks passed."
+    )
     return 0
 
 

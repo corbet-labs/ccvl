@@ -1,39 +1,173 @@
 ---
 name: ccvl-profile
-description: Build or reconcile an evidence-backed candidate profile from CVs, records, projects, interviews, and user-confirmed facts before writing applications.
+description: Interview or import a candidate into an evidence-backed profile and a full MECE CV station plan before writing the general CVL.
 ---
 
-# Build a verified profile
+# Build a full candidate profile
 
-Create a trustworthy private fact base, then project its approved public
-contact fields into `profile.json`.
+Collect enough truthful material to fill the CV well. Do not treat a short
+first answer or a short existing CV as the complete life record.
 
-## Sources
+## Protect the user before writing
 
-Use source documents read-only. Suitable inputs include existing CVs, diplomas,
-references, work samples, public repositories, project records, and a structured
-interview with the user. Preserve source paths or URLs and dates.
+Inspect the repository's publication destination before storing personal data.
+If `origin` is public or its visibility cannot be established, explain that
+`cvl/general/` is publishable and wait for confirmation before placing the new
+user's identity or career record there. Never require Git knowledge.
 
-## Fact handling
+Accept three input modes and combine them when useful:
 
-- Cross-reference sources before resolving discrepancies.
-- Record each claim as `verified`, `conflicted`, or `unverified` using
-  `../../../templates/profile.md` and the model in
-  `../../../docs/data-model.md`.
-- User confirmation is valid provenance. Record what was confirmed rather than
-  inventing a supporting document.
-- Independent work, hobbies, side ventures, and repairs are legitimate evidence
-  at their actual scope. Do not recast them as employment, customers, formal
-  businesses, adoption, or revenue without evidence.
-- Preserve useful negative space: unknown is different from empty or false.
+1. read files the user attached or placed in `cvl/imports/`;
+2. extract a CV or profile pasted into the conversation;
+3. conduct the conversational interview below.
 
-## Output
+Keep source documents read-only. Cross-reference them before resolving dates,
+titles, scope, or metrics. Ask only for gaps; do not make the user repeat facts
+already present in a source.
 
-In local ccvl mode, write private evidence below `evidence/` and produce a
-validated private `profile.json` from `templates/profile.json`. If the user
-explicitly connects another typed workspace, use only its profile and evidence
-operations; do not create a second filesystem source of truth.
+At the start, list every attached, pasted, and `cvl/imports/` source that will
+be used. Read all usable sources before interviewing. If sources conflict,
+show the exact alternatives and resolve them one at a time with the user rather
+than silently choosing one.
 
-Before making a profile public, show the exact identifier and claim manifest to
-the user. The checked-in ccvl showcase describes its named author only and is
-reference-only personal content, not reusable profile material.
+## Initialise visible progress
+
+Before the first interview question:
+
+- create `cvl/evidence/profile.md` from `../../../templates/profile.md`;
+- create `cvl/evidence/journal.md` from
+  `../../../templates/profile-journal.md`;
+- replace the author's example `cvl/general/stations.json` with the neutral
+  `../../../templates/stations.json` before recording the new candidate;
+- tell the user that the journal is updated continuously and can be inspected
+  at any time. They may also paste a document or add one to `cvl/imports/`.
+
+The profile is an informal, information-rich working portrait. The journal is
+an append-only account of questions, answers, extracted facts, conflicts, slot
+progress, and deferred prompts. Neither is polished application copy.
+
+After every meaningful answer or imported source, update both files before
+asking the next question. Preserve the user's substance and uncertainty. Then
+update `cvl/general/stations.json` and run the platform command:
+
+```text
+Linux/macOS: bash ./ccvl profile-status
+Windows:     .\ccvl.cmd profile-status
+```
+
+Show the user the short page counts periodically, especially after a “nothing
+else” answer. Point them to `cvl/evidence/journal.md` if they seem impatient or
+want proof that the conversation is producing work.
+
+## What counts as a station
+
+A station is one visible CV entry with its own heading, context or period, and
+supporting content. A bullet is not a station. A compact standalone credential,
+award, or school line does not count and must never be added merely to pad the
+total.
+
+The deterministic layout contract is:
+
+- page 1, experience: 6–8 stations; target 7; 9 is overcrowded;
+- page 2, supporting record: 9–11 stations; target 10;
+- page 2 must contain at least as many stations as page 1;
+- only verified, assigned stations count.
+
+Underfill and overfill are not successful completion. They prompt another
+collection or allocation iteration. If the user explicitly stops, respect
+that, preserve all work, and state which page remains underfilled instead of
+pretending the CV is ready.
+
+## Conversational collection loop
+
+Ask one main question at a time in the user's language. Start broadly:
+
+> What experiences have you had? You can start with your current or most recent role.
+
+In German:
+
+> Welche Erfahrungen hattest du bisher? Du kannst mit deiner aktuellen oder jüngsten Rolle anfangen.
+
+For each answer:
+
+1. write the raw answer and its source to the journal;
+2. identify one or more possible stations without forcing a final section;
+3. deepen the most promising item conversationally: period, context,
+   responsibility, actions, result or scale, tools, and available evidence;
+4. record atomic facts with stable IDs and one owner each;
+5. ask “What further experiences have you had?” or its natural equivalent.
+
+Do not ask a 20-question form. Prefer one useful follow-up, persist the answer,
+show progress, and continue. The user may answer in fragments, paste a long
+history, or provide documents at any point.
+
+If the user first says there is nothing more while page 1 has fewer than six
+stations, explain briefly:
+
+> Page 1 looks best with 6–8 substantial experiences; we currently have X. We
+> can move on for now, but I will revisit this later with more specific memory
+> cues because independent and unpaid work can count truthfully too.
+
+Change topic rather than arguing. Collect page-2 material, then revisit page 1
+once with cues grounded in what is already known. Explore, as applicable:
+
+- earlier, temporary, part-time, internship, contract, or freelance roles;
+- side ventures, repairs, products, open source, and sustained hobby work;
+- research, thesis delivery, teaching, mentoring, and knowledge transfer;
+- volunteering, associations, events, committees, leadership, and care or
+  other substantial responsibility.
+
+Be assertive about discovering relevant material, not about inventing it.
+Substantial independent work may be presented as experience when it shows
+real responsibility and output, but its `kind` remains truthful. Never turn it
+into employment, a customer engagement, a registered business, adoption, or
+revenue without evidence.
+
+Portray the candidate as advantageously as the evidence allows. Look for
+ownership, ingenuity, scale, learning speed, and outcomes that a modest user
+may omit; choose the strongest accurate frame and plain language. This is not a
+neutral data dump, but favourable framing never changes factual scope.
+
+For page 2, ask across education, professional development, credentials,
+research, publications, awards, communities, volunteering, and meaningful
+personal responsibility. Categories are flexible; the page-level count is the
+constraint. If page 2 remains below nine, keep collecting rather than leaving
+conspicuous empty space.
+
+## Allocate economically and MECE
+
+Collect first, allocate second. Many facts can support several narratives, but
+each fact ID and each station has exactly one final home. Separate the truthful
+nature of an activity (`kind`) from its best presentation section. For example,
+a substantial independent project may belong on page 1 under Experience while
+remaining `independent-work` or `project`, never employment.
+
+When there are too many candidates, rank them by relevance, evidence strength,
+distinctiveness, recency, and demonstrated impact. Merge only facts that form
+one coherent station. Move rather than copy. Keep unused material in the
+working profile and leave its station unassigned so future opportunities can
+reuse it without creating CV duplication.
+
+Use `../../../schemas/stations.schema.json` and
+`../../../templates/stations.json` exactly. Claims are `verified`, `conflicted`,
+or `unverified`; explicit user confirmation is valid provenance. Only verified
+facts may enter the rendered CV.
+
+## Completion gate
+
+Once allocation is ready, write both locale masters below `cvl/general/` in
+plain recruiter-readable language while retaining recognised specialist terms.
+Place `// ccvl-station: <station-id>` immediately before the `#cv-h[...]` of
+every full station on pages 1 and 2. Do not mark compact standalone lines.
+Run:
+
+```text
+Linux/macOS: bash ./ccvl profile-status --verify-sources
+Windows:     .\ccvl.cmd profile-status --verify-sources
+```
+
+That command must confirm the plan is ready and that both CV sources contain
+the planned station counts. Then run the full check. Before publication, show
+the exact identifier and claim manifest to the user. The checked-in author's
+content is reference-only personal material and must never become evidence or
+wording for another person.

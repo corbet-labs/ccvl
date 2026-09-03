@@ -18,14 +18,16 @@ the "forked from" badge.
 The clone temporarily contains the reference-only personal showcase under the
 narrow replacement permission in
 `LICENSES/LicenseRef-CCVL-Personal-Content.txt`. Keep the working repository
-non-public while replacing `showcase/`, the signature asset, the public
+non-public while replacing `cvl/general/`, the signature asset, the public
 identifier manifest, and generated personal PDFs. The reusable code and neutral
 templates may be modified under their separate licenses; the showcase author's
 claims and wording may not be carried into another person's application.
 
-Create one `applications/<job-id>/application.json` from
-`templates/application.json` for every concrete opportunity. Do not maintain a
-second Markdown copy of its tailored fields.
+Keep the same three top-level working groups as upstream: the general master in
+`cvl/`, durable market work in `targets/`, and one keyed package at
+`opportunities/<organisation-key>/<position-key>/` for every concrete role.
+Create its `application.json` from `templates/application.json`; do not
+maintain a second Markdown copy of its tailored fields.
 
 ## Updating from ccvl
 

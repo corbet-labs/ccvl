@@ -4,16 +4,21 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
 
+import opportunity
+import station_plan
+from ccvl_validation import ValidationError
+from ccvl_validation.schema import validate_json_file
+from ccvl_validation.workspace import validate_line_contracts
+
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT_ROOT = ROOT / "cvl" / "shared" / "fonts"
+GENERAL_ROOT = ROOT / "cvl" / "general"
 LOCALES = {"de": "de-ch", "de-ch": "de-ch", "en": "en-ch", "en-ch": "en-ch"}
 
 
@@ -42,8 +47,12 @@ def typst_path(value: str | Path) -> str:
     return "/" + workspace_path(value).relative_to(ROOT).as_posix()
 
 
-def default_application(locale: str) -> Path:
-    return ROOT / "showcase" / locale / "application.json"
+def general_application(locale: str) -> Path:
+    return GENERAL_ROOT / locale / "application.json"
+
+
+def general_profile() -> Path:
+    return GENERAL_ROOT / "profile.json"
 
 
 def compile_pdf(source: Path, output: Path, inputs: dict[str, str]) -> Path:
@@ -83,11 +92,15 @@ def render_cv(
     profile: str | Path | None = None,
     output: str | Path | None = None,
 ) -> Path:
+    try:
+        station_plan.validate_general(require_ready=True)
+    except ValidationError as exc:
+        raise RenderError(f"CV station layout is not ready: {exc}") from exc
     locale = normalize_locale(locale_value)
     if pages not in {2, 3, 4}:
         raise RenderError(f"CV pages must be 2, 3, or 4: {pages}")
-    application_path = workspace_path(application or default_application(locale))
-    profile_path = workspace_path(profile or ROOT / "showcase" / "profile.json")
+    application_path = workspace_path(application or general_application(locale))
+    profile_path = workspace_path(profile or general_profile())
     output_path = (
         Path(output).resolve()
         if output
@@ -111,8 +124,8 @@ def render_cl(
     output: str | Path | None = None,
 ) -> Path:
     locale = normalize_locale(locale_value)
-    application_path = workspace_path(application or default_application(locale))
-    profile_path = workspace_path(profile or ROOT / "showcase" / "profile.json")
+    application_path = workspace_path(application or general_application(locale))
+    profile_path = workspace_path(profile or general_profile())
     output_path = Path(output).resolve() if output else ROOT / "cvl" / "cl" / "output" / locale / "cl.pdf"
     return compile_pdf(
         ROOT / "cvl" / "cl" / locale / "main.typ",
@@ -121,7 +134,7 @@ def render_cl(
     )
 
 
-def render_all() -> list[Path]:
+def render_general() -> list[Path]:
     outputs: list[Path] = []
     for locale in ("de-ch", "en-ch"):
         for pages in (2, 3, 4):
@@ -130,23 +143,41 @@ def render_all() -> list[Path]:
     return outputs
 
 
-def render_application(application: str | Path, locale: str, pages: int, profile: str | Path | None = None) -> list[Path]:
-    application_path = workspace_path(application)
-    document = json.loads(application_path.read_text(encoding="utf-8"))
-    job_id = document["job"]["id"]
-    if not isinstance(job_id, str) or re.fullmatch(r"[A-Za-z0-9_-]+", job_id) is None:
-        raise RenderError("application job.id must contain only ASCII letters, numbers, hyphens, or underscores")
-    destination = ROOT / "out" / job_id
-    return [
-        render_cv(locale, pages, application_path, profile, destination / "cv.pdf"),
-        render_cl(locale, application_path, profile, destination / "cl.pdf"),
-    ]
+def render_opportunity(organisation_key: str, position_key: str) -> list[Path]:
+    try:
+        application_path = opportunity.record_path(organisation_key, position_key)
+        document = validate_json_file(application_path, ROOT / "schemas" / "application.schema.json")
+        validate_line_contracts(document, str(application_path.relative_to(ROOT)), require_text=True)
+    except opportunity.OpportunityError as exc:
+        raise RenderError(str(exc)) from exc
+    except ValidationError as exc:
+        raise RenderError(str(exc)) from exc
+    try:
+        locale = normalize_locale(str(document["job"]["language"]))
+        pages = int(document["tailored_cv"]["pages"])
+        cover_letter_enabled = document["tailored_cl"]["enabled"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RenderError(f"incomplete opportunity record: {application_path.relative_to(ROOT)}") from exc
+    if pages not in {2, 3, 4}:
+        raise RenderError("tailored_cv.pages must be 2, 3, or 4")
+    if not isinstance(cover_letter_enabled, bool):
+        raise RenderError("tailored_cl.enabled must be a boolean")
+
+    destination = application_path.parent / "output"
+    outputs = [render_cv(locale, pages, application_path, general_profile(), destination / "cv.pdf")]
+    if cover_letter_enabled:
+        outputs.append(render_cl(locale, application_path, general_profile(), destination / "cl.pdf"))
+    else:
+        stale_cover_letter = destination / "cl.pdf"
+        if stale_cover_letter.is_file():
+            stale_cover_letter.unlink()
+    return outputs
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("all")
+    subparsers.add_parser("general")
 
     cv = subparsers.add_parser("cv")
     cv.add_argument("locale")
@@ -161,26 +192,24 @@ def parse_args() -> argparse.Namespace:
     cl.add_argument("profile", nargs="?")
     cl.add_argument("output", nargs="?")
 
-    application = subparsers.add_parser("application")
-    application.add_argument("application")
-    application.add_argument("locale")
-    application.add_argument("pages", type=int)
-    application.add_argument("profile", nargs="?")
+    opportunity = subparsers.add_parser("opportunity")
+    opportunity.add_argument("organisation_key")
+    opportunity.add_argument("position_key")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     try:
-        if args.command == "all":
-            outputs = render_all()
+        if args.command == "general":
+            outputs = render_general()
         elif args.command == "cv":
             outputs = [render_cv(args.locale, args.pages, args.application, args.profile, args.output)]
         elif args.command == "cl":
             outputs = [render_cl(args.locale, args.application, args.profile, args.output)]
         else:
-            outputs = render_application(args.application, args.locale, args.pages, args.profile)
-    except (KeyError, OSError, json.JSONDecodeError, RenderError) as exc:
+            outputs = render_opportunity(args.organisation_key, args.position_key)
+    except (KeyError, OSError, RenderError) as exc:
         print(f"render failed: {exc}", file=sys.stderr)
         return 1
     for output in outputs:

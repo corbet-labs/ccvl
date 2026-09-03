@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "revision": 0,
   "job": {
     "id": "showcase-en-ch",
@@ -23,6 +23,7 @@
     }
   },
   "tailored_cv": {
+    "pages": 4,
     "summary": [
       { "text": "This CV is a working example, technical product demonstration and open application.", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
       { "text": "I combine technology and innovation management with strategy and finance.", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
@@ -32,6 +33,7 @@
     ]
   },
   "tailored_cl": {
+    "enabled": true,
     "paragraphs": [
       { "lines": [
         { "text": "Some cover letters begin with enthusiasm for a particular vacancy. This one begins deliberately more honestly:", "min_fill": 75, "target_fill": 90, "max_fill": 100 },

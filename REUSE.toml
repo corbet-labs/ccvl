@@ -36,6 +36,8 @@ path = [
   "docs/**",
   "templates/**",
   "cvl/**/README.md",
+  "opportunities/README.md",
+  "targets/README.md",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Julian Y. Richard Corbet"
@@ -52,8 +54,8 @@ path = [
   "PUBLIC_IDENTIFIERS.md",
   "SHOWCASE.md",
   "docs/signature.md",
-  "showcase/**/*.json",
-  "showcase/**/*.typ",
+  "cvl/general/**/*.json",
+  "cvl/general/**/*.typ",
   "cvl/cl/assets/signature.png",
 ]
 precedence = "override"

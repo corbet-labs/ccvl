@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "revision": 0,
   "job": {
     "id": "",
@@ -23,6 +23,7 @@
     }
   },
   "tailored_cv": {
+    "pages": 4,
     "summary": [
       { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
       { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
@@ -32,6 +33,7 @@
     ]
   },
   "tailored_cl": {
+    "enabled": true,
     "paragraphs": [
       { "lines": [
         { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },

@@ -6,7 +6,7 @@ description: Prepare or repair a ccvl authoring environment when Typst, PDF tool
 # Install ccvl tooling
 
 Establish the smallest working toolchain for the current host and prove it by
-rendering the checked-in showcase.
+rendering the checked-in general CVL.
 
 ## Workflow
 

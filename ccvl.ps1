@@ -24,13 +24,18 @@ Usage: .\ccvl.cmd <command> [arguments]
   bootstrap                          Show the setup plan without changing anything
   doctor                             Report and verify the managed toolchain
   check                              Run all deterministic checks
-  measure [--all]                    Measure every CV and cover-letter line contract
+  profile-status [station-plan]      Check CV station coverage and MECE ownership
+  measure [--all]                    Measure the general CV and cover letter
+  measure-opportunity <organisation-key> <position-key>
+                                     Measure one keyed opportunity
   public-check                       Run checks required before publication
-  build                              Build every showcase document
+  build                              Build the general CV and cover letter
+  new-opportunity <organisation-key> <position-key>
+                                     Create one keyed opportunity from the template
   build-cv <locale> [pages]          Build one CV (default: four pages)
   build-cl <locale>                  Build one cover letter
-  build-application <json> <locale> [pages]
-                                     Build a private application package
+  build-opportunity <organisation-key> <position-key>
+                                     Build one keyed opportunity package
   help                               Show this help
 "@
 }
@@ -63,9 +68,20 @@ switch ($Command.ToLowerInvariant()) {
     }
     "doctor" { Invoke-UvPython (Join-Path $RepoRoot "scripts\doctor.py") }
     "check" { Invoke-UvPython (Join-Path $RepoRoot "scripts\check.py") }
+    "profile-status" { Invoke-UvPython (Join-Path $RepoRoot "scripts\station_plan.py") $Arguments }
     "measure" { Invoke-UvPython (Join-Path $RepoRoot "scripts\line_metrics.py") $Arguments }
+    "measure-opportunity" {
+        if ($Arguments.Count -ne 2) { throw (Show-Usage) }
+        Invoke-UvPython (Join-Path $RepoRoot "scripts\line_metrics.py") @(
+            "--opportunity", $Arguments[0], $Arguments[1]
+        )
+    }
     "public-check" { Invoke-UvPython (Join-Path $RepoRoot "scripts\public_check.py") }
-    "build" { Invoke-UvPython (Join-Path $RepoRoot "scripts\render.py") @("all") }
+    "build" { Invoke-UvPython (Join-Path $RepoRoot "scripts\render.py") @("general") }
+    "new-opportunity" {
+        if ($Arguments.Count -ne 2) { throw (Show-Usage) }
+        Invoke-UvPython (Join-Path $RepoRoot "scripts\opportunity.py") @($Arguments[0], $Arguments[1])
+    }
     "build-cv" {
         if ($Arguments.Count -lt 1 -or $Arguments.Count -gt 2) { throw (Show-Usage) }
         $Pages = if ($Arguments.Count -eq 2) { $Arguments[1] } else { "4" }
@@ -75,11 +91,10 @@ switch ($Command.ToLowerInvariant()) {
         if ($Arguments.Count -ne 1) { throw (Show-Usage) }
         Invoke-UvPython (Join-Path $RepoRoot "scripts\render.py") @("cl", $Arguments[0])
     }
-    "build-application" {
-        if ($Arguments.Count -lt 2 -or $Arguments.Count -gt 3) { throw (Show-Usage) }
-        $Pages = if ($Arguments.Count -eq 3) { $Arguments[2] } else { "4" }
+    "build-opportunity" {
+        if ($Arguments.Count -ne 2) { throw (Show-Usage) }
         Invoke-UvPython (Join-Path $RepoRoot "scripts\render.py") @(
-            "application", $Arguments[0], $Arguments[1], $Pages
+            "opportunity", $Arguments[0], $Arguments[1]
         )
     }
     { $_ -in @("help", "-h", "--help") } { Show-Usage }

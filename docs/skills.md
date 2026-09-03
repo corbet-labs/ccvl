@@ -6,7 +6,7 @@ portable application lifecycle without duplicating ownership.
 | Skill | Owns | Does not own |
 |---|---|---|
 | `ccvl-install` | environment diagnosis, local bootstrap, verification | profile or document edits |
-| `ccvl-profile` | source ingestion, claim states, candidate facts and voice | target hypotheses |
+| `ccvl-profile` | source ingestion, conversational journal, claim states, MECE station coverage, candidate facts and voice | target hypotheses |
 | `ccvl-targets` | MECE organisations, markets, functions, and role families | concrete vacancies |
 | `ccvl-cv` | CV selection, wording, layout, ATS and render checks | unsupported claims |
 | `ccvl-apply` | one vacancy, fit decision, Summary, six-paragraph letter, review | submission authority |

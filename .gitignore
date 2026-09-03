@@ -1,14 +1,11 @@
-# Generated output
-/out/
+# Opportunity-specific generated output
+/opportunities/*/*/output/
 
-# Private downstream data
-/applications/
-/evidence/
-/outcomes/
-/private/
-/sources/
-/submissions/
-/targets/
+# Private profile sources and working evidence
+/cvl/imports/*
+!/cvl/imports/README.md
+/cvl/evidence/*
+!/cvl/evidence/README.md
 
 # Local build state
 /.cache/

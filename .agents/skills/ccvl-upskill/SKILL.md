@@ -26,7 +26,7 @@ same as professional mastery.
 7. After completion, record the actual artifact or assessment as evidence; do
    not claim proficiency beyond what it demonstrates.
 
-Write dated private reports below `evidence/upskilling/`. If the user explicitly
+Write dated private reports below `cvl/evidence/upskilling/`. If the user explicitly
 connects another typed workspace, use its evidence and target operations
 instead of creating a second source of truth. Do not buy a course, enrol,
 schedule time, or publish a credential without an explicit instruction for that

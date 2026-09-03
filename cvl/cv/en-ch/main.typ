@@ -1,2 +1,2 @@
-// Stable English CV entry point. Personal showcase content is licensed separately.
-#include "/showcase/en-ch/cv.typ"
+// Stable English CV entry point. The candidate's general content is licensed separately.
+#include "/cvl/general/en-ch/cv.typ"

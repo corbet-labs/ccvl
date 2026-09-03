@@ -157,6 +157,60 @@
       "forbidden": ["recast-as-employment", "invent-commercial-scale"]
     },
     {
+      "id": "profile-underfilled-impatient-user",
+      "skill": "ccvl-profile",
+      "scenario": "The profile interview has found three experience stations. The user says they cannot think of anything else and appears impatient, but has not asked to stop.",
+      "options": [
+        {
+          "id": "persist-and-show-progress",
+          "text": "Save the answer and current candidates, report 3 of the 6-station minimum, and point the user to the continuously updated journal."
+        },
+        {
+          "id": "change-topic-and-revisit",
+          "text": "Move to page-2 material now, then revisit experience once with tailored cues for independent, unpaid, project, research, teaching, leadership, or community work."
+        },
+        {
+          "id": "declare-profile-complete",
+          "text": "Accept the first nothing-else answer as proof that the profile is complete and render the visibly sparse page."
+        },
+        {
+          "id": "send-long-questionnaire",
+          "text": "Respond with a mandatory 20-question form covering every remaining profile field at once."
+        },
+        {
+          "id": "invent-padding-roles",
+          "text": "Create three plausible experience entries so the deterministic counter passes without bothering the user again."
+        }
+      ],
+      "required": ["persist-and-show-progress", "change-topic-and-revisit"],
+      "forbidden": ["declare-profile-complete", "send-long-questionnaire", "invent-padding-roles"]
+    },
+    {
+      "id": "profile-mece-allocation",
+      "skill": "ccvl-profile",
+      "scenario": "One open-source project demonstrates technical delivery, leadership, and community work. Page 1 is underfilled, while the same fact would also strengthen page 2.",
+      "options": [
+        {
+          "id": "truthful-experience-placement",
+          "text": "If its sustained responsibility and output support it, assign the project once to Experience while preserving its truthful project kind."
+        },
+        {
+          "id": "single-fact-owner",
+          "text": "Give every atomic fact one station owner and leave other useful angles in the private working profile for future tailoring."
+        },
+        {
+          "id": "duplicate-across-pages",
+          "text": "Repeat the same project and facts on both pages because each section presents a different narrative angle."
+        },
+        {
+          "id": "relabel-as-employment",
+          "text": "Call the project employment so recruiters recognise it as experience."
+        }
+      ],
+      "required": ["truthful-experience-placement", "single-fact-owner"],
+      "forbidden": ["duplicate-across-pages", "relabel-as-employment"]
+    },
+    {
       "id": "targets-and-vacancy",
       "skill": "ccvl-targets",
       "scenario": "A research note mixes organisations, markets, functions, role families, and one live vacancy. The user wants a complete MECE target map.",
@@ -167,7 +221,7 @@
         },
         {
           "id": "route-live-vacancy",
-          "text": "Route the concrete vacancy to its own applications job record and link it back to the target organisation."
+          "text": "Route the concrete vacancy to its keyed opportunities/<organisation>/<position> record and link it back to the target organisation."
         },
         {
           "id": "duplicate-keywords",

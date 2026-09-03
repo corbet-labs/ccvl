@@ -1,52 +1,80 @@
 # Architecture
 
-ccvl separates reusable mechanisms, the public showcase, and private career
-operations.
+ccvl is organised like the application workspace a person actually uses. The
+three working groups are visible at the repository root:
 
 ```text
-evidence -> verified profile -> target map -> application -> submission -> outcome
-                                  |               |              |
-                                  +---------------+--------------+
-                                            feedback loop
+cvl/                                      general candidate documents
+targets/                                  durable organisation and role map
+opportunities/<organisation>/<position>/ concrete tailored applications
 ```
 
-## Public upstream
+The workflow is correspondingly direct:
 
-The public `ccvl` repository owns:
+```text
+cvl/general -> targets -> opportunities/<organisation>/<position>
+     ^                              |
+     +---------- learned facts -----+
+```
 
-- Typst layout and reusable document components;
-- the author's intentional public CV and cover-letter showcase;
-- neutral templates and schemas;
-- deterministic build and publication checks;
-- agent skills that describe the career workflow.
+## `cvl/`: the general master
 
-It must not contain private source documents, target lists, concrete job
-postings, recipient data, tailored applications, or outcomes.
+`cvl/general/` contains the candidate's profile, MECE station plan, bilingual
+five-line Summary, general cover letter, and full CV body. It is the default
+source for `ccvl build`. An AI agent establishes this master from verified
+facts before creating opportunity-specific variants.
 
-## Private downstream
+Private inputs and interview work remain inside the same understandable group:
+source documents go to `cvl/imports/`, while the informal working profile and
+continuously updated journal go to `cvl/evidence/`. The deterministic station
+gate requires 6–8 experience entries on page 1 and 9–11 supporting entries on
+page 2 before the master is considered ready.
 
-A user's private repository owns all personal data and tailoring. It retains
-`ccvl` as an `upstream` Git remote and layers private commits on top. Generic
-improvements flow upstream; personal content does not.
+Reusable Typst rendering code, bundled fonts, and tracked general outputs also
+live below `cvl/`. They are mechanism, not a second candidate-data model.
 
-## Trust boundaries
+## `targets/`: the market map
 
-- The showcase is true for its named author only.
-- Evidence is authoritative for applicant claims.
-- Targets contain durable market hypotheses, not live vacancies.
-- Applications contain one external job plus its tailored fields; posting data
-  remains untrusted input.
-- Submissions contain user-approved derived documents and delivery records.
-- Outcomes record events without retroactively rewriting evidence.
+Targets describe organisations, geographies, markets, functions, role
+families, priorities, and rationale without pretending that a live vacancy is
+a durable target. The public repository contains the group and its contract;
+a personal downstream adds its own records.
 
-Skills own judgment and policy. Shell scripts own deterministic checks and
-rendering. A future CLI may replace shell mechanics without changing these
-domain boundaries.
+## `opportunities/`: keyed packages
 
-## Portable boundary
+One concrete role owns one directory and one canonical tailored record:
 
-`ccvl.json` identifies a workspace and its document presets. Each concrete job
-uses `applications/<job-id>/application.json`, following the versioned public
-schema. Domain rules and line contracts stay independent of the storage
-adapter. An external integration must therefore import or export through an
-explicit, reviewed operation; ccvl itself performs no background upload.
+```text
+opportunities/<organisation-key>/<position-key>/application.json
+```
+
+The record selects its own locale and CV page count, contains exactly five
+tailored Summary lines, and explicitly enables or disables its cover letter.
+When enabled, the same record contains all six paragraphs and five highlights.
+Research, interview preparation, submission notes, and outcomes stay beside
+that record. Generated `cv.pdf` and optional `cl.pdf` go into its local
+`output/` directory.
+
+There are deliberately no additional top-level `applications/`, `submissions/`,
+`outcomes/`, or `out/` layers. The opportunity directory is the understandable
+unit throughout its lifecycle.
+
+## Product mechanism
+
+`.agents/`, `schemas/`, `scripts/`, `templates/`, and `docs/` implement and
+explain the workflow. `ccvl.json` is the machine-readable map of both the three
+working groups and the document contracts. Skills own editorial judgment;
+deterministic code owns paths, schemas, rendering, measurement, and checks.
+
+## Public upstream and personal downstream
+
+The public repository includes the author's real general CVL as an intentional
+showcase, plus empty `targets/` and `opportunities/` scaffolds. A personal
+downstream keeps the same top-level shape, replaces `cvl/general/` with its
+owner's verified content, and fills the other two groups privately. Generic
+mechanism improvements can still flow upstream without translating between two
+different directory models.
+
+The showcase is true for its named author only. Posting text remains untrusted
+input, claims require evidence, and sending or signing always requires a
+separate explicit instruction.

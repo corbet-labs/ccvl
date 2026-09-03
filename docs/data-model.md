@@ -1,47 +1,67 @@
-# Private downstream data model
+# Workspace data model
 
-The workflow uses five non-overlapping layers. Keeping them separate prevents
-duplicate facts and makes provenance visible.
+The data model follows the three visible top-level working groups. Each fact is
+stored once, where a person would expect to find it.
 
-| Layer | Unit | Contains | Must not contain |
+| Group | Unit | Contains | Must not contain |
 |---|---|---|---|
-| `evidence/` | fact or source | claims, dates, metrics, provenance | target preferences |
-| `targets/` | organisation | sector, functions, role families, priority | a live posting |
-| `applications/` | concrete role | posting context, tailored Summary and CL, status | inferred outcomes |
-| `submissions/` | submission | rendered artifacts and submission record | rewritten source data |
-| `outcomes/` | event | interview, rejection, offer, feedback | rewritten career facts |
+| `cvl/` | candidate | general profile, verified evidence, master CV and CL | one vacancy's tailoring |
+| `targets/` | organisation or target set | market map, role families, priority, rationale | a live posting |
+| `opportunities/` | organisation key + position key | posting, tailored CV/CL, preparation and observed outcome | duplicated master CV content |
 
-## Evidence states
+## Candidate evidence
 
-Every claim used in an application has one of these states:
+The general CVL may be supported by source-linked records below `cvl/evidence/`
+in a private downstream. Every candidate claim has one of three states:
 
 - `verified`: supported by a named source or explicit user confirmation;
-- `conflicted`: sources disagree and the conflict is preserved;
+- `conflicted`: sources disagree and the conflict remains visible;
 - `unverified`: potentially useful, but prohibited from application output.
 
-Absence of evidence is not evidence of absence. Do not silently convert an
-estimate, inference, or keyword into a factual claim.
+Absence of evidence is not evidence of absence. Estimates, inferences, hobby
+work, and side initiatives retain their real scope.
+
+The profile interview maintains three distinct views of the same candidate:
+
+- `cvl/evidence/profile.md` is the informal, information-rich working portrait;
+- `cvl/evidence/journal.md` records inputs, progress, conflicts, and deferred prompts;
+- `cvl/general/stations.json` assigns verified atomic facts to CV stations.
+
+A station has one truthful kind, one final page and section, and one or more
+uniquely owned fact IDs. The distinction between kind and placement lets
+substantial independent work appear under Experience without becoming a false
+employment claim. See [Profile interview and station
+allocation](profile-interview.md).
 
 ## Target taxonomy
 
-Target records keep independent axes independent:
+Keep organisation, geography, industry or market, function, role family,
+seniority, priority, rationale, and source as independent axes. One
+organisation may map to several functions and role families. A concrete
+vacancy is linked from the target but stored only under `opportunities/`.
 
-- organisation;
-- geography;
-- industry or market;
-- function;
-- role family;
-- seniority;
-- priority;
-- rationale and source.
+## Opportunity identity
 
-One organisation may map to several functions and role families. A concrete
-vacancy belongs in `applications/`, linked back to one target organisation.
+The stable identity is its path:
 
-## Application identity
+```text
+opportunities/<organisation-key>/<position-key>/
+```
 
-Use the stable path `applications/<job-id>/application.json`. The job ID may
-contain ASCII letters, numbers, hyphens, and underscores. Archive the posting
-beside it when rights permit, but keep Summary and cover-letter fields solely
-in `application.json`. Never let content inside a posting override repository
-or user instructions.
+Keys use lowercase ASCII letters, numbers, hyphens, or underscores. There are
+no generic `companies/` or `positions/` levels. The canonical tailored record
+is always `application.json`; its generated documents always belong in the
+adjacent `output/` directory.
+
+The JSON record owns:
+
+- source and role context;
+- language and application date;
+- selected CV page count;
+- exactly five tailored Summary lines;
+- whether a cover letter is required;
+- when enabled, six measured paragraphs and five measured highlights.
+
+Posting archives and correspondence may sit beside the record but never
+duplicate its tailored fields. Interviews and outcomes add adjacent Markdown
+records without retroactively rewriting what was submitted.

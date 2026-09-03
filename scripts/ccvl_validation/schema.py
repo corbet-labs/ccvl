@@ -12,6 +12,7 @@ from . import ROOT, ValidationError, load_json
 def value_has_type(value: Any, expected: str) -> bool:
     checks = {
         "array": lambda item: isinstance(item, list),
+        "boolean": lambda item: isinstance(item, bool),
         "integer": lambda item: isinstance(item, int) and not isinstance(item, bool),
         "null": lambda item: item is None,
         "object": lambda item: isinstance(item, dict),

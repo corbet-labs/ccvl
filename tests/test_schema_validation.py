@@ -57,6 +57,11 @@ class SchemaValidationTests(unittest.TestCase):
     def test_boolean_is_not_an_integer(self) -> None:
         self.assert_invalid({"name": "valid", "count": True, "values": ["one"], "state": "ready"})
 
+    def test_boolean_type_is_supported_without_accepting_integers(self) -> None:
+        validate_schema(True, {"type": "boolean"}, {"type": "boolean"}, "fixture")
+        with self.assertRaises(ValidationError):
+            validate_schema(1, {"type": "boolean"}, {"type": "boolean"}, "fixture")
+
     def test_pattern_minimum_enum_and_array_bounds_are_enforced(self) -> None:
         invalid_documents = [
             {"name": "NOT VALID", "count": 1, "values": ["one"], "state": "ready"},

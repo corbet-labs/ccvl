@@ -21,8 +21,13 @@ content is visible for professional evaluation, but is not a reusable template.
 
 ## What is included
 
+- Three visible working groups: `cvl/` for the general master, `targets/` for
+  the market map, and `opportunities/<organisation>/<position>/` for each
+  tailored package.
 - German and English CVs with exact two-, three-, and four-page variants and
   an always-five-line Summary.
+- A deterministic station gate: 6–8 experience entries on page 1 and 9–11
+  supporting entries on page 2, backed by an iterative profile interview.
 - A target-neutral cover letter with six measured paragraphs and five highlights.
 - One schema-validated `application.json` per concrete opportunity.
 - Measured minimum, target, and maximum bounds for controlled line width,
@@ -48,6 +53,9 @@ cd ccvl
 bash ./ccvl setup
 bash ./ccvl check
 bash ./ccvl build
+bash ./ccvl new-opportunity example-org strategy-lead
+# Complete the new application.json with the ccvl-apply skill, then:
+bash ./ccvl build-opportunity example-org strategy-lead
 ```
 
 On native Windows, use the matching dispatcher from Command Prompt or
@@ -57,6 +65,9 @@ PowerShell:
 .\ccvl.cmd setup
 .\ccvl.cmd check
 .\ccvl.cmd build
+.\ccvl.cmd new-opportunity example-org strategy-lead
+# Complete the new application.json with the ccvl-apply skill, then:
+.\ccvl.cmd build-opportunity example-org strategy-lead
 ```
 
 Generated PDFs are written below `cvl/cv/output/` and `cvl/cl/output/`.
@@ -67,16 +78,30 @@ equivalent `just` recipes.
 
 ## Make it yours
 
-Do not edit a public fork into a personal application workspace. Clone ccvl
-into a private standalone repository that retains ccvl as `upstream`; then put
-evidence, targets, applications, submissions, and outcomes only in that private
-downstream. See [Private downstreams](docs/private-downstream.md).
+Keep the same structure in every fork or private downstream:
+
+```text
+cvl/                                      your general CV and cover letter
+targets/                                  organisations and role families
+opportunities/<organisation>/<position>/ tailored CV and optional CL
+```
+
+Replace `cvl/general/` with your verified profile and wording, then build each
+concrete role under `opportunities/`. `new-opportunity` creates exactly
+`opportunities/<organisation>/<position>/application.json`; its build writes
+the CV and optional cover letter beside it under `output/`. A private standalone repository may
+retain ccvl as `upstream`; a public fork must remove the original author's
+personal content before publishing its replacement. See [Private
+downstreams](docs/private-downstream.md).
 
 The checked-in showcase is reference material, not evidence about a new user.
 Start with the `ccvl-profile` skill, establish a verified fact base, and only
-then replace the showcase content. Its personal claims and wording may not be
-reused as template content. Claims drawn from the new user's own evidence may
-be selected and compressed, but must never be invented.
+then replace the general showcase content. The interview writes a visible local
+journal, accepts pasted or dropped-in documents, and keeps collecting until
+`ccvl profile-status` confirms that both core pages are full without being
+overcrowded. Its personal claims and wording may not be reused as template
+content. Claims drawn from the new user's own evidence may be selected and
+compressed, but must never be invented.
 
 ## Agent workflows
 

@@ -13,12 +13,13 @@ cd "$repo_root"
 bash scripts/doctor.sh >/dev/null
 bash scripts/check-fonts.sh
 python3 scripts/validate_workspace.py
+python3 scripts/station_plan.py --verify-sources
 python3 -m unittest discover -s tests -p 'test_*.py'
 bash tests/test_bootstrap.sh
 for shell_script in scripts/*.sh; do
   bash -n "$shell_script"
 done
-typstyle --check --line-width 120 cvl showcase
+typstyle --check --line-width 120 cvl
 
 profile_value() {
   python3 - "$1" <<'PY'
@@ -26,7 +27,7 @@ import json
 import sys
 from pathlib import Path
 
-print(json.loads(Path("showcase/profile.json").read_text(encoding="utf-8"))[sys.argv[1]])
+print(json.loads(Path("cvl/general/profile.json").read_text(encoding="utf-8"))[sys.argv[1]])
 PY
 }
 
@@ -125,14 +126,14 @@ render_suite() {
       bash scripts/render.sh cv \
         "$locale" \
         "$pages" \
-        "showcase/$locale/application.json" \
-        "showcase/profile.json" \
+        "cvl/general/$locale/application.json" \
+        "cvl/general/profile.json" \
         "$destination/cv-$locale-$pages.pdf" >/dev/null
     done
     bash scripts/render.sh cl \
       "$locale" \
-      "showcase/$locale/application.json" \
-      "showcase/profile.json" \
+      "cvl/general/$locale/application.json" \
+      "cvl/general/profile.json" \
       "$destination/cl-$locale.pdf" >/dev/null
   done
 }
@@ -193,4 +194,4 @@ for locale in de-ch en-ch; do
   done
 done
 
-printf 'All data, source, skill, font, reproducibility, CV, and cover-letter checks passed.\n'
+printf 'All data, station, source, skill, font, reproducibility, CV, and cover-letter checks passed.\n'

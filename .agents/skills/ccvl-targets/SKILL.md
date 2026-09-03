@@ -25,7 +25,8 @@ under different labels merely to increase keyword coverage.
    `../../../templates/target.md`.
 
 A specific posting is not a target record. Create its canonical
-`applications/<job-id>/application.json` through `ccvl-apply`.
+`opportunities/<organisation-key>/<position-key>/application.json` through
+`ccvl-apply`.
 
 If the user explicitly connects another typed workspace, use its target and job
 operations instead of parallel files. ccvl itself must not grow a local

@@ -24,6 +24,8 @@ It verifies:
 - all six CV variants and both cover letters with zero Typst diagnostics;
 - exactly five Summary lines, six cover-letter paragraphs with 25–28 body
   lines, and five one-line highlights per locale;
+- 6–8 verified full stations on CV page 1 and 9–11 on page 2, with stable
+  source markers, identical assignments across locales, and unique fact ownership;
 - measured minimum and maximum fill for CV headings, subtitles, bullets,
   Summary lines, cover-letter body lines, and highlights;
 - bounded vertical gaps and highlight position so the cover letter fills A4
@@ -51,7 +53,7 @@ overflow causes an editorial iteration instead of a one-error-at-a-time loop.
 
 ## Small-model skill evaluation
 
-The `Skill evaluation` workflow sends twelve generic decision cases and the eight
+The `Skill evaluation` workflow sends fourteen generic decision cases and the eight
 canonical skills to Groq's free-tier `openai/gpt-oss-20b` model. Both the
 expected routing and answer key are withheld. A deterministic evaluator then
 requires the correct skill, every expected action, no forbidden action, and a
@@ -70,4 +72,4 @@ it to the repository, then run:
 python3 scripts/ai_skill_eval.py
 ```
 
-The report is written to `out/ai-skill-eval/report.json`.
+The report is written to the ignored `tmp/ai-skill-eval/report.json` path.

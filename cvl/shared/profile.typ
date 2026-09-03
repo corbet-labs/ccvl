@@ -1,5 +1,5 @@
 // Machine-readable profile adapter shared by the CV and cover letter.
-#let profile-path = sys.inputs.at("profile", default: "/showcase/profile.json")
+#let profile-path = sys.inputs.at("profile", default: "/cvl/general/profile.json")
 #let profile-data = json(profile-path)
 #assert(profile-data.schema_version == 1, message: "unsupported profile schema version")
 

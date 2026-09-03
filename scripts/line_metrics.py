@@ -18,6 +18,11 @@ FONT_ROOT = ROOT / "cvl" / "shared" / "fonts"
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import render  # noqa: E402
+import opportunity  # noqa: E402
+import station_plan  # noqa: E402
+from ccvl_validation import ValidationError  # noqa: E402
+from ccvl_validation.schema import validate_json_file  # noqa: E402
+from ccvl_validation.workspace import validate_line_contracts  # noqa: E402
 
 
 class MeasurementError(Exception):
@@ -79,11 +84,15 @@ def preference_warnings(spec: DocumentSpec, metrics: list[dict[str, Any]]) -> li
     return warnings
 
 
-def showcase_specs() -> list[DocumentSpec]:
+def general_specs() -> list[DocumentSpec]:
+    try:
+        station_plan.validate_general(require_ready=True)
+    except ValidationError as exc:
+        raise MeasurementError(f"CV station layout is not ready: {exc}") from exc
     specs: list[DocumentSpec] = []
-    profile = render.typst_path(ROOT / "showcase" / "profile.json")
+    profile = render.typst_path(render.general_profile())
     for locale in ("de-ch", "en-ch"):
-        application = render.typst_path(render.default_application(locale))
+        application = render.typst_path(render.general_application(locale))
         common = {"application": application, "profile": profile, "line-contracts": "report"}
         specs.append(
             DocumentSpec(
@@ -104,29 +113,54 @@ def showcase_specs() -> list[DocumentSpec]:
     return specs
 
 
-def application_specs(application: str, locale_value: str, pages: int, profile: str | None) -> list[DocumentSpec]:
-    locale = render.normalize_locale(locale_value)
-    application_path = render.workspace_path(application)
-    profile_path = render.workspace_path(profile or ROOT / "showcase" / "profile.json")
+def opportunity_specs(organisation_key: str, position_key: str) -> list[DocumentSpec]:
+    try:
+        station_plan.validate_general(require_ready=True)
+    except ValidationError as exc:
+        raise MeasurementError(f"CV station layout is not ready: {exc}") from exc
+    try:
+        application_path = opportunity.record_path(organisation_key, position_key)
+        document = validate_json_file(application_path, ROOT / "schemas" / "application.schema.json")
+        validate_line_contracts(document, str(application_path.relative_to(ROOT)), require_text=True)
+    except opportunity.OpportunityError as exc:
+        raise MeasurementError(str(exc)) from exc
+    except ValidationError as exc:
+        raise MeasurementError(str(exc)) from exc
+    try:
+        locale = render.normalize_locale(str(document["job"]["language"]))
+        pages = int(document["tailored_cv"]["pages"])
+        cover_letter_enabled = document["tailored_cl"]["enabled"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise MeasurementError(f"incomplete opportunity record: {application_path.relative_to(ROOT)}") from exc
+    if pages not in {2, 3, 4}:
+        raise MeasurementError("tailored_cv.pages must be 2, 3, or 4")
+    if not isinstance(cover_letter_enabled, bool):
+        raise MeasurementError("tailored_cl.enabled must be a boolean")
+
+    profile_path = render.general_profile()
     common = {
         "application": render.typst_path(application_path),
         "profile": render.typst_path(profile_path),
         "line-contracts": "report",
     }
-    return [
+    specs = [
         DocumentSpec(
-            f"CV {locale}",
+            f"CV {organisation_key}/{position_key}",
             "cv",
             ROOT / "cvl" / "cv" / locale / "main.typ",
             {**common, "cv-pages": str(pages)},
         ),
-        DocumentSpec(
-            f"cover letter {locale}",
-            "cl",
-            ROOT / "cvl" / "cl" / locale / "main.typ",
-            common,
-        ),
     ]
+    if cover_letter_enabled:
+        specs.append(
+            DocumentSpec(
+                f"cover letter {organisation_key}/{position_key}",
+                "cl",
+                ROOT / "cvl" / "cl" / locale / "main.typ",
+                common,
+            )
+        )
+    return specs
 
 
 def evaluate(spec: DocumentSpec) -> list[dict[str, Any]]:
@@ -256,8 +290,12 @@ def measure(specs: list[DocumentSpec], *, show_all: bool = False, emit: bool = T
                 f"{len(metrics)} measured lines{warning_suffix}"
             )
     if failures and emit:
+        message = (
+            "Line measurement failed. Rewrite with relevant, verified signal—not filler—"
+            "then run `ccvl measure` again."
+        )
         print(
-            "Line measurement failed. Rewrite with relevant, verified signal—not filler—then run `ccvl measure` again.",
+            message,
             file=sys.stderr,
         )
     return failures
@@ -265,10 +303,7 @@ def measure(specs: list[DocumentSpec], *, show_all: bool = False, emit: bool = T
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--application")
-    parser.add_argument("--locale")
-    parser.add_argument("--pages", type=int, default=4)
-    parser.add_argument("--profile")
+    parser.add_argument("--opportunity", nargs=2, metavar=("ORGANISATION_KEY", "POSITION_KEY"))
     parser.add_argument("--all", action="store_true", help="print every measured line, not only failures")
     return parser.parse_args()
 
@@ -276,14 +311,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        if args.application:
-            if not args.locale:
-                raise MeasurementError("--locale is required with --application")
-            specs = application_specs(args.application, args.locale, args.pages, args.profile)
-        elif args.locale or args.profile:
-            raise MeasurementError("--locale and --profile require --application")
+        if args.opportunity:
+            specs = opportunity_specs(*args.opportunity)
         else:
-            specs = showcase_specs()
+            specs = general_specs()
         failures = measure(specs, show_all=args.all)
     except (KeyError, OSError, render.RenderError, MeasurementError) as exc:
         print(f"measure failed: {exc}", file=sys.stderr)

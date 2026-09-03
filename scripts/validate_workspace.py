@@ -9,13 +9,19 @@ from ccvl_validation import ValidationError
 from ccvl_validation.repository import validate_markdown_links, validate_text_files
 from ccvl_validation.runtime import validate_runtime_contract
 from ccvl_validation.skills import validate_skill_cases, validate_skills
-from ccvl_validation.workspace import validate_applications, validate_manifest, validate_profiles
+from ccvl_validation.workspace import (
+    validate_applications,
+    validate_manifest,
+    validate_profiles,
+    validate_station_files,
+)
 
 
 def main() -> int:
     try:
         validate_manifest()
         validate_profiles()
+        validate_station_files()
         validate_applications()
         validate_skills()
         validate_skill_cases()

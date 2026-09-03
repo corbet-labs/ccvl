@@ -23,8 +23,10 @@ recruiters and specialists.
 
 ## Summary
 
-For every concrete role, read `tailored_cv.summary` from its
-`application.json`. It is always exactly five explicit rendered lines and must
+Maintain the opportunity-independent master below `cvl/general/`. For every
+concrete role, read `tailored_cv.summary` from
+`opportunities/<organisation-key>/<position-key>/application.json`. It is
+always exactly five explicit rendered lines and must
 express:
 
 ```text
@@ -34,6 +36,21 @@ target profile | differentiation | two evidenced results | value offered
 The public showcase may combine this formula with an invitation to contact the
 author. A real application must be target-specific.
 
+## Core-page station gate
+
+Before polishing or tailoring, load `cvl/general/stations.json` and run
+`ccvl profile-status --verify-sources`. Page 1 must contain 6–8 full experience
+stations; page 2 must contain 9–11 supporting stations, target 10, and at least
+match page 1. A full station has its own heading, context or period, and
+supporting content. Bullets and compact standalone lines do not count.
+
+If the gate reports underfill, return to `ccvl-profile` and collect more
+material. Prefer converting substantial verified independent work, projects,
+research, teaching, leadership, or engagement into truthfully labelled
+experience stations. Move facts; never duplicate them across sections. If it
+reports overfill, rank, merge coherent material, move, or leave lower-value
+stations unassigned.
+
 Every controlled CV line declares or inherits a minimum, target, and maximum
 fill percentage for its actual Typst container. A sparse or overflowing line is
 a failed draft. Add relevant, verified signal or tighten the wording, then run
@@ -42,7 +59,7 @@ pass.
 
 ## Verification
 
-Render every affected locale and preset. Require the requested two-, three-, or
+Render every affected locale and preset. Require the station gate and requested two-, three-, or
 four-page count, inspect every rendered page, and extract the PDF text layer.
 Reject clipped content, accidental extra pages, missing glyphs, placeholders,
 or any line outside its declared bounds. Run the matching platform `measure`

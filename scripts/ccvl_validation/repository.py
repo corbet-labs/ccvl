@@ -19,7 +19,7 @@ EXCLUDED_ROOTS = {
     "private",
     "sources",
     "submissions",
-    "targets",
+    "tmp",
 }
 TEXT_SUFFIXES = {".cmd", ".csv", ".json", ".lock", ".md", ".ps1", ".py", ".sh", ".toml", ".typ", ".yaml", ".yml"}
 TEXT_NAMES = {".gitattributes", ".gitignore", ".python-version", "ccvl", "justfile"}

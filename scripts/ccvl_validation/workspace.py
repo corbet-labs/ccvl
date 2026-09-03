@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from . import ROOT, ValidationError, load_json
 from .schema import validate_json_file
 
@@ -29,11 +31,25 @@ def validate_fill_floor(line: dict[str, object], floor: dict[str, int], location
 
 
 def validate_line_contracts(application: dict[str, object], location: str, *, require_text: bool) -> None:
-    summary = application["tailored_cv"]["summary"]
+    tailored_cv = application["tailored_cv"]
+    pages = tailored_cv.get("pages")
+    if not isinstance(pages, int) or isinstance(pages, bool) or pages not in {2, 3, 4}:
+        raise ValidationError(f"{location}.tailored_cv.pages: expected 2, 3, or 4")
+    summary = tailored_cv["summary"]
     for index, line in enumerate(summary, start=1):
         validate_line_contract(line, f"{location}.tailored_cv.summary[{index}]", require_text=require_text)
 
-    paragraphs = application["tailored_cl"]["paragraphs"]
+    tailored_cl = application["tailored_cl"]
+    if not isinstance(tailored_cl.get("enabled"), bool):
+        raise ValidationError(f"{location}.tailored_cl.enabled: expected a boolean")
+    if not tailored_cl["enabled"]:
+        if set(tailored_cl) != {"enabled"}:
+            raise ValidationError(f"{location}.tailored_cl: a disabled cover letter may not retain hidden content")
+        return
+    if set(tailored_cl) != {"enabled", "paragraphs", "highlights"}:
+        raise ValidationError(f"{location}.tailored_cl: an enabled cover letter requires paragraphs and highlights")
+
+    paragraphs = tailored_cl["paragraphs"]
     contract = load_json(ROOT / "ccvl.json")["documents"]["cover_letter"]
     paragraph_contracts = contract["paragraphs"]
     if len(paragraphs) != len(paragraph_contracts):
@@ -72,7 +88,7 @@ def validate_line_contracts(application: dict[str, object], location: str, *, re
                 f"{location}.tailored_cl.paragraphs[{start + 1}:{end}]: "
                 f"expected {region['minimum']}–{region['maximum']} shared lines, found {actual_lines}"
             )
-    highlights = application["tailored_cl"]["highlights"]
+    highlights = tailored_cl["highlights"]
     if len(highlights) != contract["highlights"]["count"]:
         raise ValidationError(
             f"{location}.tailored_cl.highlights: expected {contract['highlights']['count']} items, "
@@ -86,14 +102,38 @@ def validate_line_contracts(application: dict[str, object], location: str, *, re
 
 def validate_manifest() -> None:
     manifest = load_json(ROOT / "ccvl.json")
-    if manifest.get("format") != "ccvl-workspace" or manifest.get("schema_version") != 3:
+    if manifest.get("format") != "ccvl-workspace" or manifest.get("schema_version") != 4:
         raise ValidationError("ccvl.json: unsupported workspace format or schema version")
+    expected_groups = {
+        "cvl": {
+            "root": "cvl",
+            "general": "cvl/general",
+            "profile": "cvl/general/profile.json",
+            "stations": "cvl/general/stations.json",
+            "de-CH": "cvl/general/de-ch/application.json",
+            "en-CH": "cvl/general/en-ch/application.json",
+        },
+        "targets": {"root": "targets"},
+        "opportunities": {
+            "root": "opportunities",
+            "path": "opportunities/<organisation-key>/<position-key>",
+            "record": "application.json",
+            "output": "output",
+        },
+    }
+    if manifest.get("workspace_groups") != expected_groups:
+        raise ValidationError("ccvl.json: workspace groups must be cvl, targets, and keyed opportunities")
     path_fields = [
         manifest["application_schema"],
         manifest["profile_schema"],
-        manifest["showcase"]["profile"],
-        manifest["showcase"]["de-CH"],
-        manifest["showcase"]["en-CH"],
+        manifest["station_schema"],
+        manifest["workspace_groups"]["cvl"]["profile"],
+        manifest["workspace_groups"]["cvl"]["stations"],
+        manifest["workspace_groups"]["cvl"]["de-CH"],
+        manifest["workspace_groups"]["cvl"]["en-CH"],
+        "cvl/README.md",
+        "targets/README.md",
+        "opportunities/README.md",
         manifest["documents"]["cv"]["de-CH"],
         manifest["documents"]["cv"]["en-CH"],
         manifest["documents"]["cover_letter"]["de-CH"],
@@ -106,6 +146,19 @@ def validate_manifest() -> None:
         raise ValidationError("ccvl.json: CV presets must be [2, 3, 4]")
     if manifest["documents"]["cv"].get("summary_lines") != 5:
         raise ValidationError("ccvl.json: every CV Summary must contain exactly five rendered lines")
+    expected_station_contract = {
+        "definition": (
+            "A station is one full CV entry with its own heading and supporting content. "
+            "Compact standalone lines do not count."
+        ),
+        "page_1": {"minimum": 6, "target": 7, "maximum": 8},
+        "page_2": {"minimum": 9, "target": 10, "maximum": 11},
+        "page_2_at_least_page_1": True,
+        "verified_only": True,
+        "unique_fact_assignment": True,
+    }
+    if manifest["documents"]["cv"].get("station_contract") != expected_station_contract:
+        raise ValidationError("ccvl.json: CV station contract changed")
     cover_letter = manifest["documents"]["cover_letter"]
     expected = {
         "paragraphs": [
@@ -172,12 +225,22 @@ def validate_applications() -> None:
     schema_path = ROOT / "schemas/application.schema.json"
     candidates = [
         ROOT / "templates/application.json",
-        ROOT / "showcase/de-ch/application.json",
-        ROOT / "showcase/en-ch/application.json",
+        ROOT / "cvl/general/de-ch/application.json",
+        ROOT / "cvl/general/en-ch/application.json",
     ]
-    applications_root = ROOT / "applications"
-    if applications_root.is_dir():
-        candidates.extend(sorted(applications_root.glob("*/application.json")))
+    opportunities_root = ROOT / "opportunities"
+    opportunity_records = sorted(opportunities_root.rglob("application.json"))
+    key_pattern = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
+    for path in opportunity_records:
+        relative = path.relative_to(opportunities_root)
+        if len(relative.parts) != 3 or relative.name != "application.json":
+            raise ValidationError(
+                f"{path.relative_to(ROOT)}: expected opportunities/<organisation-key>/<position-key>/application.json"
+            )
+        organisation_key, position_key = relative.parts[:2]
+        if key_pattern.fullmatch(organisation_key) is None or key_pattern.fullmatch(position_key) is None:
+            raise ValidationError(f"{path.relative_to(ROOT)}: invalid organisation or position key")
+    candidates.extend(opportunity_records)
     for path in candidates:
         application = validate_json_file(path, schema_path)
         validate_line_contracts(
@@ -185,13 +248,19 @@ def validate_applications() -> None:
             str(path.relative_to(ROOT)),
             require_text=path != ROOT / "templates" / "application.json",
         )
-        if path.parts[-3:-1] == ("showcase", "de-ch") and application["job"]["language"] != "de-CH":
+        if path.parts[-3:-1] == ("general", "de-ch") and application["job"]["language"] != "de-CH":
             raise ValidationError(f"{path.relative_to(ROOT)}: expected de-CH language")
-        if path.parts[-3:-1] == ("showcase", "en-ch") and application["job"]["language"] != "en-CH":
+        if path.parts[-3:-1] == ("general", "en-ch") and application["job"]["language"] != "en-CH":
             raise ValidationError(f"{path.relative_to(ROOT)}: expected en-CH language")
 
 
 def validate_profiles() -> None:
     schema_path = ROOT / "schemas/profile.schema.json"
     validate_json_file(ROOT / "templates/profile.json", schema_path)
-    validate_json_file(ROOT / "showcase/profile.json", schema_path)
+    validate_json_file(ROOT / "cvl/general/profile.json", schema_path)
+
+
+def validate_station_files() -> None:
+    schema_path = ROOT / "schemas/stations.schema.json"
+    validate_json_file(ROOT / "templates/stations.json", schema_path)
+    validate_json_file(ROOT / "cvl/general/stations.json", schema_path)

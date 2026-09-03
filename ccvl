@@ -16,13 +16,18 @@ Usage: bash ./ccvl <command> [arguments]
   bootstrap                          Show the setup plan without changing anything
   doctor                             Report installed and missing tools
   check                              Run all deterministic checks
-  measure [--all]                    Measure every CV and cover-letter line contract
+  profile-status [station-plan]      Check CV station coverage and MECE ownership
+  measure [--all]                    Measure the general CV and cover letter
+  measure-opportunity <organisation-key> <position-key>
+                                     Measure one keyed opportunity
   public-check                       Run checks required before publication
-  build                              Build every showcase document
+  build                              Build the general CV and cover letter
+  new-opportunity <organisation-key> <position-key>
+                                     Create one keyed opportunity from the template
   build-cv <locale> [pages]          Build one CV (default: four pages)
   build-cl <locale>                  Build one cover letter
-  build-application <json> <locale> [pages]
-                                     Build a private application package
+  build-opportunity <organisation-key> <position-key>
+                                     Build one keyed opportunity package
   help                               Show this help
 EOF
 }
@@ -45,9 +50,18 @@ case "$command_name" in
   bootstrap) bash "$repo_root/scripts/bootstrap.sh" plan "$@" ;;
   doctor) bash "$repo_root/scripts/doctor.sh" "$@" ;;
   check) run_python "$repo_root/scripts/check.py" "$@" ;;
+  profile-status) run_python "$repo_root/scripts/station_plan.py" "$@" ;;
   measure) run_python "$repo_root/scripts/line_metrics.py" "$@" ;;
+  measure-opportunity)
+    [[ $# -eq 2 ]] || { usage >&2; exit 2; }
+    run_python "$repo_root/scripts/line_metrics.py" --opportunity "$1" "$2"
+    ;;
   public-check) run_python "$repo_root/scripts/public_check.py" "$@" ;;
-  build) run_python "$repo_root/scripts/render.py" all "$@" ;;
+  build) run_python "$repo_root/scripts/render.py" general "$@" ;;
+  new-opportunity)
+    [[ $# -eq 2 ]] || { usage >&2; exit 2; }
+    run_python "$repo_root/scripts/opportunity.py" "$1" "$2"
+    ;;
   build-cv)
     [[ $# -ge 1 && $# -le 2 ]] || { usage >&2; exit 2; }
     run_python "$repo_root/scripts/render.py" cv "$1" "${2:-4}"
@@ -56,9 +70,9 @@ case "$command_name" in
     [[ $# -eq 1 ]] || { usage >&2; exit 2; }
     run_python "$repo_root/scripts/render.py" cl "$1"
     ;;
-  build-application)
-    [[ $# -ge 2 && $# -le 3 ]] || { usage >&2; exit 2; }
-    run_python "$repo_root/scripts/render.py" application "$1" "$2" "${3:-4}"
+  build-opportunity)
+    [[ $# -eq 2 ]] || { usage >&2; exit 2; }
+    run_python "$repo_root/scripts/render.py" opportunity "$1" "$2"
     ;;
   help | -h | --help) usage ;;
   *)
