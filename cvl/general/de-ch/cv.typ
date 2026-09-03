@@ -244,6 +244,7 @@
   #cv-superheading[Projekte & Initiativen]
   #block(breakable: false)[
     #cv-spacious-heading[Laufend]
+    // ccvl-project: product-innovation
     #cv-h[Produktinnovation & Engineering]
     #v(6.3pt)
     #cv-s[Produktreleases 2026: Local-First-KI | Remote Development | Systems UX]
@@ -252,6 +253,7 @@
     #v(8.4pt)
     #cv-b[cterm: Remote-First-Terminal für KI-Coding | dotkeeper: P2P-Code-Sync | cbar: Cross-Machine App Matrix]
     #cv-entry-gap()
+    // ccvl-project: declarative-systems-platform
     #cv-h[Deklarative Systemplattform]
     #v(6.3pt)
     #cv-s[Produktreleases 2026: 50+ Systembausteine für NixOS, Arch & GCP]
@@ -260,6 +262,7 @@
     #v(8.4pt)
     #cv-b[NixOS, k3s, Argo CD & OpenTofu auf GCP & Bare Metal ausgerollt | signierte Updates | Prüfung | Rollback]
     #cv-entry-gap()
+    // ccvl-project: content-innovation
     #cv-h[Content-Innovation & KI-gestützte Medien]
     #v(6.3pt)
     #cv-s[Neue Formate: 4K-Video, GenAI & ausfallsicheres Audio · seit 2025]
@@ -268,6 +271,7 @@
     #v(8.4pt)
     #cv-b[ComfyUI für GenAI auf eigener GPU betrieben | caudio: 3-Host-Audio-Routing mit Failover & Recovery]
     #cv-entry-gap()
+    // ccvl-project: careervector-jobcache
     #cv-h[CareerVector & JobCache]
     #v(6.3pt)
     #cv-s[KI-native Karriereplattform & Jobdaten-Pipeline · live seit 2025]
@@ -276,6 +280,7 @@
     #v(8.4pt)
     #cv-b[JobCache: 91 Rust-Adapter für kontinuierliche Erfassung & Deduplizierung von CH/EU-Stellenanzeigen]
     #cv-entry-gap()
+    // ccvl-project: private-ai-cloud
     #cv-h[Private KI- & Cloud-Plattform]
     #v(6.3pt)
     #cv-s[Digitale Souveränität im Produktivbetrieb für 10+ Nutzer · seit 2024]
@@ -287,6 +292,7 @@
 
   #block(breakable: false)[
     #cv-spacious-heading[Realisiert]
+    // ccvl-project: management-buy-in
     #cv-h[Management Buy-In: Deal Origination & Due Diligence]
     #v(6.3pt)
     #cv-s[Indischer IT-Outsourcer · eigenständiges MBI bis zum Kaufentscheid · 2022]
@@ -295,6 +301,7 @@
     #v(8.4pt)
     #cv-b[Akquisitionsthese entwickelt | strategischen Fit, Chancen & Risiken bis zum finalen Go/No-Go bewertet]
     #cv-entry-gap()
+    // ccvl-project: solar-recovery
     #cv-h[Solar-KMU: Incident Recovery & Cloud-Migration]
     #v(6.3pt)
     #cv-s[Betriebskritische Systeme für Vertrieb & Felddienst · 2022]
@@ -303,6 +310,7 @@
     #v(8.4pt)
     #cv-b[Cloud-Optionen gegen Betriebsanforderungen geprüft; sechs- bis siebenstellige Fehlinvestition vermieden]
     #cv-entry-gap()
+    // ccvl-project: leadership-digital-pivot
     #cv-h[Leadership Advisory: Digitaler Pivot]
     #v(6.3pt)
     #cv-s[Frankfurter Leadership-Marke · Hybridformat & neue Vertriebskanäle · 2022]
@@ -311,6 +319,7 @@
     #v(8.4pt)
     #cv-b[Funnel an Kundenpainpoints ausgerichtet; Umsatz diversifiziert und Kurse bei Haufe Akademie platziert]
     #cv-entry-gap()
+    // ccvl-project: crypto-infrastructure
     #cv-h[Krypto-Infrastruktur: Business Case & Betrieb]
     #v(6.3pt)
     #cv-s[Mining-Piloten vom Business Case bis zum Betrieb · mehrere Kunden · 2021]
@@ -319,6 +328,7 @@
     #v(8.4pt)
     #cv-b[Mining-Betrieb termingerecht, stabil und mit Monitoring aufgebaut; Hashrate via Custom-Firmware optimiert]
     #cv-entry-gap()
+    // ccvl-project: it-services-ecommerce
     #cv-h[IT-Services & automatisierter eCommerce]
     #v(6.3pt)
     #cv-s[Eigenes Geschäft · Exit zu 80 % des Buchwerts · 2009 – 2025]
@@ -339,6 +349,7 @@
   #cv-superheading[Kompetenzen & KI Keywords]
   #block(breakable: false)[
     #cv-spacious-heading[Innovation, KI & Technologie]
+    // ccvl-competency: innovation-management
     #cv-h[Innovationsmanagement & Emerging Technologies]
     #v(7.35pt)
     #cv-b[Innovation Management: Innovation Pipeline | Stage-Gate | Incremental Innovation | Disruptive Innovation]
@@ -347,6 +358,7 @@
     #v(8.4pt)
     #cv-b[Produktinnovation: Product Discovery | Prototyping | Proof of Concept (PoC) | MVP | Marktvalidierung]
     #cv-entry-gap()
+    // ccvl-competency: applied-ai-data
     #cv-h[Applied AI, Data & intelligente Automatisierung]
     #v(7.35pt)
     #cv-b[Generative AI: Large Language Models (LLMs) | Retrieval-Augmented Generation (RAG) | AI Assistants]
@@ -355,6 +367,7 @@
     #v(8.4pt)
     #cv-b[Data Science: Statistik | Machine Learning (ML) | Zeitreihen | Predictive Modelling | Experimente | R]
     #cv-entry-gap()
+    // ccvl-competency: software-infrastructure
     #cv-h[Software Engineering, Datenplattformen & Infrastruktur]
     #v(7.35pt)
     #cv-b[Software Engineering: Python | Rust | Go | Java | APIs | Open Source | Systems Programming | Testing]
@@ -363,6 +376,7 @@
     #v(8.4pt)
     #cv-b[Digital Infrastructure: Cloud | Data Centres | Linux | Kubernetes | GitOps | Infrastructure as Code (IaC)]
     #cv-spacious-heading[Strategie & Transformation]
+    // ccvl-competency: strategy
     #cv-h[Unternehmens-, Wachstums- & Technologiestrategie]
     #v(7.35pt)
     #cv-b[Corporate Strategy: Strategische Planung | Szenarioplanung | Wettbewerbsanalyse | Decision Support]
@@ -371,6 +385,7 @@
     #v(8.4pt)
     #cv-b[Technology Strategy: AI Strategy | Roadmaps | Business Cases | Enterprise Architecture | TCO | FinOps]
     #cv-entry-gap()
+    // ccvl-competency: transformation
     #cv-h[Transformation, Operating Models & Wertsteigerung]
     #v(7.35pt)
     #cv-b[Operating Models: Target Operating Model (TOM) | Organisationsdesign | Decision Rights | Rollendesign]
@@ -379,6 +394,7 @@
     #v(8.4pt)
     #cv-b[Value Creation: Operational Excellence | Cost Transformation | KPI-Design | Turnaround | Restrukturierung]
     #cv-entry-gap()
+    // ccvl-competency: governance
     #cv-h[Policy, Regulierung & Technology Governance]
     #v(7.35pt)
     #cv-b[Public Policy & Regulatory Affairs: Energiepolitik | AI Policy | Defence Procurement | Wettbewerbspolitik]
@@ -387,6 +403,7 @@
     #v(8.4pt)
     #cv-b[AI & Data Governance: EU AI Act | Responsible AI | Model Risk | Human Oversight | Datenschutz | DSGVO]
     #cv-spacious-heading[Finanzen, Investments & Märkte]
+    // ccvl-competency: finance-ma
     #cv-h[Finance Transformation, Corporate Finance & M&A]
     #v(7.35pt)
     #cv-b[CFO Agenda: Finance Platform | Finance Data Architecture | Planung & Forecasting | AI-enabled Finance]
@@ -395,6 +412,7 @@
     #v(8.4pt)
     #cv-b[M&A: Target Screening | Financial Due Diligence | Synergy Assessment | Post-Merger Integration (PMI)]
     #cv-entry-gap()
+    // ccvl-competency: private-markets
     #cv-h[Private Markets & Investment Management]
     #v(7.35pt)
     #cv-b[Private Markets: Private Equity | Private Credit | Infrastructure Investments | Real Estate | Secondaries]
@@ -403,6 +421,7 @@
     #v(8.4pt)
     #cv-b[CIO Office: Investment Strategy | Multi-Asset | Portfolio Construction | Strategic Asset Allocation (SAA)]
     #cv-entry-gap()
+    // ccvl-competency: trading-risk
     #cv-h[Trading, Quantitative Finance & Risiko]
     #v(7.35pt)
     #cv-b[Energy & Commodity Markets: Power Trading | Day-Ahead | Intraday | Gas/LNG | Metals | Carbon | Freight]

@@ -11,8 +11,10 @@ specific application.
   general Summary and the general cover letter.
 - `de-ch/cv.typ` and `en-ch/cv.typ` contain the full locale-specific CV body.
 
-The station plan is machine-checked: page 1 accepts 6–8 experience stations;
-page 2 accepts 9–11 supporting stations and targets 10. Compact standalone
+The layout is machine-checked: page 1 accepts 6–8 experience stations. Page 2
+contains exactly 10 supporting stations with two bullets each; page 3 contains
+exactly 10 projects with two bullets each; page 4 contains three competency
+groups with three blocks and three keyword lines per block. Compact standalone
 lines do not count. Run `ccvl profile-status --verify-sources` before treating
 the general CV as complete.
 

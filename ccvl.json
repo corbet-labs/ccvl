@@ -39,11 +39,12 @@
       "en-CH": "cvl/cv/en-ch/main.typ",
       "presets": [2, 3, 4],
       "summary_lines": 5,
-      "station_contract": {
-        "definition": "A station is one full CV entry with its own heading and supporting content. Compact standalone lines do not count.",
-        "page_1": { "minimum": 6, "target": 7, "maximum": 8 },
-        "page_2": { "minimum": 9, "target": 10, "maximum": 11 },
-        "page_2_at_least_page_1": true,
+      "layout_contract": {
+        "definition": "A station, project, or competency block is one full CV entry with its own heading and supporting content. Compact standalone lines do not count.",
+        "page_1": { "entries": { "minimum": 6, "target": 7, "maximum": 8 } },
+        "page_2": { "entries": 10, "bullets_per_entry": 2 },
+        "page_3": { "entries": 10, "bullets_per_entry": 2 },
+        "page_4": { "groups": 3, "entries_per_group": 3, "bullets_per_entry": 3 },
         "verified_only": true,
         "unique_fact_assignment": true
       }

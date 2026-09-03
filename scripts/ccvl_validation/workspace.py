@@ -146,19 +146,20 @@ def validate_manifest() -> None:
         raise ValidationError("ccvl.json: CV presets must be [2, 3, 4]")
     if manifest["documents"]["cv"].get("summary_lines") != 5:
         raise ValidationError("ccvl.json: every CV Summary must contain exactly five rendered lines")
-    expected_station_contract = {
+    expected_layout_contract = {
         "definition": (
-            "A station is one full CV entry with its own heading and supporting content. "
+            "A station, project, or competency block is one full CV entry with its own heading and supporting content. "
             "Compact standalone lines do not count."
         ),
-        "page_1": {"minimum": 6, "target": 7, "maximum": 8},
-        "page_2": {"minimum": 9, "target": 10, "maximum": 11},
-        "page_2_at_least_page_1": True,
+        "page_1": {"entries": {"minimum": 6, "target": 7, "maximum": 8}},
+        "page_2": {"entries": 10, "bullets_per_entry": 2},
+        "page_3": {"entries": 10, "bullets_per_entry": 2},
+        "page_4": {"groups": 3, "entries_per_group": 3, "bullets_per_entry": 3},
         "verified_only": True,
         "unique_fact_assignment": True,
     }
-    if manifest["documents"]["cv"].get("station_contract") != expected_station_contract:
-        raise ValidationError("ccvl.json: CV station contract changed")
+    if manifest["documents"]["cv"].get("layout_contract") != expected_layout_contract:
+        raise ValidationError("ccvl.json: fixed CV layout contract changed")
     cover_letter = manifest["documents"]["cover_letter"]
     expected = {
         "paragraphs": [

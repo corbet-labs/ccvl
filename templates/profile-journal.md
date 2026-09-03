@@ -13,7 +13,9 @@ application copy.
 ## Layout status
 
 - Page 1 experience: 0 stations; allowed 6–8; target 7.
-- Page 2 supporting record: 0 stations; allowed 9–11; target 10.
+- Page 2 supporting record: 0 of exactly 10 stations; 2 bullets each.
+- Page 3 projects and initiatives: 0 of exactly 10 projects; 2 bullets each.
+- Page 4 competencies: 0 of 3 groups × 3 blocks; 3 keyword lines each.
 - Unassigned candidates: 0.
 - Next information needed:
 

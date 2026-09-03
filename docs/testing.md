@@ -24,8 +24,10 @@ It verifies:
 - all six CV variants and both cover letters with zero Typst diagnostics;
 - exactly five Summary lines, six cover-letter paragraphs with 25–28 body
   lines, and five one-line highlights per locale;
-- 6–8 verified full stations on CV page 1 and 9–11 on page 2, with stable
-  source markers, identical assignments across locales, and unique fact ownership;
+- 6–8 verified full stations on CV page 1; exactly 10 two-bullet stations on
+  page 2; exactly 10 two-bullet projects on page 3; and three groups of three
+  three-line competency blocks on page 4, with stable source markers and
+  identical assignments across locales;
 - measured minimum and maximum fill for CV headings, subtitles, bullets,
   Summary lines, cover-letter body lines, and highlights;
 - bounded vertical gaps and highlight position so the cover letter fills A4
@@ -53,7 +55,7 @@ overflow causes an editorial iteration instead of a one-error-at-a-time loop.
 
 ## Small-model skill evaluation
 
-The `Skill evaluation` workflow sends fourteen generic decision cases to
+The `Skill evaluation` workflow sends fifteen generic decision cases to
 Groq's free-tier `openai/gpt-oss-20b` model. Cases are deterministically batched
 by canonical skill, with the complete matching skill and the descriptions of
 all eight skills supplied to each low-context call. Both the

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate CV station coverage and keep two-page layouts intentionally full."""
+"""Validate the fixed CV slot layout and evidence-backed station plan."""
 
 from __future__ import annotations
 
@@ -16,10 +16,10 @@ from ccvl_validation.schema import validate_json_file
 
 GENERAL_PLAN = ROOT / "cvl" / "general" / "stations.json"
 STATION_SCHEMA = ROOT / "schemas" / "stations.schema.json"
-STATION_PATTERN = re.compile(
-    r"(?m)^\s*// ccvl-station: ([a-z0-9]+(?:[-_][a-z0-9]+)*)\s*\n\s*#cv-h\["
-)
-FULL_STATION_PATTERN = re.compile(r"(?m)^\s*#cv-h\[")
+ID_PATTERN = r"[a-z0-9]+(?:[-_][a-z0-9]+)*"
+FULL_ENTRY_PATTERN = re.compile(r"(?m)^\s*#cv-h\[")
+BULLET_PATTERN = re.compile(r"(?m)^\s*#cv-b\[")
+GROUP_PATTERN = re.compile(r"(?m)^\s*#cv-spacious-heading\[")
 PAGE_BREAK = "#cv-pagebreak()"
 
 
@@ -36,8 +36,22 @@ class Assessment:
         return not self.problems
 
 
+@dataclass(frozen=True)
+class SourceEntry:
+    identifier: str
+    bullets: int
+    offset: int
+
+
+@dataclass(frozen=True)
+class SourceLayout:
+    station_ids: dict[int, tuple[str, ...]]
+    project_ids: tuple[str, ...]
+    competency_groups: tuple[tuple[str, ...], ...]
+
+
 def contract() -> dict[str, Any]:
-    return load_json(ROOT / "ccvl.json")["documents"]["cv"]["station_contract"]
+    return load_json(ROOT / "ccvl.json")["documents"]["cv"]["layout_contract"]
 
 
 def validate_semantics(document: dict[str, Any], location: str) -> None:
@@ -57,9 +71,9 @@ def validate_semantics(document: dict[str, Any], location: str) -> None:
             raise ValidationError(f"{station_location}: page and section must be assigned together")
         invalid_page_one = station["section"] != "experience" or not station["experience_eligible"]
         if station["page"] == 1 and invalid_page_one:
-            detail = "page 1 accepts only truthfully experience-eligible stations in section 'experience'"
             raise ValidationError(
-                f"{station_location}: {detail}"
+                f"{station_location}: page 1 accepts only truthfully experience-eligible "
+                "stations in section 'experience'"
             )
         if station["status"] == "verified":
             if not station["label"].strip():
@@ -102,18 +116,21 @@ def assess(document: dict[str, Any], location: str = "station-plan") -> Assessme
             experience_candidates.append(station["id"])
 
     problems: list[str] = []
-    for page in (1, 2):
-        count = page_counts[page]
-        limits = rules[f"page_{page}"]
-        if count < limits["minimum"]:
-            problems.append(f"page {page} is underfilled: {count} stations; minimum {limits['minimum']}")
-        elif count > limits["maximum"]:
-            problems.append(f"page {page} is overcrowded: {count} stations; maximum {limits['maximum']}")
-    if page_counts[2] < page_counts[1]:
+    page_one_limits = rules["page_1"]["entries"]
+    if page_counts[1] < page_one_limits["minimum"]:
         problems.append(
-            f"page 2 trails page 1: {page_counts[2]} stations versus {page_counts[1]}; "
-            "the supporting page must contain at least as many"
+            f"page 1 is underfilled: {page_counts[1]} stations; minimum {page_one_limits['minimum']}"
         )
+    elif page_counts[1] > page_one_limits["maximum"]:
+        problems.append(
+            f"page 1 is overcrowded: {page_counts[1]} stations; maximum {page_one_limits['maximum']}"
+        )
+
+    page_two_entries = rules["page_2"]["entries"]
+    if page_counts[2] < page_two_entries:
+        problems.append(f"page 2 is underfilled: {page_counts[2]} stations; exactly {page_two_entries} required")
+    elif page_counts[2] > page_two_entries:
+        problems.append(f"page 2 is overcrowded: {page_counts[2]} stations; exactly {page_two_entries} required")
     if unresolved_assigned:
         problems.append("assigned stations are not verified: " + ", ".join(unresolved_assigned))
 
@@ -130,29 +147,148 @@ def load_plan(path: Path) -> dict[str, Any]:
     return validate_json_file(path.resolve(strict=True), STATION_SCHEMA)
 
 
-def typst_station_ids(path: Path) -> dict[int, tuple[str, ...]]:
-    source = path.read_text(encoding="utf-8")
-    pages = source.split(PAGE_BREAK)
-    if len(pages) < 2:
-        raise ValidationError(f"{path.relative_to(ROOT)}: expected a page break after each of the first two CV pages")
-    result: dict[int, tuple[str, ...]] = {}
-    for page, source_page in ((1, pages[0]), (2, pages[1])):
-        station_ids = tuple(STATION_PATTERN.findall(source_page))
-        heading_count = len(FULL_STATION_PATTERN.findall(source_page))
-        if heading_count != len(station_ids):
-            raise ValidationError(
-                f"{path.relative_to(ROOT)}: page {page} has {heading_count} full entries but "
-                f"{len(station_ids)} ccvl-station markers"
+def _source_pages(path: Path, required: int) -> tuple[str, ...]:
+    pages = tuple(path.read_text(encoding="utf-8").split(PAGE_BREAK))
+    if len(pages) < required:
+        raise ValidationError(
+            f"{path.relative_to(ROOT)}: expected at least {required} CV page segments, found {len(pages)}"
+        )
+    return pages
+
+
+def _marked_entries(path: Path, page: int, source_page: str, marker: str) -> tuple[SourceEntry, ...]:
+    marker_pattern = re.compile(
+        rf"(?m)^\s*// ccvl-{re.escape(marker)}: ({ID_PATTERN})\s*\n\s*#cv-h\["
+    )
+    matches = tuple(marker_pattern.finditer(source_page))
+    heading_count = len(FULL_ENTRY_PATTERN.findall(source_page))
+    if heading_count != len(matches):
+        raise ValidationError(
+            f"{path.relative_to(ROOT)}: page {page} has {heading_count} full entries but "
+            f"{len(matches)} ccvl-{marker} markers"
+        )
+
+    entries: list[SourceEntry] = []
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(source_page)
+        entries.append(
+            SourceEntry(
+                identifier=match.group(1),
+                bullets=len(BULLET_PATTERN.findall(source_page[match.end() : end])),
+                offset=match.start(),
             )
-        result[page] = station_ids
-    return result
+        )
+    return tuple(entries)
+
+
+def typst_station_ids(path: Path) -> dict[int, tuple[str, ...]]:
+    pages = _source_pages(path, 2)
+    return {
+        page: tuple(entry.identifier for entry in _marked_entries(path, page, pages[page - 1], "station"))
+        for page in (1, 2)
+    }
 
 
 def count_typst_stations(path: Path) -> dict[int, int]:
     return {page: len(stations) for page, stations in typst_station_ids(path).items()}
 
 
-def verify_source_counts(document: dict[str, Any], path: Path) -> None:
+def _require_entry_count(path: Path, page: int, entries: tuple[SourceEntry, ...], expected: int) -> None:
+    if len(entries) != expected:
+        raise ValidationError(
+            f"{path.relative_to(ROOT)}: page {page} has {len(entries)} full entries; exactly {expected} required"
+        )
+
+
+def _require_bullet_count(
+    path: Path, page: int, entries: tuple[SourceEntry, ...], expected: int, label: str
+) -> None:
+    invalid = tuple(entry for entry in entries if entry.bullets != expected)
+    if invalid:
+        details = ", ".join(f"{entry.identifier}={entry.bullets}" for entry in invalid)
+        raise ValidationError(
+            f"{path.relative_to(ROOT)}: page {page} {label} must each have exactly {expected} bullets; {details}"
+        )
+
+
+def validate_typst_layout(path: Path) -> SourceLayout:
+    """Validate all fixed visual slots in one four-page CV source."""
+
+    rules = contract()
+    pages = _source_pages(path, 4)
+    station_entries = {
+        page: _marked_entries(path, page, pages[page - 1], "station") for page in (1, 2)
+    }
+    page_one_limits = rules["page_1"]["entries"]
+    page_one_count = len(station_entries[1])
+    if not page_one_limits["minimum"] <= page_one_count <= page_one_limits["maximum"]:
+        raise ValidationError(
+            f"{path.relative_to(ROOT)}: page 1 has {page_one_count} full entries; "
+            f"allowed {page_one_limits['minimum']}–{page_one_limits['maximum']}"
+        )
+
+    page_two_rules = rules["page_2"]
+    _require_entry_count(path, 2, station_entries[2], page_two_rules["entries"])
+    _require_bullet_count(path, 2, station_entries[2], page_two_rules["bullets_per_entry"], "stations")
+
+    project_entries = _marked_entries(path, 3, pages[2], "project")
+    page_three_rules = rules["page_3"]
+    _require_entry_count(path, 3, project_entries, page_three_rules["entries"])
+    _require_bullet_count(path, 3, project_entries, page_three_rules["bullets_per_entry"], "projects")
+
+    competency_entries = _marked_entries(path, 4, pages[3], "competency")
+    page_four_rules = rules["page_4"]
+    expected_competencies = page_four_rules["groups"] * page_four_rules["entries_per_group"]
+    _require_entry_count(path, 4, competency_entries, expected_competencies)
+    _require_bullet_count(
+        path, 4, competency_entries, page_four_rules["bullets_per_entry"], "competency blocks"
+    )
+
+    marker_owners: dict[str, int] = {}
+    for page, entries in (
+        (1, station_entries[1]),
+        (2, station_entries[2]),
+        (3, project_entries),
+        (4, competency_entries),
+    ):
+        for entry in entries:
+            previous_page = marker_owners.get(entry.identifier)
+            if previous_page is not None:
+                raise ValidationError(
+                    f"{path.relative_to(ROOT)}: entry marker {entry.identifier!r} appears on pages "
+                    f"{previous_page} and {page}; every visible entry needs one unique owner"
+                )
+            marker_owners[entry.identifier] = page
+
+    group_matches = tuple(GROUP_PATTERN.finditer(pages[3]))
+    if len(group_matches) != page_four_rules["groups"]:
+        raise ValidationError(
+            f"{path.relative_to(ROOT)}: page 4 has {len(group_matches)} competency groups; "
+            f"exactly {page_four_rules['groups']} required"
+        )
+    competency_groups: list[tuple[str, ...]] = []
+    for index, group in enumerate(group_matches):
+        end = group_matches[index + 1].start() if index + 1 < len(group_matches) else len(pages[3])
+        identifiers = tuple(
+            entry.identifier for entry in competency_entries if group.start() < entry.offset < end
+        )
+        if len(identifiers) != page_four_rules["entries_per_group"]:
+            raise ValidationError(
+                f"{path.relative_to(ROOT)}: page 4 competency group {index + 1} has {len(identifiers)} blocks; "
+                f"exactly {page_four_rules['entries_per_group']} required"
+            )
+        competency_groups.append(identifiers)
+
+    return SourceLayout(
+        station_ids={
+            page: tuple(entry.identifier for entry in station_entries[page]) for page in (1, 2)
+        },
+        project_ids=tuple(entry.identifier for entry in project_entries),
+        competency_groups=tuple(competency_groups),
+    )
+
+
+def verify_source_counts(document: dict[str, Any], path: Path) -> SourceLayout:
     result = assess(document, str(GENERAL_PLAN.relative_to(ROOT)))
     expected_ids = {
         page: tuple(
@@ -162,15 +298,16 @@ def verify_source_counts(document: dict[str, Any], path: Path) -> None:
         )
         for page in (1, 2)
     }
-    actual_ids = typst_station_ids(path)
-    if actual_ids != expected_ids:
+    layout = validate_typst_layout(path)
+    if layout.station_ids != expected_ids:
         raise ValidationError(
-            f"{path.relative_to(ROOT)}: station source IDs {actual_ids} differ from plan {expected_ids}; "
+            f"{path.relative_to(ROOT)}: station source IDs {layout.station_ids} differ from plan {expected_ids}; "
             "add one ccvl-station marker per full entry and update the source or cvl/general/stations.json"
         )
-    actual_counts = {page: len(ids) for page, ids in actual_ids.items()}
+    actual_counts = {page: len(ids) for page, ids in layout.station_ids.items()}
     if actual_counts != result.page_counts:
         raise ValidationError(f"{path.relative_to(ROOT)}: station counts differ from the validated plan")
+    return layout
 
 
 def validate_general(*, require_ready: bool) -> Assessment:
@@ -179,26 +316,38 @@ def validate_general(*, require_ready: bool) -> Assessment:
     if require_ready and not result.ready:
         detail = "; ".join(result.problems)
         raise ValidationError(f"{detail}. Run ccvl profile-status and continue the profile interview")
-    for locale in ("de-ch", "en-ch"):
+    layouts = tuple(
         verify_source_counts(document, ROOT / "cvl" / "general" / locale / "cv.typ")
+        for locale in ("de-ch", "en-ch")
+    )
+    if layouts[0].project_ids != layouts[1].project_ids:
+        raise ValidationError("CV locales use different page-3 project IDs or ordering")
+    if layouts[0].competency_groups != layouts[1].competency_groups:
+        raise ValidationError("CV locales use different page-4 competency IDs, grouping, or ordering")
     return result
 
 
 def format_report(result: Assessment) -> str:
     rules = contract()
     state = "READY" if result.ready else "NOT READY"
-    lines = [f"CV station plan: {state}"]
-    for page in (1, 2):
-        limits = rules[f"page_{page}"]
-        lines.append(
-            f"Page {page}: {result.page_counts[page]} stations "
-            f"(allowed {limits['minimum']}–{limits['maximum']}; target {limits['target']})"
-        )
-    lines.append(f"Unassigned candidates: {result.unassigned}")
+    page_one = rules["page_1"]["entries"]
+    page_two = rules["page_2"]
+    lines = [
+        f"CV station plan: {state}",
+        f"Page 1: {result.page_counts[1]} stations "
+        f"(allowed {page_one['minimum']}–{page_one['maximum']}; target {page_one['target']})",
+        f"Page 2: {result.page_counts[2]} stations "
+        f"(fixed {page_two['entries']}; {page_two['bullets_per_entry']} bullets each)",
+        f"Page 3: fixed {rules['page_3']['entries']} projects; "
+        f"{rules['page_3']['bullets_per_entry']} bullets each",
+        f"Page 4: fixed {rules['page_4']['groups']}×{rules['page_4']['entries_per_group']} "
+        f"competency blocks; {rules['page_4']['bullets_per_entry']} keyword lines each",
+        f"Unassigned candidates: {result.unassigned}",
+    ]
     if result.problems:
         lines.append("Problems:")
         lines.extend(f"- {problem}" for problem in result.problems)
-    if result.page_counts[1] < rules["page_1"]["minimum"]:
+    if result.page_counts[1] < page_one["minimum"]:
         lines.append(
             "Next: ask for more experience and revisit paid, unpaid, independent, project, research, "
             "leadership, repair, teaching, and community work. Convert substantial work into a truthful "
@@ -207,12 +356,12 @@ def format_report(result: Assessment) -> str:
         if result.experience_candidates:
             candidates = ", ".join(result.experience_candidates)
             lines.append(f"Existing page-1 candidates to assess or move, never duplicate: {candidates}")
-    if result.page_counts[2] < rules["page_2"]["minimum"]:
+    if result.page_counts[2] < page_two["entries"]:
         lines.append(
             "Next: ask about education, continuing development, credentials, research, publications, awards, "
-            "communities, volunteering, and personal responsibility."
+            "communities, volunteering, and personal responsibility until page 2 has exactly ten stations."
         )
-    if result.page_counts[1] > rules["page_1"]["maximum"] or result.page_counts[2] > rules["page_2"]["maximum"]:
+    if result.page_counts[1] > page_one["maximum"] or result.page_counts[2] > page_two["entries"]:
         lines.append("Next: rank, merge, move, or leave stations unassigned; do not duplicate facts across sections.")
     return "\n".join(lines)
 
@@ -232,8 +381,14 @@ def main() -> int:
         document = load_plan(path)
         result = assess(document, str(path.relative_to(ROOT)))
         if args.verify_sources and result.ready:
-            for locale in ("de-ch", "en-ch"):
+            layouts = tuple(
                 verify_source_counts(document, ROOT / "cvl" / "general" / locale / "cv.typ")
+                for locale in ("de-ch", "en-ch")
+            )
+            if layouts[0].project_ids != layouts[1].project_ids:
+                raise ValidationError("CV locales use different page-3 project IDs or ordering")
+            if layouts[0].competency_groups != layouts[1].competency_groups:
+                raise ValidationError("CV locales use different page-4 competency IDs, grouping, or ordering")
     except (KeyError, OSError, ValidationError, ValueError) as exc:
         print(f"station plan failed: {exc}", file=sys.stderr)
         return 2

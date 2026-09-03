@@ -18,7 +18,8 @@ from `general/<locale>/application.json`. A keyed opportunity supplies its own
 record from `../opportunities/<organisation>/<position>/application.json` while
 reusing the general CV body and profile.
 
-The first two CV pages also have a deterministic station contract. Experience
-uses 6–8 full entries; the supporting page uses 9–11, targets 10, and may mix
-education, development, engagement, and other useful sections. Run
-`ccvl profile-status` while interviewing and before rendering.
+The CV has a deterministic layout contract. Experience uses 6–8 full entries
+on page 1. Page 2 uses exactly 10 supporting entries with two bullets each;
+page 3 uses exactly 10 projects with two bullets each; page 4 uses three
+competency groups with three blocks and three keyword lines per block. Run
+`ccvl profile-status` while interviewing and `--verify-sources` before rendering.

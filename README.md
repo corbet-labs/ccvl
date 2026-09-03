@@ -26,8 +26,9 @@ content is visible for professional evaluation, but is not a reusable template.
   tailored package.
 - German and English CVs with exact two-, three-, and four-page variants and
   an always-five-line Summary.
-- A deterministic station gate: 6–8 experience entries on page 1 and 9–11
-  supporting entries on page 2, backed by an iterative profile interview.
+- A deterministic layout gate: 6–8 experience entries on page 1; exactly 10
+  supporting entries with two bullets each on page 2; exactly 10 projects with
+  two bullets each on page 3; and a fixed 3×3 competency structure on page 4.
 - A target-neutral cover letter with six measured paragraphs and five highlights.
 - One schema-validated `application.json` per concrete opportunity.
 - Measured minimum, target, and maximum bounds for controlled line width,

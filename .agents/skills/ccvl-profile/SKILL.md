@@ -69,8 +69,9 @@ total.
 The deterministic layout contract is:
 
 - page 1, experience: 6–8 stations; target 7; 9 is overcrowded;
-- page 2, supporting record: 9–11 stations; target 10;
-- page 2 must contain at least as many stations as page 1;
+- page 2, supporting record: exactly 10 stations with exactly 2 bullets each;
+- page 3, projects and initiatives: exactly 10 entries with exactly 2 bullets each;
+- page 4, competencies: exactly 3 groups × 3 blocks × 3 keyword lines;
 - only verified, assigned stations count.
 
 Underfill and overfill are not successful completion. They prompt another
@@ -130,9 +131,22 @@ neutral data dump, but favourable framing never changes factual scope.
 
 For page 2, ask across education, professional development, credentials,
 research, publications, awards, communities, volunteering, and meaningful
-personal responsibility. Categories are flexible; the page-level count is the
-constraint. If page 2 remains below nine, keep collecting rather than leaving
-conspicuous empty space.
+personal responsibility. Categories are flexible; the page must still contain
+exactly ten stations with two substantive bullets each. Keep collecting while
+either a station or one of its bullets lacks verified content.
+
+For page 3, inventory products, projects, initiatives, research deliveries,
+community work, and substantial independent builds until ten distinct entries
+can each support two verified bullets. A project shown here may draw on the
+working profile, but it must not repeat a fact already allocated to pages 1 or
+2. If fewer than ten survive MECE allocation, return to specific prompts rather
+than shrinking the layout or inventing filler.
+
+For page 4, derive exactly nine mutually exclusive competency blocks from the
+verified profile and arrange them as three coherent groups of three. Each block
+contains exactly three keyword lines. Keywords may name evidenced knowledge,
+tools, methods, and domains, but they must not manufacture employment, ownership,
+results, or proficiency that the evidence does not support.
 
 ## Allocate economically and MECE
 
@@ -158,7 +172,9 @@ facts may enter the rendered CV.
 Once allocation is ready, write both locale masters below `cvl/general/` in
 plain recruiter-readable language while retaining recognised specialist terms.
 Place `// ccvl-station: <station-id>` immediately before the `#cv-h[...]` of
-every full station on pages 1 and 2. Do not mark compact standalone lines.
+every full station on pages 1 and 2. Place `// ccvl-project: <project-id>` before
+every project on page 3 and `// ccvl-competency: <competency-id>` before every
+competency block on page 4. Do not mark compact standalone lines.
 Run:
 
 ```text
@@ -166,8 +182,8 @@ Linux/macOS: bash ./ccvl profile-status --verify-sources
 Windows:     .\ccvl.cmd profile-status --verify-sources
 ```
 
-That command must confirm the plan is ready and that both CV sources contain
-the planned station counts. Then run the full check. Before publication, show
+That command must confirm the plan is ready and that both CV sources satisfy
+the complete fixed layout. Then run the full check. Before publication, show
 the exact identifier and claim manifest to the user. The checked-in author's
 content is reference-only personal material and must never become evidence or
 wording for another person.

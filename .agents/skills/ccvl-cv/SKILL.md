@@ -36,20 +36,24 @@ target profile | differentiation | two evidenced results | value offered
 The public showcase may combine this formula with an invitation to contact the
 author. A real application must be target-specific.
 
-## Core-page station gate
+## Fixed layout gate
 
 Before polishing or tailoring, load `cvl/general/stations.json` and run
 `ccvl profile-status --verify-sources`. Page 1 must contain 6–8 full experience
-stations; page 2 must contain 9–11 supporting stations, target 10, and at least
-match page 1. A full station has its own heading, context or period, and
-supporting content. Bullets and compact standalone lines do not count.
+stations. Page 2 contains exactly 10 supporting stations with two bullets each.
+Page 3 contains exactly 10 projects or initiatives with two bullets each. Page
+4 contains three competency groups, each with three blocks of three keyword
+lines. A full entry has its own heading and supporting content. Bullets and
+compact standalone lines do not count as entries.
 
 If the gate reports underfill, return to `ccvl-profile` and collect more
 material. Prefer converting substantial verified independent work, projects,
 research, teaching, leadership, or engagement into truthfully labelled
 experience stations. Move facts; never duplicate them across sections. If it
 reports overfill, rank, merge coherent material, move, or leave lower-value
-stations unassigned.
+stations unassigned. Never change a fixed count or bullet count to accommodate
+the available content; a failed layout prompts another collection and allocation
+iteration.
 
 Every controlled CV line declares or inherits a minimum, target, and maximum
 fill percentage for its actual Typst container. A sparse or overflowing line is

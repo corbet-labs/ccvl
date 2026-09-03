@@ -26,9 +26,10 @@ facts before creating opportunity-specific variants.
 
 Private inputs and interview work remain inside the same understandable group:
 source documents go to `cvl/imports/`, while the informal working profile and
-continuously updated journal go to `cvl/evidence/`. The deterministic station
-gate requires 6–8 experience entries on page 1 and 9–11 supporting entries on
-page 2 before the master is considered ready.
+continuously updated journal go to `cvl/evidence/`. The deterministic layout
+gate requires 6–8 experience entries on page 1, exactly 10 two-bullet supporting
+entries on page 2, exactly 10 two-bullet projects on page 3, and three groups of
+three three-line competency blocks on page 4 before the master is ready.
 
 Reusable Typst rendering code, bundled fonts, and tracked general outputs also
 live below `cvl/`. They are mechanism, not a second candidate-data model.

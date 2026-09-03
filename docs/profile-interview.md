@@ -18,21 +18,23 @@ then applies a deterministic station gate to the publishable CV plan.
 The journal is written before the next question is asked. A user can inspect it
 at any time, paste information directly into it, or provide more documents.
 
-## Station contract
+## Fixed layout contract
 
 A station is a full visual CV entry with its own heading, context or period,
 and supporting content. Individual bullets and compact standalone lines do not
 count.
 
-| Page | Role | Minimum | Target | Maximum |
-|---|---|---:|---:|---:|
-| 1 | experience | 6 | 7 | 8 |
-| 2 | supporting record across any useful sections | 9 | 10 | 11 |
+| Page | Role | Fixed structure |
+|---|---|---|
+| 1 | experience | 6–8 stations; target 7 |
+| 2 | supporting record across useful sections | exactly 10 stations × 2 bullets |
+| 3 | projects and initiatives | exactly 10 entries × 2 bullets |
+| 4 | competencies | exactly 3 groups × 3 blocks × 3 keyword lines |
 
-Page 2 must contain at least as many stations as page 1. Only verified stations
-with a page and one section count. Nine page-1 stations are overcrowded; fewer
-than six are underfilled. A failed bound triggers another interview or
-allocation pass.
+Only verified stations with a page and one section count. Nine page-1 stations
+are overcrowded; fewer than six are underfilled. Every other page count and
+listed per-entry line count is exact. A failed bound triggers another interview
+or allocation pass.
 
 A selected station uses this neutral shape:
 
@@ -93,7 +95,10 @@ independent work, side ventures, repairs, products, open source, sustained
 hobbies, research, teaching, mentoring, leadership, volunteering, communities,
 events, and substantial personal responsibility. Page-2 prompts cover
 education, professional development, credentials, publications, awards, and
-other supporting milestones.
+other supporting milestones. Page-3 prompts identify ten distinct projects and
+initiatives that can support two verified bullets each. Page-4 synthesis groups
+evidenced tools, methods, and domains into exactly three MECE groups of three
+blocks, each with three keyword lines.
 
 The method is ambitious about finding value and conservative about factual
 scope. Independent work may become an Experience station if it demonstrates
@@ -116,7 +121,9 @@ bash ./ccvl profile-status
 bash ./ccvl profile-status --verify-sources
 ```
 
-The first command reports coverage and targeted next prompts. The second also
-proves that both locale sources contain exactly the planned page-1 and page-2
-station IDs and order. Each full `#cv-h[...]` entry is preceded by
-`// ccvl-station: <station-id>`; compact lines have no marker.
+The first command reports station coverage and targeted next prompts. The
+second proves that both locale sources contain the planned page-1 and page-2
+station IDs, exactly ten two-bullet projects, and the same 3×3 competency
+structure. Entries use `// ccvl-station: <station-id>`, `// ccvl-project:
+<project-id>`, or `// ccvl-competency: <competency-id>` directly before their
+`#cv-h[...]`; compact lines have no marker.

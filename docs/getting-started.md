@@ -16,7 +16,7 @@ use this prompt:
 > checked-in platform dispatcher, verify the complete general CVL, then help me
 > replace `cvl/general/` with my evidence-backed profile and documents. Keep
 > targets and keyed applications in the visible top-level groups. Interview me
-> until the CV has enough verified material for the station contract, and keep
+> until the CV has enough verified material for the fixed layout contract, and keep
 > a visible journal as we go. Ask me about facts, not tooling, unless the
 > harness reaches an unavoidable system-permission decision.
 
@@ -75,10 +75,11 @@ drop several sources into `cvl/imports/`, or answer one conversational question
 at a time. The agent maintains `cvl/evidence/journal.md` so you can inspect what
 has already been captured.
 
-The first CV page needs 6–8 full experience stations; the second needs 9–11
-supporting stations and targets 10. `ccvl profile-status` reports the counts and
-forces another interview or allocation pass when a page is underfilled or
-overcrowded. The agent must never reuse the showcase author's claims or wording
+The first CV page needs 6–8 full experience stations. The second needs exactly
+10 supporting stations with two bullets each; page 3 needs exactly 10 projects
+with two bullets each; page 4 keeps a fixed 3×3 competency structure. `ccvl
+profile-status` reports the counts and forces another interview or allocation
+pass when the structure is incomplete or overcrowded. The agent must never reuse the showcase author's claims or wording
 as yours: they are reference-only personal content, not a template. It must ask
 rather than fill an evidence gap with a plausible statement. The complete
 algorithm is documented in [Profile interview and station
