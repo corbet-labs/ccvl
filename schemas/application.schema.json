@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/corbet-labs/ccvl/raw/main/schemas/application.schema.json",
+  "title": "ccvl application",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "revision", "job", "tailored_cv", "tailored_cl", "constraints"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "title", "organization", "location", "source", "url", "language", "application_date",
+        "description", "connections", "company_context", "notes", "cl_recipient"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]*$" },
+        "title": { "type": "string" },
+        "organization": { "type": "string" },
+        "location": { "type": "string" },
+        "source": { "type": "string" },
+        "url": { "type": "string" },
+        "language": { "type": "string", "enum": ["", "de-CH", "en-CH"] },
+        "application_date": { "type": "string" },
+        "description": { "type": "string" },
+        "connections": { "type": "string" },
+        "company_context": { "type": "string" },
+        "notes": { "type": "string" },
+        "cl_recipient": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "title", "company", "address_line_1", "address_line_2"],
+          "properties": {
+            "name": { "type": "string" },
+            "title": { "type": "string" },
+            "company": { "type": "string" },
+            "address_line_1": { "type": "string" },
+            "address_line_2": { "type": "string" }
+          }
+        }
+      }
+    },
+    "tailored_cv": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary"],
+      "properties": { "summary": { "type": "string" } }
+    },
+    "tailored_cl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paragraphs", "highlights"],
+      "properties": {
+        "paragraphs": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "type": "string" }
+        },
+        "highlights": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cv_summary_max_lines", "cl_paragraph_max_lines", "cl_highlight_max_lines"],
+      "properties": {
+        "cv_summary_max_lines": { "$ref": "#/$defs/lineLimit" },
+        "cl_paragraph_max_lines": { "$ref": "#/$defs/fiveLineLimits" },
+        "cl_highlight_max_lines": { "$ref": "#/$defs/fiveLineLimits" }
+      }
+    }
+  },
+  "$defs": {
+    "lineLimit": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "fiveLineLimits": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/lineLimit" }
+    }
+  }
+}

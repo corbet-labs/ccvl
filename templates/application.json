@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "revision": 0,
+  "job": {
+    "id": "",
+    "title": "",
+    "organization": "",
+    "location": "",
+    "source": "",
+    "url": "",
+    "language": "",
+    "application_date": "",
+    "description": "",
+    "connections": "",
+    "company_context": "",
+    "notes": "",
+    "cl_recipient": {
+      "name": "",
+      "title": "",
+      "company": "",
+      "address_line_1": "",
+      "address_line_2": ""
+    }
+  },
+  "tailored_cv": {
+    "summary": ""
+  },
+  "tailored_cl": {
+    "paragraphs": ["", "", "", "", ""],
+    "highlights": ["", "", "", "", ""]
+  },
+  "constraints": {
+    "cv_summary_max_lines": 4,
+    "cl_paragraph_max_lines": [4, 4, 4, 4, 4],
+    "cl_highlight_max_lines": [2, 2, 2, 2, 2]
+  }
+}

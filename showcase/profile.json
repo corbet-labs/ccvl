@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "Julian Yves Richard Corbet",
+  "email": "career@mgmt.corbet.ch",
+  "phone_label": "+41 79 930 37 96",
+  "phone_href": "tel:+41799303796",
+  "location": "ZH, CH",
+  "languages": "DE: C2, EN: C1+",
+  "linkedin": "https://linkedin.com/in/julian-corbet",
+  "website": "https://cv.corbet.ch",
+  "localized": {
+    "de-CH": {
+      "nationality_and_permit": "Deutsch, Ausweis B",
+      "availability": "Verfügbar: Sofort"
+    },
+    "en-CH": {
+      "nationality_and_permit": "German, Permit B",
+      "availability": "Available: Now"
+    }
+  }
+}

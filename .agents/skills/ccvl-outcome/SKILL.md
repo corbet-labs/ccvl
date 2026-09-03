@@ -1,0 +1,23 @@
+---
+name: ccvl-outcome
+description: Record interview, rejection, offer, withdrawal, and feedback events and turn them into evidence-based targeting or application improvements.
+---
+
+# Record and learn from outcomes
+
+Preserve what happened without converting a plausible explanation into fact.
+
+## Workflow
+
+1. Link the outcome to one application and record event type, timestamp, source,
+   and exact feedback.
+2. Separate observations from hypotheses. A rejection without feedback does not
+   prove why the application failed.
+3. Update funnel metrics only from recorded events.
+4. Propose changes to targeting, evidence collection, CV emphasis, or interview
+   preparation with an explicit rationale and confidence level.
+5. Feed durable verified facts back into `evidence/`; do not rewrite source
+   history to make an outcome look inevitable.
+
+Use `../../../templates/outcome.md` in local mode. In CareerVector mode, use the
+typed outcome operations so the web workspace remains authoritative.

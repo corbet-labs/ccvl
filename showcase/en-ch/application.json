@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "revision": 0,
+  "job": {
+    "id": "showcase-en-ch",
+    "title": "Innovation, Technology & Strategy",
+    "organization": "",
+    "location": "Switzerland | hybrid | remote",
+    "source": "ccvl showcase",
+    "url": "https://github.com/corbet-labs/ccvl",
+    "language": "en-CH",
+    "application_date": "September 2026",
+    "description": "Roles at the intersection of innovation management, technology, strategy and finance.",
+    "connections": "",
+    "company_context": "Target-neutral public working example and open application.",
+    "notes": "The content describes Julian Corbet; new users replace it only with their own evidenced facts.",
+    "cl_recipient": {
+      "name": "",
+      "title": "",
+      "company": "",
+      "address_line_1": "",
+      "address_line_2": ""
+    }
+  },
+  "tailored_cv": {
+    "summary": "This CV is both a working example and an open application. I combine technology and innovation management with strategy and finance – evidenced by GenAI at CENVION, decision analysis for Swisscom and Airbus, and experience across M&A, banking and consulting. If that profile fits a problem you need solved, let's talk. To adapt it: target profile | differentiation | two evidenced results | value offered."
+  },
+  "tailored_cl": {
+    "paragraphs": [
+      "Some cover letters begin with enthusiasm for one particular vacancy. This one begins more honestly: I am looking for a role that connects innovation management and technology with strategy and finance – while ccvl demonstrates how I structure applications like this one.",
+      "At CENVION, I introduced Claude and RAG-based search into investment and reporting workflows. At Airbus, I translated more than 20 years of safety-critical data into risk and cost signals; at Swisscom, I modelled cloud economics and infrastructure decisions. Technology matters most to me when it improves real decisions.",
+      "The commercial side is part of the same picture: project-finance and M&A models, eight-figure infrastructure investments, CHF 10m+ supplier negotiations, and end-to-end project P&L in my own consulting work. I can build a prototype and explain why it is worth building.",
+      "That does not produce a perfectly linear specialist profile – fortunately. It produces someone who understands emerging technology hands-on, frames its strategic relevance, and carries it into delivery with a sound business case. The more interesting problems tend to live at exactly those intersections.",
+      "If your team needs someone who does more than put innovation on slides – someone who analyses it, builds it, and translates it commercially – we should talk. If you came for the template instead: fork it, insert your own facts, verify every claim, and the next strong cover letter is yours."
+    ],
+    "highlights": [
+      "Innovation & Technology | Agentic AI, cloud systems and 50+ open-source projects",
+      "Applied AI & Data | RAG search, ML risk analysis and intelligent automation",
+      "Strategy & Transformation | SteerCo decisions, TOM and operational delivery",
+      "Finance & Investment | Project finance, DCF, portfolio and scenario analysis",
+      "Entrepreneurial Delivery | Consulting across four markets and end-to-end project P&L"
+    ]
+  },
+  "constraints": {
+    "cv_summary_max_lines": 4,
+    "cl_paragraph_max_lines": [4, 4, 4, 4, 4],
+    "cl_highlight_max_lines": [2, 2, 2, 2, 2]
+  }
+}

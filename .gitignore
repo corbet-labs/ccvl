@@ -1,0 +1,33 @@
+# Generated output
+/out/
+
+# Private downstream data
+/applications/
+/evidence/
+/outcomes/
+/private/
+/sources/
+/submissions/
+/targets/
+
+# Local build state
+/.cache/
+/__pycache__/
+**/__pycache__/
+/result
+/tmp/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Editor and office temporary files
+.DS_Store
+Thumbs.db
+.~lock.*#
+~$*.doc*
+~$*.xls*
+*.bak
+*.log
+*.tmp

@@ -1,0 +1,32 @@
+{
+  "format": "ccvl-workspace",
+  "schema_version": 1,
+  "application_schema": "schemas/application.schema.json",
+  "profile_schema": "schemas/profile.schema.json",
+  "applications": {
+    "root": "applications",
+    "filename": "application.json"
+  },
+  "showcase": {
+    "profile": "showcase/profile.json",
+    "de-CH": "showcase/de-ch/application.json",
+    "en-CH": "showcase/en-ch/application.json"
+  },
+  "documents": {
+    "cv": {
+      "de-CH": "cvl/cv/de-ch/main.typ",
+      "en-CH": "cvl/cv/en-ch/main.typ",
+      "presets": [2, 3, 4]
+    },
+    "cover_letter": {
+      "de-CH": "cvl/cl/de-ch/main.typ",
+      "en-CH": "cvl/cl/en-ch/main.typ",
+      "paragraphs": 5,
+      "highlights": 5
+    }
+  },
+  "career_vector": {
+    "application_schema_version": 1,
+    "import_mode": "explicit-review"
+  }
+}
