@@ -1,0 +1,11 @@
+{
+  "tinymist.fontPaths": ["${workspaceFolder}/cvl/shared/fonts"],
+  "tinymist.systemFonts": false,
+  "tinymist.exportPdf": "never",
+  "tinymist.formatterMode": "typstyle",
+  "tinymist.formatterPrintWidth": 120,
+  "[typst]": {
+    "editor.defaultFormatter": "myriad-dreamin.tinymist",
+    "editor.formatOnSave": true
+  }
+}

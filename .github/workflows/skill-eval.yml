@@ -1,0 +1,86 @@
+name: Skill evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".agents/skills/**"
+      - ".github/workflows/skill-eval.yml"
+      - "scripts/ai_skill_eval.py"
+      - "tests/skill-cases.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skill-eval-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate:
+    name: Small-model behavioural evaluation
+    if: github.repository == 'corbet-labs/ccvl'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Validate evaluator and skill contracts
+        run: |
+          python3 scripts/validate_workspace.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Evaluate every skill with a small free model
+        id: evaluation
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: openai/gpt-oss-20b
+        run: |
+          set +e
+          python3 scripts/ai_skill_eval.py \
+            --output out/ai-skill-eval/report.json \
+            --summary "$GITHUB_STEP_SUMMARY"
+          status=$?
+          set -e
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Upload evaluation report
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ai-skill-evaluation
+          path: out/ai-skill-eval/report.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce evaluated result
+        if: always()
+        env:
+          EVALUATION_EXIT_CODE: ${{ steps.evaluation.outputs.exit_code }}
+        run: |
+          case "$EVALUATION_EXIT_CODE" in
+            0)
+              echo "All semantic skill cases passed."
+              ;;
+            1)
+              echo "::error::The model selected a forbidden action or missed a required action."
+              exit 1
+              ;;
+            75)
+              echo "::error::The free model provider was unavailable; no semantic pass is being claimed."
+              exit 1
+              ;;
+            *)
+              echo "::error::The skill evaluator was not configured or did not complete."
+              exit 1
+              ;;
+          esac

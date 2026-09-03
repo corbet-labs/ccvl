@@ -5,13 +5,16 @@ path = [
   ".agents/**",
   ".claude/**",
   ".github/**",
+  ".vscode/**",
   ".gitattributes",
   ".gitignore",
   "AGENTS.md",
+  "ccvl",
   "ccvl.json",
   "justfile",
   "schemas/**",
   "scripts/**",
+  "tests/**",
   "cvl/**/*.typ",
 ]
 precedence = "override"

@@ -28,7 +28,7 @@ discarding it.
 Render one private application from the repository root:
 
 ```sh
-just build-application applications/<job-id>/application.json de-ch 4
+bash ./ccvl build-application applications/<job-id>/application.json de-ch 4
 ```
 
 The command validates the application while rendering and writes `cv.pdf` and

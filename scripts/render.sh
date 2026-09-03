@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 font_path="$repo_root/cvl/shared/fonts"
 creation_timestamp="${SOURCE_DATE_EPOCH:-0}"
 
@@ -16,7 +16,7 @@ EOF
 }
 
 normalize_locale() {
-  case "${1,,}" in
+  case "$1" in
     de | de-ch) printf 'de-ch\n' ;;
     en | en-ch) printf 'en-ch\n' ;;
     *)
@@ -33,15 +33,24 @@ default_application() {
   esac
 }
 
+canonical_path() {
+  local requested="$1"
+  python3 - "$repo_root" "$requested" <<'PY'
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+requested = Path(sys.argv[2])
+path = requested.resolve(strict=True) if requested.is_absolute() else (root / requested).resolve(strict=True)
+print(path)
+PY
+}
+
 typst_path() {
   local requested="$1"
   local absolute
 
-  if [[ "$requested" = /* ]]; then
-    absolute="$(realpath -e -- "$requested")"
-  else
-    absolute="$(realpath -e -- "$repo_root/$requested")"
-  fi
+  absolute="$(canonical_path "$requested")"
 
   case "$absolute" in
     "$repo_root"/*) printf '/%s\n' "${absolute#"$repo_root"/}" ;;
@@ -53,21 +62,18 @@ typst_path() {
 }
 
 host_path() {
-  local requested="$1"
-
-  if [[ "$requested" = /* ]]; then
-    realpath -e -- "$requested"
-  else
-    realpath -e -- "$repo_root/$requested"
-  fi
+  canonical_path "$1"
 }
 
 compile_pdf() {
   local source="$1"
   local output="$2"
+  local diagnostics
+  local status=0
   shift 2
 
   mkdir -p -- "$(dirname -- "$output")"
+  diagnostics="$(mktemp "${TMPDIR:-/tmp}/ccvl-typst.XXXXXXXX")"
   typst compile \
     --root "$repo_root" \
     --font-path "$font_path" \
@@ -75,7 +81,19 @@ compile_pdf() {
     --creation-timestamp "$creation_timestamp" \
     "$@" \
     "$source" \
-    "$output"
+    "$output" \
+    2> >(tee "$diagnostics" >&2) || status=$?
+
+  if ((status != 0)); then
+    rm -f -- "$diagnostics"
+    return "$status"
+  fi
+  if [[ -s "$diagnostics" ]]; then
+    printf 'Typst emitted diagnostics; refusing a fallback render.\n' >&2
+    rm -f -- "$diagnostics"
+    return 1
+  fi
+  rm -f -- "$diagnostics"
 }
 
 render_cv() {
@@ -140,7 +158,18 @@ render_application() {
   local profile="${4:-showcase/profile.json}"
   local job_id
 
-  job_id="$(jq -er '.job.id | select(test("^[A-Za-z0-9_-]+$"))' "$(host_path "$application")")"
+  job_id="$(python3 - "$(host_path "$application")" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+job_id = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))["job"]["id"]
+if not isinstance(job_id, str) or re.fullmatch(r"[A-Za-z0-9_-]+", job_id) is None:
+    raise SystemExit("application job.id must contain only ASCII letters, numbers, hyphens, or underscores")
+print(job_id)
+PY
+)"
   render_cv "$locale" "$pages" "$application" "$profile" "$repo_root/out/$job_id/cv.pdf"
   render_cl "$locale" "$application" "$profile" "$repo_root/out/$job_id/cl.pdf"
 }

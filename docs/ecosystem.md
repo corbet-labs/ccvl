@@ -29,10 +29,10 @@ source unless the user explicitly changes that ownership.
 ## Shared skills
 
 The domain workflow is portable: build a verified profile, map targets, assess
-an opportunity, tailor documents, review, and record outcomes. ccvl skills use
-filesystem operations. CareerVector exposes the same concepts through typed
-workspace tools. The prose and safety rules stay shared while the storage
-adapter changes.
+an opportunity, tailor and review documents, prepare for interviews, close
+evidence gaps, and record outcomes. ccvl skills use filesystem operations.
+CareerVector exposes the same concepts through typed workspace tools. The prose
+and safety rules stay shared while the storage adapter changes.
 
 ## Harvard-style documents
 

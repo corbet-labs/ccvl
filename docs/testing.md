@@ -1,0 +1,56 @@
+# Testing ccvl
+
+ccvl separates deterministic release checks from a deliberately small-model
+behavioural test. A green AI test is supporting evidence, not proof that every
+agent will behave correctly.
+
+## Mechanical checks
+
+Run the complete local suite with:
+
+```sh
+bash ./ccvl check
+```
+
+It verifies:
+
+- the workspace manifest, JSON schemas, applications, profile, skill manifest,
+  Claude adapters, AI cases, and local Markdown links;
+- all Python evaluator unit tests, shell syntax, Typst formatting, and clean
+  Git whitespace;
+- binary asset integrity and all four bundled Archivo variants;
+- all six CV variants and both cover letters with zero Typst diagnostics;
+- exact A4 page counts, usable text layers, embedded, subsetted, and
+  Unicode-mapped Archivo fonts;
+- unencrypted PDFs without forms, JavaScript, attachments, or fallback fonts;
+- machine-readable showcase contact details and rendered cover-letter signatures;
+- byte-for-byte reproducibility across two independent renders;
+- equality between fresh builds and the checked-in PDFs;
+- pixel identity of the two CV pages shared by every page preset.
+
+`bash ./ccvl public-check` adds checks for private downstream directories, symlinks,
+secret patterns, and private workspace identifiers. GitHub Actions also runs
+ShellCheck, Actionlint, and REUSE licensing validation.
+
+## Small-model skill evaluation
+
+The `Skill evaluation` workflow sends ten generic decision cases and the eight
+canonical skills to Groq's free-tier `openai/gpt-oss-20b` model. Both the
+expected routing and answer key are withheld. A deterministic evaluator then
+requires the correct skill, every expected action, no forbidden action, and a
+valid response structure. It publishes all decisions and short reasons as a
+workflow artifact.
+
+The workflow runs only in `corbet-labs/ccvl`, on relevant pushes to `main` or a
+manual dispatch. It never runs with secrets on pull requests or in forks. A
+rate limit or provider outage is reported distinctly and fails the workflow;
+it is never presented as a semantic pass.
+
+To run the same evaluation outside Actions, set `GROQ_API_KEY` without writing
+it to the repository, then run:
+
+```sh
+python3 scripts/ai_skill_eval.py
+```
+
+The report is written to `out/ai-skill-eval/report.json`.

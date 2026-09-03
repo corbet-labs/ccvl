@@ -23,14 +23,23 @@ two roles as separate trust domains.
 
 ## Skill routing
 
-Read the matching canonical skill in `.agents/skills/` before acting:
+Read the one matching canonical skill in `.agents/skills/` before acting. Do
+not load every skill by default. If a request spans phases, finish them in the
+order below instead of blending their data ownership:
 
 - environment setup or missing tools: `ccvl-install`;
 - profile ingestion or claim reconciliation: `ccvl-profile`;
 - market, company, function, or role mapping: `ccvl-targets`;
 - CV wording, structure, rendering, or ATS work: `ccvl-cv`;
 - a concrete vacancy or application package: `ccvl-apply`;
-- interviews, rejections, offers, or calibration: `ccvl-outcome`.
+- preparation for a scheduled interview: `ccvl-interview`;
+- skill-gap analysis or a learning plan: `ccvl-upskill`;
+- recorded interviews, rejections, offers, or calibration: `ccvl-outcome`.
 
-Run `just check` before considering document work complete. Run
-`just public-check` before publishing from the ccvl upstream.
+Run `bash ./ccvl check` before considering document work complete. Run
+`bash ./ccvl public-check` before publishing from the ccvl upstream.
+
+For a new or uncertain environment, route to `ccvl-install` and use
+`bash ./ccvl bootstrap`; do not ask a novice to choose a package manager or
+learn Git first. For an already managed environment, accept a no-change plan
+and verify it. Presence of a command is not completion: the harness must pass.

@@ -1,5 +1,8 @@
 # ccvl
 
+[![CI](https://github.com/corbet-labs/ccvl/actions/workflows/ci.yml/badge.svg)](https://github.com/corbet-labs/ccvl/actions/workflows/ci.yml)
+[![Skill evaluation](https://github.com/corbet-labs/ccvl/actions/workflows/skill-eval.yml/badge.svg)](https://github.com/corbet-labs/ccvl/actions/workflows/skill-eval.yml)
+
 ccvl is a local-first, forkable CV and application system built with Typst. It
 ships a real bilingual career profile as its working example, a controllable
 Harvard-style presentation layer, strict document checks, and portable agent
@@ -29,23 +32,31 @@ The two- and three-page CV presets are available in the same output tree.
 - A target-neutral cover letter with five paragraphs and five highlights.
 - One CareerVector-aligned `application.json` per concrete opportunity.
 - Shared Typst components, bundled fonts, and reproducible build commands.
-- Agent skills for setup, evidence-backed profiles, target research, CV work,
-  applications, and outcome tracking.
+- Eight agent skills for setup, evidence-backed profiles, target research, CV
+  work, applications, interview preparation, upskilling, and outcome tracking.
 - Privacy and provenance rules for keeping personal application data in a
   private downstream repository.
 
 ## Quick start
 
+No Git or Typst experience is required. [Download and extract the source
+archive](https://github.com/corbet-labs/ccvl/archive/refs/heads/main.zip), or
+clone the repository if you already use Git. Open the folder in a
+filesystem-capable coding agent and ask it to set up ccvl using `AGENTS.md`.
+The complete novice and terminal workflows are in [Getting
+started](docs/getting-started.md).
+
 ```sh
 git clone https://github.com/corbet-labs/ccvl.git
 cd ccvl
-git lfs pull
-just doctor
-just check
-just build
+bash ./ccvl setup
+bash ./ccvl check
+bash ./ccvl build
 ```
 
 Generated PDFs are written below `cvl/cv/output/` and `cvl/cl/output/`.
+The same commands work in a downloaded source archive; Git knowledge is not
+required. Existing Just users may use the equivalent `just` recipes.
 
 ## Make it yours
 
@@ -68,10 +79,15 @@ Canonical skills live under `.agents/skills/`:
 - `ccvl-targets`
 - `ccvl-cv`
 - `ccvl-apply`
+- `ccvl-interview`
+- `ccvl-upskill`
 - `ccvl-outcome`
 
 Repository-wide operating rules are in [AGENTS.md](AGENTS.md). The data model
-is documented in [docs/data-model.md](docs/data-model.md).
+is documented in [docs/data-model.md](docs/data-model.md), and the deterministic
+plus small-model checks are described in [docs/testing.md](docs/testing.md).
+The [skill map](docs/skills.md) defines the eight ownership boundaries and what
+is deliberately left to CareerVector or explicit user action.
 
 ## License
 

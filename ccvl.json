@@ -7,6 +7,16 @@
     "root": "applications",
     "filename": "application.json"
   },
+  "skills": [
+    "ccvl-install",
+    "ccvl-profile",
+    "ccvl-targets",
+    "ccvl-cv",
+    "ccvl-apply",
+    "ccvl-interview",
+    "ccvl-upskill",
+    "ccvl-outcome"
+  ],
   "showcase": {
     "profile": "showcase/profile.json",
     "de-CH": "showcase/de-ch/application.json",
