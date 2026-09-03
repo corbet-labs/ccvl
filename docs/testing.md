@@ -38,8 +38,8 @@ The `Skill evaluation` workflow sends ten generic decision cases and the eight
 canonical skills to Groq's free-tier `openai/gpt-oss-20b` model. Both the
 expected routing and answer key are withheld. A deterministic evaluator then
 requires the correct skill, every expected action, no forbidden action, and a
-valid response structure. It publishes all decisions and short reasons as a
-workflow artifact.
+valid response structure. It publishes all decisions, concise reasons, provider
+finish status, and token usage as a workflow artifact.
 
 The workflow runs only in `corbet-labs/ccvl`, on relevant pushes to `main` or a
 manual dispatch. It never runs with secrets on pull requests or in forks. A

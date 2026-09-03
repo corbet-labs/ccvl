@@ -75,12 +75,12 @@ class SkillEvaluationTests(unittest.TestCase):
 
     def test_duplicate_case_and_long_reason_fail(self) -> None:
         response = self.passing_response()
-        response["decisions"][0]["reason"] = "word " * 26
+        response["decisions"][0]["reason"] = "word " * 13
         response["decisions"].append(dict(response["decisions"][1]))
         result = ai_skill_eval.evaluate_response(self.cases, response)
         self.assertEqual(result["status"], "failed")
         self.assertTrue(any("more than once" in error for error in result["errors"]))
-        self.assertTrue(any("exceeds 25 words" in error for error in result["results"][0]["errors"]))
+        self.assertTrue(any("exceeds 12 words" in error for error in result["results"][0]["errors"]))
 
     def test_model_prompt_does_not_expose_answer_key(self) -> None:
         skills = {case["skill"]: "example skill" for case in self.cases}
@@ -96,9 +96,16 @@ class SkillEvaluationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="ccvl-eval-test-") as directory:
             report = Path(directory) / "report.json"
             summary = Path(directory) / "summary.md"
-            ai_skill_eval.write_report(report, ai_skill_eval.DEFAULT_MODEL, evaluation)
+            ai_skill_eval.write_report(
+                report,
+                ai_skill_eval.DEFAULT_MODEL,
+                evaluation,
+                provider_details={"finish_reason": "stop", "usage": {"total_tokens": 42}},
+            )
             ai_skill_eval.append_markdown_summary(summary, report)
-            self.assertEqual(ai_skill_eval.read_json(report)["status"], "passed")
+            saved_report = ai_skill_eval.read_json(report)
+            self.assertEqual(saved_report["status"], "passed")
+            self.assertEqual(saved_report["provider_details"]["finish_reason"], "stop")
             self.assertIn("ccvl skill evaluation", summary.read_text(encoding="utf-8"))
 
 
