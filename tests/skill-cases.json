@@ -34,7 +34,7 @@
       "options": [
         {
           "id": "use-bootstrap-contract",
-          "text": "Run the checked-in bootstrap plan, then use bash ./ccvl setup because installation was explicitly requested."
+          "text": "Run the checked-in bootstrap plan, then use the matching platform setup command because installation was explicitly requested."
         },
         {
           "id": "verify-before-editing",
@@ -80,6 +80,56 @@
       ],
       "required": ["accept-idempotent-noop"],
       "forbidden": ["reinstall-pinned-tools", "replace-user-toolchain", "skip-verification"]
+    },
+    {
+      "id": "install-windows-native",
+      "skill": "ccvl-install",
+      "scenario": "A Windows 11 user downloaded the ZIP and has no Git, Python, Typst, package manager knowledge, or WSL. They explicitly ask the agent to install and verify ccvl natively.",
+      "options": [
+        {
+          "id": "use-windows-dispatcher",
+          "text": "Use .\\ccvl.cmd bootstrap, then .\\ccvl.cmd setup; let the checked-in PowerShell harness install checksum-verified native tools and the locked runtime."
+        },
+        {
+          "id": "verify-windows-output",
+          "text": "Require the native Windows check to rebuild and verify every tracked PDF before declaring success."
+        },
+        {
+          "id": "require-wsl",
+          "text": "Require the user to enable WSL and learn a Linux workflow before ccvl can run."
+        },
+        {
+          "id": "require-git-for-assets",
+          "text": "Install Git and Git LFS first because fonts and PDFs cannot be present in a ZIP."
+        }
+      ],
+      "required": ["use-windows-dispatcher", "verify-windows-output"],
+      "forbidden": ["require-wsl", "require-git-for-assets"]
+    },
+    {
+      "id": "install-macos-native",
+      "skill": "ccvl-install",
+      "scenario": "An Apple-Silicon Mac user downloaded the ZIP and has only the standard operating-system tools. They explicitly ask the agent to set up ccvl without changing their global development environment.",
+      "options": [
+        {
+          "id": "use-macos-dispatcher",
+          "text": "Use bash ./ccvl bootstrap, then setup; keep pinned arm64 tools, Python, and locked dependencies inside the repository cache."
+        },
+        {
+          "id": "verify-macos-output",
+          "text": "Require the native macOS check and byte comparison against every tracked PDF."
+        },
+        {
+          "id": "install-homebrew-stack",
+          "text": "Install Homebrew and replace the user's global Python and document toolchain before checking ccvl."
+        },
+        {
+          "id": "accept-system-font-fallback",
+          "text": "Use whatever system font is available if Archivo is not globally installed."
+        }
+      ],
+      "required": ["use-macos-dispatcher", "verify-macos-output"],
+      "forbidden": ["install-homebrew-stack", "accept-system-font-fallback"]
     },
     {
       "id": "profile-independent-work",

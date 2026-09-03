@@ -4,16 +4,20 @@ set -euo pipefail
 repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 local_bin="$repo_root/.cache/ccvl/bin"
 export PATH="$local_bin:$PATH"
+export UV_PROJECT_ENVIRONMENT="$repo_root/.cache/ccvl/venv"
+export UV_CACHE_DIR="$repo_root/.cache/ccvl/uv-cache"
+export UV_PYTHON_INSTALL_DIR="$repo_root/.cache/ccvl/python"
 
 # shellcheck source=scripts/tool-versions.sh
 source "$repo_root/scripts/tool-versions.sh"
+pypdf_version="$(awk -F'==' '/"pypdf==/ { gsub(/[", ]/, "", $2); print $2; exit }' "$repo_root/pyproject.toml")"
 
 usage() {
   cat <<'EOF'
 Usage: scripts/bootstrap.sh [plan|install]
 
   plan     Report exact missing tools and intended changes. This is the default.
-  install  Install missing host packages and pinned tools, then verify them.
+  install  Install pinned local tools and the locked Python runtime, then verify.
 EOF
 }
 
@@ -41,15 +45,11 @@ probe() {
 platform="${CCVL_BOOTSTRAP_TEST_PLATFORM:-$(uname -s)-$(uname -m)}"
 platform="${platform/arm64/aarch64}"
 platform="${platform/amd64/x86_64}"
-if ! ccvl_select_tool_assets "$platform"; then
-  printf 'Unsupported platform: %s. Use Linux x86_64/aarch64, macOS x86_64/arm64, or WSL.\n' "$platform" >&2
-  exit 2
-fi
-
-required_commands=(cmp file pdfdetach pdfinfo pdfimages pdffonts pdftoppm pdftotext python3 qpdf rg)
-missing_commands=()
-for command_name in "${required_commands[@]}"; do
-  probe "$command_name" >/dev/null || missing_commands+=("$command_name")
+for tool in typst typstyle uv; do
+  if ! ccvl_select_tool_asset "$tool" "$platform"; then
+    printf 'Unsupported platform: %s. Use Linux or macOS on x86_64/aarch64, or native Windows.\n' "$platform" >&2
+    exit 2
+  fi
 done
 
 tool_matches() {
@@ -61,14 +61,28 @@ tool_matches() {
 }
 
 pinned_tools=()
-tool_matches typst "typst $CCVL_TYPST_VERSION" || pinned_tools+=(typst)
-tool_matches typstyle "$CCVL_TYPSTYLE_VERSION" || pinned_tools+=(typstyle)
-tool_matches just "just $CCVL_JUST_VERSION" || pinned_tools+=(just)
+if [[ "${CCVL_BOOTSTRAP_FORCE_LOCAL:-0}" == 1 ]]; then
+  if [[ ! -x "$local_bin/typst" ]] \
+    || ! "$local_bin/typst" --version 2>&1 | grep -Fq "typst $CCVL_TYPST_VERSION"; then
+    pinned_tools+=(typst)
+  fi
+  if [[ ! -x "$local_bin/typstyle" ]] \
+    || ! "$local_bin/typstyle" --version 2>&1 | grep -Fq "$CCVL_TYPSTYLE_VERSION"; then
+    pinned_tools+=(typstyle)
+  fi
+  if [[ ! -x "$local_bin/uv" ]] \
+    || ! "$local_bin/uv" --version 2>&1 | grep -Fq "uv $CCVL_UV_VERSION"; then
+    pinned_tools+=(uv)
+  fi
+else
+  tool_matches typst "typst $CCVL_TYPST_VERSION" || pinned_tools+=(typst)
+  tool_matches typstyle "$CCVL_TYPSTYLE_VERSION" || pinned_tools+=(typstyle)
+  tool_matches uv "uv $CCVL_UV_VERSION" || pinned_tools+=(uv)
+fi
 
 manager="${CCVL_BOOTSTRAP_TEST_MANAGER:-}"
 if [[ -z "$manager" ]]; then
   case "$platform" in
-    Darwin-*) probe brew >/dev/null && manager=brew ;;
     Linux-*)
       if probe apt-get >/dev/null; then manager=apt
       elif probe dnf >/dev/null; then manager=dnf
@@ -76,93 +90,58 @@ if [[ -z "$manager" ]]; then
       elif probe nix >/dev/null; then manager=nix
       fi
       ;;
+    Darwin-*) probe brew >/dev/null && manager=brew ;;
   esac
 fi
 
-add_unique() {
-  local candidate="$1"
-  shift
-  local existing
-  for existing in "$@"; do
-    [[ "$existing" == "$candidate" ]] && return
-  done
-  system_packages+=("$candidate")
-}
+missing_bootstrap=()
+if ((${#pinned_tools[@]} > 0)); then
+  if ! probe curl >/dev/null && ! probe wget >/dev/null; then
+    missing_bootstrap+=(downloader)
+  fi
+  if [[ "$platform" == Linux-* ]] && ! probe xz >/dev/null; then
+    missing_bootstrap+=(xz)
+  fi
+fi
 
 system_packages=()
-for command_name in "${missing_commands[@]}"; do
+for command_name in "${missing_bootstrap[@]}"; do
   case "$manager:$command_name" in
-    apt:cmp) add_unique diffutils "${system_packages[@]}" ;;
-    apt:file) add_unique file "${system_packages[@]}" ;;
-    apt:pdf*) add_unique poppler-utils "${system_packages[@]}" ;;
-    apt:python3) add_unique python3 "${system_packages[@]}" ;;
-    apt:qpdf) add_unique qpdf "${system_packages[@]}" ;;
-    apt:rg) add_unique ripgrep "${system_packages[@]}" ;;
-    dnf:cmp) add_unique diffutils "${system_packages[@]}" ;;
-    dnf:file) add_unique file "${system_packages[@]}" ;;
-    dnf:pdf*) add_unique poppler-utils "${system_packages[@]}" ;;
-    dnf:python3) add_unique python3 "${system_packages[@]}" ;;
-    dnf:qpdf) add_unique qpdf "${system_packages[@]}" ;;
-    dnf:rg) add_unique ripgrep "${system_packages[@]}" ;;
-    pacman:cmp) add_unique diffutils "${system_packages[@]}" ;;
-    pacman:file) add_unique file "${system_packages[@]}" ;;
-    pacman:pdf*) add_unique poppler "${system_packages[@]}" ;;
-    pacman:python3) add_unique python "${system_packages[@]}" ;;
-    pacman:qpdf) add_unique qpdf "${system_packages[@]}" ;;
-    pacman:rg) add_unique ripgrep "${system_packages[@]}" ;;
-    brew:cmp | brew:file) ;;
-    brew:pdf*) add_unique poppler "${system_packages[@]}" ;;
-    brew:python3) add_unique python "${system_packages[@]}" ;;
-    brew:qpdf) add_unique qpdf "${system_packages[@]}" ;;
-    brew:rg) add_unique ripgrep "${system_packages[@]}" ;;
-    nix:cmp) add_unique nixpkgs#diffutils "${system_packages[@]}" ;;
-    nix:file) add_unique nixpkgs#file "${system_packages[@]}" ;;
-    nix:pdf*) add_unique nixpkgs#poppler_utils "${system_packages[@]}" ;;
-    nix:python3) add_unique nixpkgs#python3 "${system_packages[@]}" ;;
-    nix:qpdf) add_unique nixpkgs#qpdf "${system_packages[@]}" ;;
-    nix:rg) add_unique nixpkgs#ripgrep "${system_packages[@]}" ;;
+    apt:downloader | dnf:downloader | pacman:downloader | brew:downloader) system_packages+=(curl) ;;
+    apt:xz) system_packages+=(xz-utils) ;;
+    dnf:xz | pacman:xz | brew:xz) system_packages+=(xz) ;;
+    nix:downloader) system_packages+=(nixpkgs#curl) ;;
+    nix:xz) system_packages+=(nixpkgs#xz) ;;
   esac
 done
 
-if ((${#pinned_tools[@]} > 0)); then
-  if ! probe curl >/dev/null && ! probe wget >/dev/null; then
-    case "$manager" in
-      apt | dnf | pacman) add_unique curl "${system_packages[@]}" ;;
-      brew) add_unique curl "${system_packages[@]}" ;;
-      nix) add_unique nixpkgs#curl "${system_packages[@]}" ;;
-    esac
-  fi
-  if ! probe xz >/dev/null; then
-    case "$manager" in
-      apt) add_unique xz-utils "${system_packages[@]}" ;;
-      dnf | pacman | brew) add_unique xz "${system_packages[@]}" ;;
-      nix) add_unique nixpkgs#xz "${system_packages[@]}" ;;
-    esac
-  fi
-fi
-
 printf 'ccvl bootstrap plan\n'
 printf '  platform: %s\n' "$platform"
-printf '  missing host commands: %s\n' "${missing_commands[*]:-none}"
 printf '  pinned local tools: %s\n' "${pinned_tools[*]:-none}"
+runtime_state='synchronize'
+runtime_python="$repo_root/.cache/ccvl/venv/bin/python"
+if [[ -x "$runtime_python" ]] \
+  && "$runtime_python" -c \
+    'import platform, pypdf, sys; sys.exit(platform.python_version() != sys.argv[1] or pypdf.__version__ != sys.argv[2])' \
+    "$(<"$repo_root/.python-version")" "$pypdf_version"; then
+  runtime_state='ready'
+fi
+printf '  managed runtime: %s (Python %s with frozen uv.lock)\n' \
+  "$runtime_state" "$(<"$repo_root/.python-version")"
+printf '  missing bootstrap commands: %s\n' "${missing_bootstrap[*]:-none}"
 printf '  package manager: %s\n' "${manager:-none}"
 printf '  host packages: %s\n' "${system_packages[*]:-none}"
 
-if ((${#missing_commands[@]} == 0 && ${#pinned_tools[@]} == 0)); then
-  printf 'No changes required. The complete toolchain is already available.\n'
-  exit 0
+if ((${#pinned_tools[@]} == 0 && ${#missing_bootstrap[@]} == 0)); then
+  printf 'No tool downloads or host-package changes required.\n'
 fi
 if [[ "$mode" == plan ]]; then
   printf 'No changes made. Run bash ./ccvl setup to execute this plan.\n'
   exit 0
 fi
-if [[ -z "$manager" && ${#missing_commands[@]} -gt 0 ]]; then
-  printf 'No supported package manager found for missing host tools.\n' >&2
-  exit 2
-fi
-if [[ -z "$manager" && ${#pinned_tools[@]} -gt 0 ]] \
-  && ! probe curl >/dev/null && ! probe wget >/dev/null; then
-  printf 'No supported package manager, curl, or wget found for pinned tool downloads.\n' >&2
+if [[ -z "$manager" && ${#missing_bootstrap[@]} -gt 0 ]]; then
+  printf 'No supported package manager found for missing bootstrap commands: %s\n' \
+    "${missing_bootstrap[*]}" >&2
   exit 2
 fi
 
@@ -221,37 +200,35 @@ verify_sha256() {
   }
 }
 
-install_archive_tool() {
-  local name="$1"
-  local url="$2"
-  local expected="$3"
-  local archive="$bootstrap_tmp/$name.archive"
-  local extract_dir="$bootstrap_tmp/$name"
-  fetch "$url" "$archive"
-  verify_sha256 "$expected" "$archive"
-  mkdir -p "$extract_dir"
-  tar -xf "$archive" -C "$extract_dir"
-  source_path="$(find "$extract_dir" -type f -name "$name" -print -quit)"
-  [[ -n "$source_path" ]] || { printf '%s was not found in its archive.\n' "$name" >&2; return 1; }
-  cp "$source_path" "$local_bin/$name"
-  chmod 0755 "$local_bin/$name"
+install_tool() {
+  local tool="$1"
+  local archive extract_dir source_path
+  ccvl_select_tool_asset "$tool" "$platform"
+  archive="$bootstrap_tmp/$CCVL_TOOL_ASSET"
+  fetch "$CCVL_TOOL_URL" "$archive"
+  verify_sha256 "$CCVL_TOOL_SHA256" "$archive"
+  if [[ "$CCVL_TOOL_KIND" == file ]]; then
+    cp "$archive" "$local_bin/$tool"
+  else
+    extract_dir="$bootstrap_tmp/$tool"
+    mkdir -p "$extract_dir"
+    tar -xf "$archive" -C "$extract_dir"
+    source_path="$(find "$extract_dir" -type f -name "$tool" -print -quit)"
+    [[ -n "$source_path" ]] || { printf '%s was not found in its archive.\n' "$tool" >&2; return 1; }
+    cp "$source_path" "$local_bin/$tool"
+  fi
+  chmod 0755 "$local_bin/$tool"
 }
 
 mkdir -p "$local_bin"
 bootstrap_tmp="$(mktemp -d "${TMPDIR:-/tmp}/ccvl-bootstrap.XXXXXXXX")"
 trap 'rm -rf -- "$bootstrap_tmp"' EXIT
 for tool in "${pinned_tools[@]}"; do
-  case "$tool" in
-    typst) install_archive_tool typst "$CCVL_TYPST_URL" "$CCVL_TYPST_SHA256" ;;
-    just) install_archive_tool just "$CCVL_JUST_URL" "$CCVL_JUST_SHA256" ;;
-    typstyle)
-      fetch "$CCVL_TYPSTYLE_URL" "$bootstrap_tmp/typstyle"
-      verify_sha256 "$CCVL_TYPSTYLE_SHA256" "$bootstrap_tmp/typstyle"
-      cp "$bootstrap_tmp/typstyle" "$local_bin/typstyle"
-      chmod 0755 "$local_bin/typstyle"
-      ;;
-  esac
+  install_tool "$tool"
 done
 
-bash "$repo_root/scripts/doctor.sh"
-printf 'Bootstrap complete. Pinned tools are isolated in .cache/ccvl/bin.\n'
+uv_path="$(command -v uv)"
+cd "$repo_root"
+"$uv_path" sync --frozen --no-dev --python "$(<"$repo_root/.python-version")"
+"$uv_path" run --frozen --no-dev --python "$(<"$repo_root/.python-version")" python "$repo_root/scripts/doctor.py"
+printf 'Bootstrap complete. Managed runtime ready; downloaded assets remain below .cache/ccvl/.\n'

@@ -3,10 +3,14 @@ set -euo pipefail
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 export PATH="$repo_root/.cache/ccvl/bin:$PATH"
+export UV_PROJECT_ENVIRONMENT="$repo_root/.cache/ccvl/venv"
+export UV_CACHE_DIR="$repo_root/.cache/ccvl/uv-cache"
+export UV_PYTHON_INSTALL_DIR="$repo_root/.cache/ccvl/python"
+python_version="$(<"$repo_root/.python-version")"
 
 usage() {
   cat <<'EOF'
-Usage: ./ccvl <command> [arguments]
+Usage: bash ./ccvl <command> [arguments]
 
   setup                              Install missing tools locally and verify ccvl
   bootstrap                          Show the setup plan without changing anything
@@ -22,29 +26,37 @@ Usage: ./ccvl <command> [arguments]
 EOF
 }
 
+run_python() {
+  if ! command -v uv >/dev/null 2>&1; then
+    printf 'uv is not available. Run bash ./ccvl setup first.\n' >&2
+    return 2
+  fi
+  (cd "$repo_root" && uv run --frozen --no-dev --python "$python_version" python "$@")
+}
+
 command_name="${1:-help}"
 shift || true
 case "$command_name" in
   setup)
     bash "$repo_root/scripts/bootstrap.sh" install
-    bash "$repo_root/scripts/check.sh"
+    run_python "$repo_root/scripts/check.py"
     ;;
   bootstrap) bash "$repo_root/scripts/bootstrap.sh" plan "$@" ;;
   doctor) bash "$repo_root/scripts/doctor.sh" "$@" ;;
-  check) bash "$repo_root/scripts/check.sh" "$@" ;;
-  public-check) bash "$repo_root/scripts/public-check.sh" "$@" ;;
-  build) bash "$repo_root/scripts/render.sh" all "$@" ;;
+  check) run_python "$repo_root/scripts/check.py" "$@" ;;
+  public-check) run_python "$repo_root/scripts/public_check.py" "$@" ;;
+  build) run_python "$repo_root/scripts/render.py" all "$@" ;;
   build-cv)
     [[ $# -ge 1 && $# -le 2 ]] || { usage >&2; exit 2; }
-    bash "$repo_root/scripts/render.sh" cv "$1" "${2:-4}"
+    run_python "$repo_root/scripts/render.py" cv "$1" "${2:-4}"
     ;;
   build-cl)
     [[ $# -eq 1 ]] || { usage >&2; exit 2; }
-    bash "$repo_root/scripts/render.sh" cl "$1"
+    run_python "$repo_root/scripts/render.py" cl "$1"
     ;;
   build-application)
     [[ $# -ge 2 && $# -le 3 ]] || { usage >&2; exit 2; }
-    bash "$repo_root/scripts/render.sh" application "$1" "$2" "${3:-4}"
+    run_python "$repo_root/scripts/render.py" application "$1" "$2" "${3:-4}"
     ;;
   help | -h | --help) usage ;;
   *)

@@ -12,6 +12,8 @@ Run the complete local suite with:
 bash ./ccvl check
 ```
 
+On Windows, run `.\ccvl.cmd check` instead.
+
 It verifies:
 
 - the workspace manifest, JSON schemas, applications, profile, skill manifest,
@@ -28,13 +30,16 @@ It verifies:
 - equality between fresh builds and the checked-in PDFs;
 - pixel identity of the two CV pages shared by every page preset.
 
-`bash ./ccvl public-check` adds checks for private downstream directories, symlinks,
-secret patterns, and private workspace identifiers. GitHub Actions also runs
-ShellCheck, Actionlint, and REUSE licensing validation.
+The same suite runs natively on Linux x86_64/aarch64, macOS x86_64/aarch64,
+and Windows x86_64/aarch64 in GitHub Actions. It also proves that the freshly
+rendered PDFs are byte-identical to the tracked outputs on every OS. Linux CI
+adds independent Poppler, QPDF, and pixel comparisons. `public-check` adds
+private-root, symlink, secret-pattern, LFS-pointer, and private-workspace checks.
+Actions also runs ShellCheck, Actionlint, and REUSE licensing validation.
 
 ## Small-model skill evaluation
 
-The `Skill evaluation` workflow sends ten generic decision cases and the eight
+The `Skill evaluation` workflow sends twelve generic decision cases and the eight
 canonical skills to Groq's free-tier `openai/gpt-oss-20b` model. Both the
 expected routing and answer key are withheld. A deterministic evaluator then
 requires the correct skill, every expected action, no forbidden action, and a

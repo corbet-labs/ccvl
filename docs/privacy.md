@@ -15,8 +15,9 @@ The public showcase deliberately contains the identifiers listed in
 - credentials, cookies, session data, or portal exports.
 
 The public repository ignores conventional private roots and rejects them in
-`bash ./ccvl public-check`. A deny-list cannot understand context; a human or agent
-must still inspect the complete staged tree and diff before publication.
+the platform `public-check` command. A deny-list cannot understand context; a
+human or agent must still inspect the complete staged tree and diff before
+publication.
 
 ## Public forks
 

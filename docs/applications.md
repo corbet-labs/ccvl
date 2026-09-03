@@ -31,6 +31,8 @@ Render one private application from the repository root:
 bash ./ccvl build-application applications/<job-id>/application.json de-ch 4
 ```
 
+On Windows, use `.\ccvl.cmd build-application applications\<job-id>\application.json de-ch 4`.
+
 The command validates the application while rendering and writes `cv.pdf` and
 `cl.pdf` below the ignored `out/<job-id>/` directory. Use `en-ch` for an
 English application and select the two-, three-, or four-page CV preset with

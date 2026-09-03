@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   bootstrap-clean:
-    name: Bootstrap from a minimal archive environment
+    name: Bootstrap from a minimal Linux archive
     runs-on: ubuntu-24.04
     container: ubuntu:24.04
     timeout-minutes: 15
@@ -26,6 +26,8 @@ jobs:
           persist-credentials: false
 
       - name: Install and verify from an archive-shaped workspace
+        env:
+          CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
         run: |
           mkdir -p "$RUNNER_TEMP/ccvl-archive"
           tar --exclude='./.git' -cf - . | tar -xf - -C "$RUNNER_TEMP/ccvl-archive"
@@ -37,8 +39,116 @@ jobs:
           fi
           bash ./ccvl setup
 
+  linux-arm-native:
+    name: Native Linux (aarch64) bootstrap and documents
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    env:
+      CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Prove empty, complete, and partial bootstrap states
+        run: |
+          plan="$(bash ./ccvl bootstrap)"
+          printf '%s\n' "$plan"
+          grep -Fq 'pinned local tools: typst typstyle uv' <<<"$plan"
+          bash ./ccvl setup
+          complete="$(bash ./ccvl bootstrap)"
+          grep -Fq 'pinned local tools: none' <<<"$complete"
+          mv .cache/ccvl/bin/typst "$RUNNER_TEMP/typst"
+          partial="$(bash ./ccvl bootstrap)"
+          printf '%s\n' "$partial"
+          grep -Fq 'pinned local tools: typst' <<<"$partial"
+          mv "$RUNNER_TEMP/typst" .cache/ccvl/bin/typst
+          bash ./ccvl public-check
+
+  macos-native:
+    name: Native macOS (${{ matrix.arch }}) bootstrap and documents
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x86_64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    env:
+      CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Prove empty, complete, and partial bootstrap states
+        run: |
+          plan="$(bash ./ccvl bootstrap)"
+          printf '%s\n' "$plan"
+          grep -Fq 'pinned local tools: typst typstyle uv' <<<"$plan"
+          bash ./ccvl setup
+          complete="$(bash ./ccvl bootstrap)"
+          grep -Fq 'pinned local tools: none' <<<"$complete"
+          mv .cache/ccvl/bin/typst "$RUNNER_TEMP/typst"
+          partial="$(bash ./ccvl bootstrap)"
+          printf '%s\n' "$partial"
+          grep -Fq 'pinned local tools: typst' <<<"$partial"
+          mv "$RUNNER_TEMP/typst" .cache/ccvl/bin/typst
+          bash ./ccvl public-check
+
+  windows-native:
+    name: Native Windows (${{ matrix.arch }}) bootstrap and documents
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: windows-2025
+          - arch: arm64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    env:
+      CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Prove empty, complete, and partial bootstrap states
+        run: |
+          $Plan = (& .\scripts\bootstrap.ps1 plan | Out-String)
+          Write-Host $Plan
+          if (-not $Plan.Contains("pinned local tools: typst typstyle uv")) {
+            throw "empty Windows bootstrap plan was incomplete"
+          }
+          & .\ccvl.cmd setup
+          if ($LASTEXITCODE -ne 0) { throw "native Windows setup failed" }
+          $Complete = (& .\scripts\bootstrap.ps1 plan | Out-String)
+          if (-not $Complete.Contains("pinned local tools: none")) {
+            throw "complete Windows environment was not a no-op"
+          }
+          Move-Item .cache\ccvl\bin\typst.exe "$env:RUNNER_TEMP\typst.exe"
+          $Partial = (& .\scripts\bootstrap.ps1 plan | Out-String)
+          Write-Host $Partial
+          if (-not $Partial.Contains("pinned local tools: typst")) {
+            throw "partial Windows environment was not detected"
+          }
+          Move-Item "$env:RUNNER_TEMP\typst.exe" .cache\ccvl\bin\typst.exe
+          & .\ccvl.cmd public-check
+          if ($LASTEXITCODE -ne 0) { throw "native Windows public check failed" }
+
   verify:
-    name: Mechanical verification
+    name: Linux release and independent PDF verification
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -47,36 +157,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.0.0
-        with:
-          python-version: "3.13"
+      - name: Set up the pinned ccvl runtime
+        run: bash ./ccvl setup
 
-      - name: Set up Typst
-        uses: typst-community/setup-typst@9107b8dd77d7a7fd6c5faebbb507cac28069042e # v5.0.1
-        with:
-          typst-version: 0.15.1
-
-      - name: Set up Just
-        uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3.0.0
-        with:
-          just-version: 1.58.0
-
-      - name: Install mechanical test tools
+      - name: Install secondary test tools
         env:
           ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
           ACTIONLINT_VERSION: 1.7.12
-          TYPSTYLE_SHA256: 213c11bc2c64f7237c382b4bb1d06991530ed9d44d3a05204ca3c19615d55b99
-          TYPSTYLE_VERSION: 0.15.1
         run: |
           sudo apt-get update
-          sudo apt-get install --yes file poppler-utils qpdf ripgrep shellcheck
+          sudo apt-get install --yes file poppler-utils qpdf shellcheck
           mkdir -p "$RUNNER_TEMP/bin"
-          curl --fail --location --proto '=https' --tlsv1.2 \
-            "https://github.com/typstyle-rs/typstyle/releases/download/v${TYPSTYLE_VERSION}/typstyle-x86_64-unknown-linux-gnu" \
-            --output "$RUNNER_TEMP/bin/typstyle"
-          echo "$TYPSTYLE_SHA256  $RUNNER_TEMP/bin/typstyle" | sha256sum --check
-          chmod 0755 "$RUNNER_TEMP/bin/typstyle"
           curl --fail --location --proto '=https' --tlsv1.2 \
             "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
             --output "$RUNNER_TEMP/actionlint.tar.gz"
@@ -87,10 +178,13 @@ jobs:
       - name: Check workflows and shell scripts
         run: |
           actionlint -shellcheck shellcheck
-          shellcheck scripts/*.sh tests/*.sh
+          shellcheck scripts/*.sh tests/*.sh ccvl
+
+      - name: Run Linux-specific independent PDF checks
+        run: bash scripts/check-linux-deep.sh
 
       - name: Run public release checks
-        run: just public-check
+        run: bash ./ccvl public-check
 
       - name: Check REUSE licensing
         uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
@@ -102,10 +196,10 @@ jobs:
             echo "## Mechanical toolchain"
             echo
             echo '```text'
-            typst --version
-            typstyle --version
-            just --version
-            python3 --version
+            .cache/ccvl/bin/typst --version || typst --version
+            .cache/ccvl/bin/typstyle --version || typstyle --version
+            .cache/ccvl/bin/uv --version || uv --version
+            .cache/ccvl/bin/uv run --frozen --no-dev python --version
             actionlint --version
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

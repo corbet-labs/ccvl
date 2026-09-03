@@ -21,8 +21,8 @@ EXCLUDED_ROOTS = {
     "submissions",
     "targets",
 }
-TEXT_SUFFIXES = {".json", ".md", ".py", ".sh", ".toml", ".typ", ".yaml", ".yml"}
-TEXT_NAMES = {".gitattributes", ".gitignore", "ccvl", "justfile"}
+TEXT_SUFFIXES = {".cmd", ".csv", ".json", ".lock", ".md", ".ps1", ".py", ".sh", ".toml", ".typ", ".yaml", ".yml"}
+TEXT_NAMES = {".gitattributes", ".gitignore", ".python-version", "ccvl", "justfile"}
 
 
 def public_files() -> list[Path]:

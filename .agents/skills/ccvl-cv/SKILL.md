@@ -38,5 +38,5 @@ author. A real application must be target-specific.
 Render every affected locale and preset. Require the requested two-, three-, or
 four-page count, inspect every rendered page, and extract the PDF text layer.
 Reject clipped content, accidental extra pages, missing glyphs, placeholders,
-or a Summary that exceeds its application constraint. Run `bash ./ccvl check`
-before completion.
+or a Summary that exceeds its application constraint. Run the matching platform
+`check` command before completion.

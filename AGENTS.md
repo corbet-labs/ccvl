@@ -36,10 +36,11 @@ order below instead of blending their data ownership:
 - skill-gap analysis or a learning plan: `ccvl-upskill`;
 - recorded interviews, rejections, offers, or calibration: `ccvl-outcome`.
 
-Run `bash ./ccvl check` before considering document work complete. Run
-`bash ./ccvl public-check` before publishing from the ccvl upstream.
+Run the platform `check` command before considering document work complete and
+the platform `public-check` command before publishing from the ccvl upstream.
 
-For a new or uncertain environment, route to `ccvl-install` and use
-`bash ./ccvl bootstrap`; do not ask a novice to choose a package manager or
-learn Git first. For an already managed environment, accept a no-change plan
-and verify it. Presence of a command is not completion: the harness must pass.
+For a new or uncertain environment, route to `ccvl-install`. Use
+`bash ./ccvl bootstrap` on Linux/macOS or `.\ccvl.cmd bootstrap` on Windows; do
+not ask a novice to choose a package manager or learn Git first. For an already
+managed environment, accept a no-change plan and verify it. Presence of a
+command is not completion: the harness must pass.

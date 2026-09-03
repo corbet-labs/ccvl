@@ -54,9 +54,20 @@ bash ./ccvl check
 bash ./ccvl build
 ```
 
+On native Windows, use the matching dispatcher from Command Prompt or
+PowerShell:
+
+```powershell
+.\ccvl.cmd setup
+.\ccvl.cmd check
+.\ccvl.cmd build
+```
+
 Generated PDFs are written below `cvl/cv/output/` and `cvl/cl/output/`.
 The same commands work in a downloaded source archive; Git knowledge is not
-required. Existing Just users may use the equivalent `just` recipes.
+required. Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows
+x86_64/ARM64 use pinned native tools. Existing POSIX Just users may use the
+equivalent `just` recipes.
 
 ## Make it yours
 

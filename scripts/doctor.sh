@@ -1,50 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-required=(
-  cmp
-  file
-  pdfdetach
-  pdfinfo
-  pdfimages
-  pdffonts
-  pdftoppm
-  pdftotext
-  python3
-  qpdf
-  rg
-  typst
-  typstyle
-)
+repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+export PATH="$repo_root/.cache/ccvl/bin:$PATH"
+export UV_PROJECT_ENVIRONMENT="$repo_root/.cache/ccvl/venv"
+export UV_CACHE_DIR="$repo_root/.cache/ccvl/uv-cache"
+export UV_PYTHON_INSTALL_DIR="$repo_root/.cache/ccvl/python"
 
-optional=(
-  git
-  just
-)
-
-missing=()
-
-for command_name in "${required[@]}"; do
-  if command -v "$command_name" >/dev/null 2>&1; then
-    printf '%-10s %s\n' "$command_name" "$(command -v "$command_name")"
-  else
-    printf '%-10s %s\n' "$command_name" "MISSING"
-    missing+=("$command_name")
-  fi
-done
-
-for command_name in "${optional[@]}"; do
-  if command -v "$command_name" >/dev/null 2>&1; then
-    printf '%-10s %s (optional)\n' "$command_name" "$(command -v "$command_name")"
-  else
-    printf '%-10s %s\n' "$command_name" "MISSING (optional)"
-  fi
-done
-
-if ((${#missing[@]} > 0)); then
-  printf '\nMissing required commands: %s\n' "${missing[*]}" >&2
+if ! command -v uv >/dev/null 2>&1; then
+  printf 'uv is missing. Run bash ./ccvl bootstrap for the read-only setup plan.\n' >&2
   exit 1
 fi
 
-bash "$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/check-tool-versions.sh"
-printf '\nccvl toolchain is ready.\n'
+cd "$repo_root"
+uv run \
+  --frozen \
+  --no-dev \
+  --python "$(<"$repo_root/.python-version")" \
+  python "$repo_root/scripts/doctor.py"

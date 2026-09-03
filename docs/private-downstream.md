@@ -35,5 +35,6 @@ private repository without reviewing the exact rewritten commits first.
 ## Publishing improvements
 
 Reimplement or cherry-pick only generic changes into a clean ccvl checkout.
-Run `bash ./ccvl public-check`, inspect every staged path, and confirm that the change
-contains no applicant, target, application, recipient, or outcome data.
+Run the platform `public-check` command, inspect every staged path, and confirm
+that the change contains no applicant, target, application, recipient, or
+outcome data.

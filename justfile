@@ -4,16 +4,16 @@ default:
     @just --list
 
 doctor:
-    scripts/doctor.sh
+    bash ./ccvl doctor
 
 check:
-    scripts/check.sh
+    bash ./ccvl check
 
 public-check:
-    scripts/public-check.sh
+    bash ./ccvl public-check
 
 build:
-    scripts/render.sh all
+    bash ./ccvl build
 
 build-cv locale pages="4" application="" profile="":
     scripts/render.sh cv "{{locale}}" "{{pages}}" "{{application}}" "{{profile}}"

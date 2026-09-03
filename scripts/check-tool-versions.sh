@@ -2,19 +2,14 @@
 set -euo pipefail
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/tool-versions.sh
-source "$repo_root/scripts/tool-versions.sh"
+export PATH="$repo_root/.cache/ccvl/bin:$PATH"
+export UV_PROJECT_ENVIRONMENT="$repo_root/.cache/ccvl/venv"
+export UV_CACHE_DIR="$repo_root/.cache/ccvl/uv-cache"
+export UV_PYTHON_INSTALL_DIR="$repo_root/.cache/ccvl/python"
 
-typst_version="$(typst --version 2>&1)"
-typstyle_version="$(typstyle --version 2>&1)"
-
-if [[ "$typst_version" != *"typst $CCVL_TYPST_VERSION"* ]]; then
-  printf 'Typst %s is required; found: %s\n' "$CCVL_TYPST_VERSION" "$typst_version" >&2
-  exit 1
-fi
-if [[ "$typstyle_version" != *"$CCVL_TYPSTYLE_VERSION"* ]]; then
-  printf 'Typstyle %s is required; found: %s\n' "$CCVL_TYPSTYLE_VERSION" "$typstyle_version" >&2
-  exit 1
-fi
-
-printf 'Pinned Typst and Typstyle versions are active.\n'
+cd "$repo_root"
+uv run \
+  --frozen \
+  --no-dev \
+  --python "$(<"$repo_root/.python-version")" \
+  python "$repo_root/scripts/doctor.py"
