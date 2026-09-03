@@ -24,9 +24,12 @@ under different labels merely to increase keyword coverage.
 5. Save organisation records below private `targets/` using
    `../../../templates/target.md`.
 
-A specific posting is not a target record. Create its canonical
+A specific posting is not a target record. When an input mixes a durable target
+with a live vacancy, always perform both actions: keep the normalised target
+axes, then route the vacancy to its canonical
 `opportunities/<organisation-key>/<position-key>/application.json` through
-`ccvl-apply`.
+`ccvl-apply` and link it back to the target where useful. Stopping after target
+cleanup leaves the concrete opportunity unowned and is incomplete.
 
 If the user explicitly connects another typed workspace, use its target and job
 operations instead of parallel files. ccvl itself must not grow a local
