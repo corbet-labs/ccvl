@@ -53,8 +53,10 @@ overflow causes an editorial iteration instead of a one-error-at-a-time loop.
 
 ## Small-model skill evaluation
 
-The `Skill evaluation` workflow sends fourteen generic decision cases and the eight
-canonical skills to Groq's free-tier `openai/gpt-oss-20b` model. Both the
+The `Skill evaluation` workflow sends fourteen generic decision cases to
+Groq's free-tier `openai/gpt-oss-20b` model. Cases are deterministically batched
+by canonical skill, with the complete matching skill and the descriptions of
+all eight skills supplied to each low-context call. Both the
 expected routing and answer key are withheld. A deterministic evaluator then
 requires the correct skill, every expected action, no forbidden action, and a
 valid response structure. It publishes all decisions, concise reasons, provider

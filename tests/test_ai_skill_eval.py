@@ -84,12 +84,22 @@ class SkillEvaluationTests(unittest.TestCase):
 
     def test_model_prompt_does_not_expose_answer_key(self) -> None:
         skills = {case["skill"]: "example skill" for case in self.cases}
-        messages = ai_skill_eval.build_messages(self.document, skills)
+        focus_skill = self.cases[0]["skill"]
+        skills[focus_skill] = "---\ndescription: example skill\n---\n\n# Instructions\n"
+        for name in skills:
+            skills[name] = "---\ndescription: example skill\n---\n\n# Instructions\n"
+        messages = ai_skill_eval.build_messages(self.document, skills, focus_skill)
         payload = json.loads(messages[1]["content"])
         for case in payload["cases"]:
             self.assertNotIn("skill", case)
             self.assertNotIn("required", case)
             self.assertNotIn("forbidden", case)
+
+    def test_hosted_cases_are_batched_by_skill(self) -> None:
+        batches = ai_skill_eval.group_cases_by_skill(self.cases)
+        self.assertEqual([name for name, _ in batches], list(dict.fromkeys(case["skill"] for case in self.cases)))
+        self.assertEqual(sum(len(cases) for _, cases in batches), len(self.cases))
+        self.assertTrue(all({case["skill"] for case in cases} == {name} for name, cases in batches))
 
     def test_report_and_summary_are_written(self) -> None:
         evaluation = ai_skill_eval.evaluate_response(self.cases, self.passing_response())
