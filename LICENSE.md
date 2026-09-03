@@ -6,9 +6,9 @@ and third-party fonts retain appropriate terms.
 
 | Paths | License |
 |---|---|
-| Typst sources, scripts, agent skills, and build files | FSL-1.1-ALv2 |
+| Reusable Typst components, scripts, agent skills, and build files | FSL-1.1-ALv2 |
 | Documentation and neutral templates | CC-BY-4.0 |
-| Personal showcase JSON and Typst content, generated signature graphic, and rendered showcase PDFs | CC-BY-ND-4.0 |
+| Personal showcase sources and data, public identifier manifest, generated signature graphic, and rendered personal PDFs | LicenseRef-CCVL-Personal-Content |
 | Bundled font files and their notices | OFL-1.1 |
 
 The machine-readable path mapping is authoritative and lives in
@@ -20,7 +20,23 @@ competing commercial product or service during the Fair Source period. Each
 version automatically receives the Apache-2.0 future license two years after
 that version is made available.
 
-CC-BY-ND-4.0 applies to the personal showcase data, its synthetic signature
-graphic, and rendered showcase PDFs. It allows those unchanged materials to be
-shared with attribution, including in commercial contexts, but does not permit
-distributing modified versions under the showcase author's identity.
+`LicenseRef-CCVL-Personal-Content` is not an open-content license. The named
+author reserves all rights in his personal CV and cover-letter content, except
+for narrow permission to inspect and test the showcase, replace it in a private
+working copy, or evaluate the author for a genuine professional opportunity.
+It does not permit using the personal content as somebody else's application,
+template content, public dataset, or republished example.
+
+The separation is intentional: users may create their own CVs and cover
+letters with the FSL-licensed software and CC-BY-licensed neutral templates
+without receiving any right to reuse the author's personal claims or wording.
+ccvl makes no additional claim over a user's own facts or words merely because
+the software rendered them. Embedded third-party material retains its own
+license.
+
+A public GitHub repository necessarily grants GitHub and other GitHub users
+certain service-level rights, including viewing and forking through GitHub.
+Those rights arise from GitHub's Terms of Service, not from an additional
+license to reuse the personal showcase. Statutory exceptions and limitations
+also remain unaffected. See the complete custom terms in
+`LICENSES/LicenseRef-CCVL-Personal-Content.txt`.

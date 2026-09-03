@@ -11,7 +11,7 @@ not a legal signature and not a reconstruction of the author's handwriting.
 - media type: PNG with alpha channel;
 - dimensions: 2172 × 724 pixels;
 - SHA-256: `b80b9eba55bb15c8e0a67b22e7502355d668d2eec55d6cbdf5ccdf91890ff497`;
-- license in this repository: CC-BY-ND-4.0.
+- terms in this repository: LicenseRef-CCVL-Personal-Content.
 
 ## Prompt
 

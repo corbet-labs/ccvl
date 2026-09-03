@@ -18,8 +18,8 @@ recruiters and specialists.
   create factual permission.
 - Keep capability groups mutually exclusive and collectively useful. Prefer a
   few recognisable terms over keyword stuffing.
-- Treat the checked-in showcase as design evidence, never as facts about a new
-  user.
+- Treat the checked-in showcase as visual design evidence, never as facts or
+  reusable wording for a new user. Its personal content is not a template.
 
 ## Summary
 

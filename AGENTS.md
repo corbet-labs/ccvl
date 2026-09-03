@@ -6,7 +6,8 @@ two roles as separate trust domains.
 ## Non-negotiable rules
 
 - The checked-in showcase describes its author. Never reuse its claims as facts
-  about another person.
+  or wording for another person. It is reference-only personal content, not a
+  template; follow `LicenseRef-CCVL-Personal-Content`.
 - Every application claim must trace to evidence in the private downstream or
   to an explicit confirmation from the user.
 - Hobby projects, independent work, and side initiatives are valid evidence at

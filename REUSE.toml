@@ -31,7 +31,6 @@ path = [
   "README.md",
   "CONTRIBUTING.md",
   "CREDITS.md",
-  "PUBLIC_IDENTIFIERS.md",
   "SECURITY.md",
   "THIRD_PARTY_NOTICES.md",
   "docs/**",
@@ -46,17 +45,20 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = "cvl/**/output/**/*.pdf"
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Julian Y. Richard Corbet"
-SPDX-License-Identifier = "CC-BY-ND-4.0"
+SPDX-License-Identifier = "LicenseRef-CCVL-Personal-Content"
 
 [[annotations]]
 path = [
+  "PUBLIC_IDENTIFIERS.md",
+  "SHOWCASE.md",
+  "docs/signature.md",
   "showcase/**/*.json",
   "showcase/**/*.typ",
   "cvl/cl/assets/signature.png",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Julian Y. Richard Corbet"
-SPDX-License-Identifier = "CC-BY-ND-4.0"
+SPDX-License-Identifier = "LicenseRef-CCVL-Personal-Content"
 
 [[annotations]]
 path = [

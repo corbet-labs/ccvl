@@ -15,6 +15,14 @@ git push --set-upstream origin main
 This is a private downstream in Git terms even though GitHub does not display
 the "forked from" badge.
 
+The clone temporarily contains the reference-only personal showcase under the
+narrow replacement permission in
+`LICENSES/LicenseRef-CCVL-Personal-Content.txt`. Keep the working repository
+non-public while replacing `showcase/`, the signature asset, the public
+identifier manifest, and generated personal PDFs. The reusable code and neutral
+templates may be modified under their separate licenses; the showcase author's
+claims and wording may not be carried into another person's application.
+
 Create one `applications/<job-id>/application.json` from
 `templates/application.json` for every concrete opportunity. Do not maintain a
 second Markdown copy of its tailored fields.

@@ -35,4 +35,5 @@ explicitly connects another typed workspace, use only its profile and evidence
 operations; do not create a second filesystem source of truth.
 
 Before making a profile public, show the exact identifier and claim manifest to
-the user. The checked-in ccvl showcase describes its named author only.
+the user. The checked-in ccvl showcase describes its named author only and is
+reference-only personal content, not reusable profile material.

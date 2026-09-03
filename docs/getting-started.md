@@ -68,5 +68,6 @@ already use Just; it is not needed to begin.
 
 Start with `ccvl-profile`. It builds a private, source-linked fact base before
 the public showcase is replaced. The agent must never reuse the showcase
-author's claims as yours, and it must ask rather than fill an evidence gap with
-a plausible statement.
+author's claims or wording as yours: they are reference-only personal content,
+not a template. It must ask rather than fill an evidence gap with a plausible
+statement.

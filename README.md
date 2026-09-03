@@ -10,21 +10,14 @@ skills for the complete application loop.
 
 The showcase is intentionally a real CV rather than fictional sample data. It
 serves two purposes: demonstrating the system at production quality and making
-its author discoverable for suitable roles. New users replace the profile and
-evidence with their own verified facts.
+its author discoverable for suitable roles. It is reference-only personal
+content, not a reusable template. New users start from the neutral templates
+and replace the profile and evidence with their own verified facts.
 
 ## Showcase and open application
 
-Julian Corbet works where innovation management and technology meet strategy
-and finance. If that combination fits a real problem on your team, the demo is
-also an invitation to talk:
-
-| Language | CV | Cover letter |
-|---|---|---|
-| Deutsch | [four-page CV](cvl/cv/output/de-ch/4pager/cv.pdf) | [open cover letter](cvl/cl/output/de-ch/cl.pdf) |
-| English | [four-page CV](cvl/cv/output/en-ch/4pager/cv.pdf) | [open cover letter](cvl/cl/output/en-ch/cl.pdf) |
-
-The two- and three-page CV presets are available in the same output tree.
+[View the bilingual CV and cover-letter showcase](SHOWCASE.md). The personal
+content is visible for professional evaluation, but is not a reusable template.
 
 ## What is included
 
@@ -80,8 +73,9 @@ downstream. See [Private downstreams](docs/private-downstream.md).
 
 The checked-in showcase is reference material, not evidence about a new user.
 Start with the `ccvl-profile` skill, establish a verified fact base, and only
-then replace the showcase content. Claims may be selected and compressed, but
-must never be invented.
+then replace the showcase content. Its personal claims and wording may not be
+reused as template content. Claims drawn from the new user's own evidence may
+be selected and compressed, but must never be invented.
 
 ## Agent workflows
 
@@ -109,7 +103,8 @@ ccvl uses path-specific licensing:
 - software, Typst sources, scripts, and skills: FSL-1.1-ALv2;
 - documentation and neutral templates: CC-BY-4.0;
 - personal showcase data and Typst content, generated signature, and rendered
-  showcase PDFs: CC-BY-ND-4.0;
+  showcase PDFs: LicenseRef-CCVL-Personal-Content (all rights reserved, with
+  only narrow evaluation and private replacement permissions);
 - bundled fonts: OFL-1.1.
 
 FSL is a Fair Source license, not an OSI Open Source license. Each published

@@ -1,0 +1,87 @@
+CCVL PERSONAL SHOWCASE CONTENT TERMS, VERSION 1.0
+
+Copyright (c) 2026 Julian Y. Richard Corbet. All rights reserved except as
+expressly stated below.
+
+1. Scope
+
+"Personal Showcase Content" means every file identified as
+LicenseRef-CCVL-Personal-Content in this repository's REUSE.toml. It includes
+the named author's CV and cover-letter wording, claims, profile data, contact
+details, personal Typst content, synthetic signature graphic, and rendered
+personal documents.
+
+The reusable software, shared Typst presentation components, documentation,
+neutral templates, and third-party fonts are not Personal Showcase Content.
+They are governed by their separately identified licenses.
+
+2. Limited permissions
+
+Subject to these terms, you may:
+
+a. view, download, store, and make technical copies of the Personal Showcase
+   Content as reasonably necessary to access this repository and run the
+   unmodified showcase solely to evaluate or verify ccvl;
+
+b. make a non-public working copy solely to remove the Personal Showcase
+   Content and replace it with your own content; and
+
+c. download and share an unmodified rendered CV or cover letter privately
+   within a recruiting or advisory team solely to evaluate Julian Y. Richard
+   Corbet for a genuine professional opportunity or to contact him about one.
+
+These permissions are non-exclusive and non-transferable. They do not permit
+publication or broader redistribution.
+
+3. Reserved rights and prohibited reuse
+
+Except for Section 2, rights already granted through the GitHub Terms of
+Service, and uses permitted by applicable law, no permission is granted to
+copy, publish, distribute, publicly display, adapt, translate, sublicense,
+sell, or otherwise reuse the Personal Showcase Content, in whole or in any
+substantial part.
+
+In particular, you may not:
+
+a. use it as another person's CV, resume, cover letter, application, biography,
+   portfolio, evidence, or professional profile;
+
+b. reuse its protectable wording, selection, arrangement, claims, or identity
+   as template content for another person;
+
+c. include it in a public template, dataset, benchmark, or machine-learning
+   training or evaluation corpus; or
+
+d. imply that the author endorses, sponsors, employs, or is affiliated with
+   you, your work, or your organisation.
+
+Linking to the original public showcase is not a reproduction and is not
+restricted by these terms.
+
+4. Creating your own documents
+
+The separately licensed ccvl software and neutral templates are intended to
+create new CVs and cover letters from a user's own facts and words. A document
+created from those components does not become Personal Showcase Content merely
+because ccvl rendered it. Before publishing or distributing a personalised
+workspace, remove all Personal Showcase Content and its generated copies.
+
+5. Other rights
+
+No trademark, trade-name, publicity, privacy, personality, image, signature,
+or endorsement right is granted. These terms claim no exclusive right in facts
+or other material that applicable law does not protect. Statutory exceptions
+and limitations remain unaffected.
+
+The GitHub Terms of Service separately govern viewing and forking through
+GitHub and GitHub's own use of public repository content. Nothing here limits
+rights that those terms or applicable law already grant; no additional right
+to reuse the Personal Showcase Content is granted by this repository.
+
+6. Termination and disclaimer
+
+The permissions in Section 2 terminate automatically upon breach of these
+terms. THE PERSONAL SHOWCASE CONTENT IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE
+COPYRIGHT HOLDER IS NOT LIABLE FOR ANY CLAIM, DAMAGE, OR OTHER LIABILITY ARISING
+FROM OR RELATED TO THE PERSONAL SHOWCASE CONTENT OR ITS USE.
