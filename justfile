@@ -9,6 +9,9 @@ doctor:
 check:
     bash ./ccvl check
 
+measure *args:
+    bash ./ccvl measure {{args}}
+
 public-check:
     bash ./ccvl public-check
 

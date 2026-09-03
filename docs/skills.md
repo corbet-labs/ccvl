@@ -21,7 +21,7 @@ belong to one concrete application. This keeps the skill set small enough for
 limited-context agents while retaining the important controls.
 
 Country-specific portal scrapers are intentionally not bundled. ccvl accepts a
-posting or authorised reference locally; persistent discovery and JobCache
-access arrive through an explicit CareerVector transition. Sending, signing,
-buying, enrolling, recording, and portal submission always remain separate
+posting or authorised reference locally; any persistent discovery service must
+arrive through an explicit, reviewed connection. Sending, signing, buying,
+enrolling, recording, and portal submission always remain separate
 user-authorised actions rather than skills that trigger themselves.

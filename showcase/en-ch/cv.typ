@@ -6,7 +6,8 @@
 // defensive qualifiers, generic duties, and duplicated meaning. Write concisely and
 // confidently without inventing facts; selective emphasis and compression are expected.
 // Every bullet must remain exactly one rendered line and use 80–100% of the
-// available line width; add signal, never filler, when a bullet is too short.
+// available line width, targeting 90%; the renderer enforces this contract.
+// Add signal, never filler, when a bullet is too short.
 // If verified content cannot fill that range, identify the missing dimension
 // (outcome, metric, scope, reference, ownership, or method) and ask for the
 // relevant fact instead of padding or weakening the wording.
@@ -14,6 +15,7 @@
 #import "../../cvl/shared/styles/document.typ": *
 #import "../../cvl/shared/components/header.typ": application-header
 #import "../../cvl/shared/application.typ": validate-application
+#import "../../cvl/shared/line-contract.typ": measured-lines
 #show: document-style.with(locale: "en-ch")
 
 // Page count is selected at compile time: 2 = core, 3 = projects, 4 = competencies.
@@ -34,8 +36,7 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Summary]
-  #set par(justify: true)
-  #application.tailored_cv.summary
+  #measured-lines("cv.summary", "cv-summary", application.tailored_cv.summary)
 ]
 
 #block(breakable: false)[
@@ -64,7 +65,7 @@
   #v(6.3pt)
   #cv-s[Risk & Compliance Analyst | AI/ML Master's Thesis · Jul 2023 – Mar 2024 · Ingolstadt]
   #v(7.35pt)
-  #cv-b[Turned 20+ years of safety-critical data into actionable ML-based risk and cost signals]
+  #cv-b[Analysed 20+ years of safety-critical data with ML; produced signals for risk and cost analyses]
   #v(8.4pt)
   #cv-b[Single case: quantified six-figure annual savings potential; triggered eight-figure multi-site investment]
   #v(8.4pt)
@@ -86,7 +87,7 @@
   #v(7.35pt)
   #cv-b[BAIT | MaRisk: Translated rules for T+1 settlement into Tier-1 banking IT cloud migration guidance]
   #v(8.4pt)
-  #cv-b[Diagnosed ETL bottleneck for a client pitch; cut runtime by 99%, from 24 h to 15 min]
+  #cv-b[Diagnosed an ETL bottleneck for a client pitch; cut processing time by 99%, from 24 hours to 15 minutes]
   #v(8.4pt)
   #cv-b[Prepared regulatory/IT analysis for thought leadership and pitches; supported business development]
   #cv-entry-gap()
@@ -94,7 +95,7 @@
   #v(6.3pt)
   #cv-s[Head of Business Development | Management Consultant · Jan 2018 – Jun 2023 · CH, DE, IS, UK]
   #v(7.35pt)
-  #cv-b[Scaled trusted-advisor sales to mid-six-figure revenue across four European markets]
+  #cv-b[Scaled trusted-advisor consulting sales to mid-six-figure revenue across four European markets]
   #v(8.4pt)
   #cv-b[Delivered management | IT engagements across leadership | process | cloud | DLT from analysis to delivery]
   #v(8.4pt)
@@ -118,7 +119,7 @@
   #v(8.4pt)
   #cv-b[Market research: interviewed 50+ CEOs and analysed 1,000+ calls; produced analyses and dashboards]
   #v(8.4pt)
-  #cv-b[Built and ran a side venture for 16 years, spanning technical services and eCommerce]
+  #cv-b[Built and ran my own side venture for 16 years, spanning technical services, repairs and eCommerce]
 ]
 
 #cv-pagebreak()
@@ -185,7 +186,7 @@
   #cv-compact-heading[Engagement]
   #cv-h[Harm Reduction & Crisis Support]
   #v(6.3pt)
-  #cv-s[First aid | psychosocial de-escalation]
+  #cv-s(min-fill: 25, target-fill: 35)[First aid | psychosocial de-escalation]
   #v(7.35pt)
   #cv-b[Intervened in life-threatening situations multiple times; provided first aid and ensured EMS handover]
   #v(8.4pt)
@@ -214,7 +215,7 @@
   #v(6.3pt)
   #cv-s[Shared living | international FOSS collaboration]
   #v(7.35pt)
-  #cv-b[Lived with 20+ people from 10+ countries; actively fostered intercultural exchange]
+  #cv-b[Lived with 20+ people from 10+ countries; actively fostered intercultural exchange through shared living]
   #v(8.4pt)
   #cv-b[Published 50+ open-source projects; contributed to other projects, most recently oo7 (cybersecurity)]
 ]

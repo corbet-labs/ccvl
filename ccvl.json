@@ -26,17 +26,19 @@
     "cv": {
       "de-CH": "cvl/cv/de-ch/main.typ",
       "en-CH": "cvl/cv/en-ch/main.typ",
-      "presets": [2, 3, 4]
+      "presets": [2, 3, 4],
+      "summary_lines": 5
     },
     "cover_letter": {
       "de-CH": "cvl/cl/de-ch/main.typ",
       "en-CH": "cvl/cl/en-ch/main.typ",
       "paragraphs": 5,
-      "highlights": 5
+      "highlights": 5,
+      "body_lines": 15,
+      "line_regions": [
+        { "paragraphs": [1, 2, 3], "lines": 9 },
+        { "paragraphs": [4, 5], "lines": 6 }
+      ]
     }
-  },
-  "career_vector": {
-    "application_schema_version": 1,
-    "import_mode": "explicit-review"
   }
 }

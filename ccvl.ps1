@@ -24,6 +24,7 @@ Usage: .\ccvl.cmd <command> [arguments]
   bootstrap                          Show the setup plan without changing anything
   doctor                             Report and verify the managed toolchain
   check                              Run all deterministic checks
+  measure [--all]                    Measure every CV and cover-letter line contract
   public-check                       Run checks required before publication
   build                              Build every showcase document
   build-cv <locale> [pages]          Build one CV (default: four pages)
@@ -62,6 +63,7 @@ switch ($Command.ToLowerInvariant()) {
     }
     "doctor" { Invoke-UvPython (Join-Path $RepoRoot "scripts\doctor.py") }
     "check" { Invoke-UvPython (Join-Path $RepoRoot "scripts\check.py") }
+    "measure" { Invoke-UvPython (Join-Path $RepoRoot "scripts\line_metrics.py") $Arguments }
     "public-check" { Invoke-UvPython (Join-Path $RepoRoot "scripts\public_check.py") }
     "build" { Invoke-UvPython (Join-Path $RepoRoot "scripts\render.py") @("all") }
     "build-cv" {

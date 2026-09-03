@@ -30,9 +30,9 @@ interview with the user. Preserve source paths or URLs and dates.
 ## Output
 
 In local ccvl mode, write private evidence below `evidence/` and produce a
-validated private `profile.json` from `templates/profile.json`. In CareerVector
-mode, use only the available typed profile and evidence operations; do not
-create a second filesystem source of truth.
+validated private `profile.json` from `templates/profile.json`. If the user
+explicitly connects another typed workspace, use only its profile and evidence
+operations; do not create a second filesystem source of truth.
 
 Before making a profile public, show the exact identifier and claim manifest to
 the user. The checked-in ccvl showcase describes its named author only.

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "revision": 0,
   "job": {
     "id": "showcase-de-ch",
@@ -23,27 +23,48 @@
     }
   },
   "tailored_cv": {
-    "summary": "Dieses CV ist Arbeitsbeispiel und offene Bewerbung zugleich. Ich verbinde Technologie- und Innovationsmanagement mit Strategie und Finance – belegt durch GenAI bei CENVION, Entscheidungsanalysen für Swisscom und Airbus sowie Erfahrung in M&A, Banking und Beratung. Suchen Sie dieses Profil, lassen Sie uns sprechen. Für den eigenen CV: Zielprofil | Differenzierung | zwei belegte Resultate | Mehrwert."
+    "summary": [
+      { "text": "Dieses CV ist Arbeitsbeispiel, technische Produktdemo und offene Bewerbung zugleich.", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Ich verbinde Technologie- und Innovationsmanagement mit Strategie und Finance.", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Belegt durch GenAI bei CENVION | Entscheidungsanalysen für Swisscom und Airbus.", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Dazu kommen M&A, Banking und Beratung. Passt das Profil, lassen Sie uns sprechen.", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Für den eigenen CV: Zielprofil | Differenzierung | zwei belegte Resultate | Mehrwert.", "min_fill": 60, "target_fill": 82, "max_fill": 100 }
+    ]
   },
   "tailored_cl": {
     "paragraphs": [
-      "Manche Anschreiben beginnen mit Begeisterung für eine einzelne Stellenanzeige. Dieses beginnt ehrlicher: Ich suche eine Aufgabe, in der ich Innovationsmanagement und Technologie mit Strategie und Finance verbinden kann – und ccvl zeigt nebenbei, wie ich solche Bewerbungen strukturiere.",
-      "Bei CENVION brachte ich Claude und RAG-basierte Suche in Investment- und Reporting-Workflows. Bei Airbus übersetzte ich mehr als 20 Jahre sicherheitskritische Daten in Risiko- und Kostensignale; bei Swisscom modellierte ich Cloud-Ökonomie und Infrastrukturentscheidungen. Technologie interessiert mich dort am meisten, wo sie reale Entscheidungen besser macht.",
-      "Die wirtschaftliche Seite gehört für mich dazu: Projektfinanzierungs- und M&A-Modelle, achtstellige Infrastrukturinvestitionen, Lieferantenverhandlungen über CHF 10 Mio. sowie die vollständige Projekt-P&L meiner eigenen Beratung. Ich kann einen Prototypen bauen und zugleich erklären, warum er sich rechnet.",
-      "Das ergibt kein ganz lineares Spezialistenprofil – zum Glück. Es ergibt jemanden, der neue Technologien praktisch versteht, ihre strategische Bedeutung einordnet und sie mit belastbaren Business Cases in die Umsetzung bringt. Genau an solchen Schnittstellen entstehen häufig die interessanteren Probleme.",
-      "Wenn Ihr Team jemanden sucht, der Innovation nicht nur auf Folien schreibt, sondern analysiert, baut und wirtschaftlich übersetzt, sollten wir sprechen. Und falls Sie wegen der Vorlage hier sind: Forken, eigene Fakten einsetzen, alle Behauptungen prüfen – dann gehört das nächste gute Anschreiben Ihnen."
+      { "lines": [
+        { "text": "Manche Anschreiben beginnen mit Begeisterung für eine Stellenanzeige. Dieses beginnt ehrlicher:", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "Ich suche eine Aufgabe, die Innovationsmanagement und Technologie mit Strategie und Finance verbindet.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "Dabei zeigt ccvl als Produktdemo, wie ich Bewerbungen strukturiere und belastbar prüfe.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "Bei CENVION brachte ich Claude und RAG-basierte Suche in Investment- und Reporting-Workflows.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "Bei Airbus übersetzte ich 20+ Jahre sicherheitskritische Daten in Risiko- und Kostensignale; bei Swisscom", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "modellierte ich Cloud-Ökonomie und Infrastrukturentscheidungen – Technologie für bessere Entscheidungen.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "Die wirtschaftliche Seite gehört dazu: Projektfinanzierungs- und M&A-Modelle, achtstellige Investitionen,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "Lieferantenverhandlungen über CHF 10 Mio. sowie die vollständige Projekt-P&L meiner eigenen Beratung.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "Ich kann einen Prototypen bauen und zugleich erklären, warum er sich rechnet.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "Das ergibt kein lineares Spezialistenprofil – zum Glück: Ich verstehe neue Technologien praktisch,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "ordne ihre strategische Bedeutung ein und bringe sie mit belastbaren Business Cases in die Umsetzung.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "Genau an solchen Schnittstellen entstehen häufig die interessanteren Probleme.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "Sucht Ihr Team jemanden, der Innovation nicht nur auf Folien schreibt, sondern analysiert, baut und", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "wirtschaftlich übersetzt, sollten wir sprechen. Wegen der Vorlage hier? Forken, eigene Fakten einsetzen,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "alle Behauptungen prüfen – dann gehört das nächste gute Anschreiben Ihnen.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] }
     ],
     "highlights": [
-      "Innovation & Technologie | Agentic AI, Cloud-Systeme und 50+ Open-Source-Projekte",
-      "Applied AI & Data | RAG-Suche, ML-Risikoanalysen und intelligente Automatisierung",
-      "Strategie & Transformation | SteerCo-Entscheidungen, TOM und operative Umsetzung",
-      "Finance & Investment | Projektfinanzierung, DCF, Portfolio- und Szenarioanalysen",
-      "Unternehmerische Umsetzung | Beratung in vier Märkten und Projekt-P&L aus einer Hand"
+      { "text": "Innovation & Technologie | Agentic AI, Cloud-Systeme und 50+ Open-Source-Projekte", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Applied AI & Data | RAG-Suche, ML-Risikoanalysen und intelligente Automatisierung", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Strategie & Transformation | SteerCo-Entscheidungen, TOM und operative Umsetzung", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Finance & Investment | Projektfinanzierung, DCF, Portfolio- und Szenarioanalysen", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "Unternehmerische Umsetzung | Beratung in vier Märkten und Projekt-P&L aus einer Hand", "min_fill": 60, "target_fill": 82, "max_fill": 100 }
     ]
-  },
-  "constraints": {
-    "cv_summary_max_lines": 4,
-    "cl_paragraph_max_lines": [4, 4, 4, 4, 4],
-    "cl_highlight_max_lines": [2, 2, 2, 2, 2]
   }
 }

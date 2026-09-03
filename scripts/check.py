@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import doctor  # noqa: E402
+import line_metrics  # noqa: E402
 import render  # noqa: E402
 from ccvl_validation import ValidationError  # noqa: E402
 from ccvl_validation.repository import validate_markdown_links, validate_text_files  # noqa: E402
@@ -184,6 +185,9 @@ def run_checks() -> None:
         run(["bash", "tests/test_bootstrap.sh"])
     run(["typstyle", "--check", "--line-width", "120", "cvl", "showcase"], reject_stderr=True)
     check_fonts()
+    line_failures = line_metrics.measure(line_metrics.showcase_specs(), emit=False)
+    if line_failures:
+        raise CheckError("line measurement failed: " + "; ".join(line_failures))
 
     profile = json.loads((ROOT / "showcase" / "profile.json").read_text(encoding="utf-8"))
     contacts = [profile["name"], profile["email"], profile["phone_label"]]

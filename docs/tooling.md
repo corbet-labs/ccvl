@@ -21,6 +21,14 @@ An experienced user may install matching tools independently and run the
 platform `doctor` plus `check` commands. Matching global tools are reused;
 otherwise the repository-local path takes precedence only while ccvl runs.
 
+## Line measurement
+
+Run `bash ./ccvl measure` or `.\ccvl.cmd measure` after changing CV or
+cover-letter text. Add `--all` to print every actual, target, and allowed fill
+percentage. The command measures the real Archivo glyph width inside each
+Typst container. Underfill and overflow return a non-zero exit status and an
+instruction to rewrite and repeat the measurement.
+
 ## Bundled fonts
 
 Archivo is included directly in the repository, including source archives. Use

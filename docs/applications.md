@@ -6,34 +6,53 @@ Every concrete opportunity has exactly one canonical tailored-data file:
 applications/<job-id>/application.json
 ```
 
-Create it from `templates/application.json`. The shape intentionally follows
-CareerVector TUI's application schema:
+Create it from `templates/application.json`. Schema version 2 contains:
 
 - `job`: vacancy, organisation, source, description, context, notes, and
   recipient;
-- `tailored_cv.summary`: the Summary inserted into the CV;
-- `tailored_cl.paragraphs`: exactly five cover-letter paragraphs;
-- `tailored_cl.highlights`: exactly five highlight lines;
-- `constraints`: rendered line limits for all tailored fields.
+- `tailored_cv.summary`: exactly five measured line objects;
+- `tailored_cl.paragraphs`: exactly five paragraphs sharing a 9+6 body-line
+  budget;
+- `tailored_cl.highlights`: exactly five measured one-line highlights.
+
+Every measured line has this portable shape:
+
+```json
+{
+  "text": "One explicit rendered line",
+  "min_fill": 65,
+  "target_fill": 86,
+  "max_fill": 100
+}
+```
+
+Fill percentages are resolved against the actual Typst container. The schema
+checks shape, values, and ordering; the renderer measures glyph widths with the
+bundled font. A line below its minimum or above its maximum is a failed draft
+and must be rewritten and measured again.
 
 An archived posting, research notes, or correspondence may sit beside the JSON
-file, but must not duplicate its tailored fields. This makes the future
-CareerVector TUI importer deterministic and prevents Markdown and rendered
-documents from becoming competing sources of truth.
+file, but must not duplicate its tailored fields. The versioned JSON contract
+is intentionally independent of its storage adapter, so another reviewed tool
+can import it without turning Markdown or PDFs into competing sources of truth.
 
-`application_date` is a ccvl field reserved for the rendered letter. The
-CareerVector importer must preserve it when support lands rather than silently
-discarding it.
+`application_date` is reserved for the rendered letter and must survive any
+reviewed import or export unchanged.
 
-Render one private application from the repository root:
+Measure and render one private application from the repository root:
 
 ```sh
+bash ./ccvl measure --application applications/<job-id>/application.json --locale de-ch
 bash ./ccvl build-application applications/<job-id>/application.json de-ch 4
 ```
 
-On Windows, use `.\ccvl.cmd build-application applications\<job-id>\application.json de-ch 4`.
+On Windows, use:
 
-The command validates the application while rendering and writes `cv.pdf` and
-`cl.pdf` below the ignored `out/<job-id>/` directory. Use `en-ch` for an
-English application and select the two-, three-, or four-page CV preset with
-the final argument.
+```powershell
+.\ccvl.cmd measure --application applications\<job-id>\application.json --locale de-ch
+.\ccvl.cmd build-application applications\<job-id>\application.json de-ch 4
+```
+
+The build writes `cv.pdf` and `cl.pdf` below the ignored `out/<job-id>/`
+directory. Use `en-ch` for English and select the two-, three-, or four-page CV
+preset with the final build argument.

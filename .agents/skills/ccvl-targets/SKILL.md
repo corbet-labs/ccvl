@@ -27,6 +27,6 @@ under different labels merely to increase keyword coverage.
 A specific posting is not a target record. Create its canonical
 `applications/<job-id>/application.json` through `ccvl-apply`.
 
-In CareerVector mode, use typed target and job operations instead of parallel
-files. JobCache access is a CareerVector capability; ccvl itself must not grow
-a local imitation of the shared corpus.
+If the user explicitly connects another typed workspace, use its target and job
+operations instead of parallel files. ccvl itself must not grow a local
+imitation of an external corpus.

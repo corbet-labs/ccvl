@@ -22,6 +22,10 @@ It verifies:
   Git whitespace;
 - binary asset integrity and all four bundled Archivo variants;
 - all six CV variants and both cover letters with zero Typst diagnostics;
+- exactly five Summary lines, 15 cover-letter body lines, and five one-line
+  highlights per locale;
+- measured minimum and maximum fill for CV headings, subtitles, bullets,
+  Summary lines, cover-letter body lines, and highlights;
 - exact A4 page counts, usable text layers, embedded, subsetted, and
   Unicode-mapped Archivo fonts;
 - unencrypted PDFs without forms, JavaScript, attachments, or fallback fonts;
@@ -36,6 +40,10 @@ rendered PDFs are byte-identical to the tracked outputs on every OS. Linux CI
 adds independent Poppler, QPDF, and pixel comparisons. `public-check` adds
 private-root, symlink, secret-pattern, LFS-pointer, and private-workspace checks.
 Actions also runs ShellCheck, Actionlint, and REUSE licensing validation.
+
+The same line contract is available directly with `bash ./ccvl measure` or
+`.\ccvl.cmd measure`. It reports all violations in one pass so underfill or
+overflow causes an editorial iteration instead of a one-error-at-a-time loop.
 
 ## Small-model skill evaluation
 

@@ -6,7 +6,8 @@
 // defensive qualifiers, generic duties, and duplicated meaning. Write concisely and
 // confidently without inventing facts; selective emphasis and compression are expected.
 // Every bullet must remain exactly one rendered line and use 80–100% of the
-// available line width; add signal, never filler, when a bullet is too short.
+// available line width, targeting 90%; the renderer enforces this contract.
+// Add signal, never filler, when a bullet is too short.
 // If verified content cannot fill that range, identify the missing dimension
 // (outcome, metric, scope, reference, ownership, or method) and ask for the
 // relevant fact instead of padding or weakening the wording.
@@ -14,6 +15,7 @@
 #import "../../cvl/shared/styles/document.typ": *
 #import "../../cvl/shared/components/header.typ": application-header
 #import "../../cvl/shared/application.typ": validate-application
+#import "../../cvl/shared/line-contract.typ": measured-lines
 #show: document-style.with(locale: "de-ch")
 
 // Page count is selected at compile time: 2 = core, 3 = projects, 4 = competencies.
@@ -34,8 +36,7 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Summary]
-  #set par(justify: true)
-  #application.tailored_cv.summary
+  #measured-lines("cv.summary", "cv-summary", application.tailored_cv.summary)
 ]
 
 #block(breakable: false)[
@@ -185,7 +186,7 @@
   #cv-compact-heading[Engagement]
   #cv-h[Harm Reduction & Krisenunterstützung]
   #v(6.3pt)
-  #cv-s[Krisenintervention & Akuthilfe]
+  #cv-s(min-fill: 20, target-fill: 35)[Krisenintervention & Akuthilfe]
   #v(7.35pt)
   #cv-b[Mehrfach lebensrettend eingegriffen; Ersthilfe geleistet und Übergabe an Rettungskräfte sichergestellt]
   #v(8.4pt)
@@ -208,7 +209,7 @@
   #v(7.35pt)
   #cv-b[Geschwister persönlich & finanziell unterstützt: Abitur (1,0) | Medizinstudium | Unternehmensgründung]
   #v(8.4pt)
-  #cv-b[Pflegezeit 2025: Versorgung, Finanzierung & Langzeitpflege meiner Mutter organisiert]
+  #cv-b[Pflegezeit 2025: Versorgung, Finanzierung & Langzeitpflege meiner Mutter geplant und organisiert]
   #cv-entry-gap()
   #cv-h[Teilen & Mitgestalten]
   #v(6.3pt)

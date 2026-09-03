@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "revision": 0,
   "job": {
     "id": "",
@@ -23,15 +23,48 @@
     }
   },
   "tailored_cv": {
-    "summary": ""
+    "summary": [
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 }
+    ]
   },
   "tailored_cl": {
-    "paragraphs": ["", "", "", "", ""],
-    "highlights": ["", "", "", "", ""]
-  },
-  "constraints": {
-    "cv_summary_max_lines": 4,
-    "cl_paragraph_max_lines": [4, 4, 4, 4, 4],
-    "cl_highlight_max_lines": [2, 2, 2, 2, 2]
+    "paragraphs": [
+      { "lines": [
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
+        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+      ] }
+    ],
+    "highlights": [
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 },
+      { "text": "", "min_fill": 60, "target_fill": 82, "max_fill": 100 }
+    ]
   }
 }

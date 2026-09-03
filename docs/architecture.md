@@ -43,10 +43,10 @@ Skills own judgment and policy. Shell scripts own deterministic checks and
 rendering. A future CLI may replace shell mechanics without changing these
 domain boundaries.
 
-## Import boundary
+## Portable boundary
 
 `ccvl.json` identifies a workspace and its document presets. Each concrete job
-uses `applications/<job-id>/application.json`, following the shared
-CareerVector application schema. A future exporter may package these files for
-CareerVector TUI, but ccvl itself never writes to the CareerVector web service
-or JobCache.
+uses `applications/<job-id>/application.json`, following the versioned public
+schema. Domain rules and line contracts stay independent of the storage
+adapter. An external integration must therefore import or export through an
+explicit, reviewed operation; ccvl itself performs no background upload.

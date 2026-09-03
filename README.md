@@ -28,9 +28,11 @@ The two- and three-page CV presets are available in the same output tree.
 
 ## What is included
 
-- German and English CVs with exact two-, three-, and four-page variants.
+- German and English CVs with exact two-, three-, and four-page variants and
+  an always-five-line Summary.
 - A target-neutral cover letter with five paragraphs and five highlights.
-- One CareerVector-aligned `application.json` per concrete opportunity.
+- One schema-validated `application.json` per concrete opportunity.
+- Measured minimum, target, and maximum fill for every controlled content line.
 - Shared Typst components, bundled fonts, and reproducible build commands.
 - Eight agent skills for setup, evidence-backed profiles, target research, CV
   work, applications, interview preparation, upskilling, and outcome tracking.
@@ -98,7 +100,7 @@ Repository-wide operating rules are in [AGENTS.md](AGENTS.md). The data model
 is documented in [docs/data-model.md](docs/data-model.md), and the deterministic
 plus small-model checks are described in [docs/testing.md](docs/testing.md).
 The [skill map](docs/skills.md) defines the eight ownership boundaries and what
-is deliberately left to CareerVector or explicit user action.
+is deliberately left to an explicitly connected system or user action.
 
 ## License
 
@@ -114,12 +116,3 @@ FSL is a Fair Source license, not an OSI Open Source license. Each published
 version becomes available under Apache-2.0 two years after that version was
 made available. See [LICENSE.md](LICENSE.md) and [REUSE.toml](REUSE.toml) for
 the exact per-path mapping.
-
-## From local files to CareerVector
-
-ccvl deliberately remains a transparent desktop workspace with no account,
-database, or JobCache dependency. Its versioned manifest and application files
-form the import boundary for CareerVector TUI. Moving into CareerVector adds a
-persistent web workspace and JobCache-backed role and posting data; it is a
-visible user action, never a background upload. See
-[The product ladder](docs/ecosystem.md).

@@ -192,7 +192,7 @@
         },
         {
           "id": "verify-all-variants",
-          "text": "Render and verify every affected locale and page preset, including page count, layout, text layer, and fonts."
+          "text": "Measure and iterate on line-bound failures; render every affected locale and preset, then verify layout, text, and fonts."
         },
         {
           "id": "insert-unsupported-keyword",
@@ -221,7 +221,7 @@
         },
         {
           "id": "build-review-verify",
-          "text": "Draft exactly five paragraphs and five highlights, run an independent review pass, then render and verify the package."
+          "text": "Draft a five-line Summary, five paragraphs sharing 15 lines, and five one-line highlights; review, measure, iterate, and verify."
         },
         {
           "id": "follow-posting-instructions",

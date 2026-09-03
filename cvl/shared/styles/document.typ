@@ -1,4 +1,5 @@
 // Shared presentation primitives for CVs and cover letters.
+#import "../line-contract.typ": measured-content-line
 
 #let cv-bullet() = box(width: 10.5pt, height: 7.35pt, align(horizon, align(center, polygon(
   fill: rgb("#000000"),
@@ -8,24 +9,45 @@
 ))))
 
 // Entry heading (bold). Override size: #cv-h(size: 14pt)[...]
-#let cv-h(size: 11pt, t) = { text(size: size, weight: "bold", t) }
-#let cv-hu(size: 11pt, t) = {
+#let cv-h(size: 11pt, min-fill: 15, target-fill: 45, max-fill: 100, t) = measured-content-line(
+  "cv.heading",
+  "cv-heading",
+  text(size: size, weight: "bold", t),
+  min-fill,
+  target-fill,
+  max-fill,
+)
+#let cv-hu(size: 11pt, min-fill: 60, target-fill: 85, max-fill: 100, t) = {
   set strong(delta: -300)
-  text(size: size, weight: "bold", t)
+  measured-content-line(
+    "cv.emphasized-heading",
+    "cv-emphasized-heading",
+    text(size: size, weight: "bold", t),
+    min-fill,
+    target-fill,
+    max-fill,
+  )
 }
 // Entry subheading. Override size: #cv-s(size: 9pt)[...]
-#let cv-s(size: 10pt, t) = text(size: size, t)
+#let cv-s(size: 10pt, min-fill: 35, target-fill: 65, max-fill: 100, t) = measured-content-line(
+  "cv.subheading",
+  "cv-subheading",
+  text(size: size, t),
+  min-fill,
+  target-fill,
+  max-fill,
+)
 // Bullet row. Override indent/gutter: #cv-b(indent: 12pt)[...]
-#let cv-b(indent: 10.5pt, gutter: 0pt, t) = grid(
+#let cv-b(indent: 10.5pt, gutter: 0pt, min-fill: 80, target-fill: 90, max-fill: 100, t) = grid(
   columns: (indent, 1fr),
   gutter: gutter,
-  cv-bullet(), t,
+  cv-bullet(), measured-content-line("cv.bullet", "cv-bullet", t, min-fill, target-fill, max-fill),
 )
 // Sub-bullet row (indented)
-#let cv-sb(indent: 10.5pt, gutter: 0pt, t) = pad(left: indent, grid(
+#let cv-sb(indent: 10.5pt, gutter: 0pt, min-fill: 75, target-fill: 90, max-fill: 100, t) = pad(left: indent, grid(
   columns: (indent, 1fr),
   gutter: gutter,
-  cv-bullet(), t,
+  cv-bullet(), measured-content-line("cv.sub-bullet", "cv-sub-bullet", t, min-fill, target-fill, max-fill),
 ))
 
 #let cv-superheading-outer-spacing = 17.85pt

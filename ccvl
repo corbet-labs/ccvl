@@ -16,6 +16,7 @@ Usage: bash ./ccvl <command> [arguments]
   bootstrap                          Show the setup plan without changing anything
   doctor                             Report installed and missing tools
   check                              Run all deterministic checks
+  measure [--all]                    Measure every CV and cover-letter line contract
   public-check                       Run checks required before publication
   build                              Build every showcase document
   build-cv <locale> [pages]          Build one CV (default: four pages)
@@ -44,6 +45,7 @@ case "$command_name" in
   bootstrap) bash "$repo_root/scripts/bootstrap.sh" plan "$@" ;;
   doctor) bash "$repo_root/scripts/doctor.sh" "$@" ;;
   check) run_python "$repo_root/scripts/check.py" "$@" ;;
+  measure) run_python "$repo_root/scripts/line_metrics.py" "$@" ;;
   public-check) run_python "$repo_root/scripts/public_check.py" "$@" ;;
   build) run_python "$repo_root/scripts/render.py" all "$@" ;;
   build-cv)

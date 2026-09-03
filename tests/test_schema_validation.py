@@ -21,7 +21,7 @@ SCHEMA = {
     "required": ["name", "count", "values", "state"],
     "properties": {
         "name": {"type": "string", "pattern": "^[a-z-]+$"},
-        "count": {"type": "integer", "minimum": 1},
+        "count": {"type": "integer", "minimum": 1, "maximum": 3},
         "values": {
             "type": "array",
             "minItems": 1,
@@ -61,6 +61,7 @@ class SchemaValidationTests(unittest.TestCase):
         invalid_documents = [
             {"name": "NOT VALID", "count": 1, "values": ["one"], "state": "ready"},
             {"name": "valid", "count": 0, "values": ["one"], "state": "ready"},
+            {"name": "valid", "count": 4, "values": ["one"], "state": "ready"},
             {"name": "valid", "count": 1, "values": [], "state": "ready"},
             {"name": "valid", "count": 1, "values": ["one", "two", "three"], "state": "ready"},
             {"name": "valid", "count": 1, "values": ["one"], "state": "unknown"},

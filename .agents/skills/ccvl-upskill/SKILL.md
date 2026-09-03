@@ -26,10 +26,11 @@ same as professional mastery.
 7. After completion, record the actual artifact or assessment as evidence; do
    not claim proficiency beyond what it demonstrates.
 
-Write dated private reports below `evidence/upskilling/`. In CareerVector mode,
-use typed evidence and target operations instead of creating a second source of
-truth. Do not buy a course, enrol, schedule time, or publish a credential
-without an explicit instruction for that external action.
+Write dated private reports below `evidence/upskilling/`. If the user explicitly
+connects another typed workspace, use its evidence and target operations
+instead of creating a second source of truth. Do not buy a course, enrol,
+schedule time, or publish a credential without an explicit instruction for that
+external action.
 
 Use `../../../templates/upskilling.md` as the output contract. Every priority
 must retain its sources, confidence, effort estimate, and intended proof.

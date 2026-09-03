@@ -24,7 +24,8 @@ recruiters and specialists.
 ## Summary
 
 For every concrete role, read `tailored_cv.summary` from its
-`application.json`. It must express:
+`application.json`. It is always exactly five explicit rendered lines and must
+express:
 
 ```text
 target profile | differentiation | two evidenced results | value offered
@@ -33,10 +34,16 @@ target profile | differentiation | two evidenced results | value offered
 The public showcase may combine this formula with an invitation to contact the
 author. A real application must be target-specific.
 
+Every controlled CV line declares or inherits a minimum, target, and maximum
+fill percentage for its actual Typst container. A sparse or overflowing line is
+a failed draft. Add relevant, verified signal or tighten the wording, then run
+`ccvl measure` again. Never use filler or weaken a bound merely to make a draft
+pass.
+
 ## Verification
 
 Render every affected locale and preset. Require the requested two-, three-, or
 four-page count, inspect every rendered page, and extract the PDF text layer.
 Reject clipped content, accidental extra pages, missing glyphs, placeholders,
-or a Summary that exceeds its application constraint. Run the matching platform
-`check` command before completion.
+or any line outside its declared bounds. Run the matching platform `measure`
+command until it passes, then run `check` before completion.

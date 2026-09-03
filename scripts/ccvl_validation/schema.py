@@ -72,6 +72,8 @@ def validate_schema(value: Any, schema: dict[str, Any], schema_root: dict[str, A
     if isinstance(value, int) and not isinstance(value, bool):
         if "minimum" in schema and value < schema["minimum"]:
             raise ValidationError(f"{location}: value is below minimum {schema['minimum']}")
+        if "maximum" in schema and value > schema["maximum"]:
+            raise ValidationError(f"{location}: value is above maximum {schema['maximum']}")
     if isinstance(value, str) and "pattern" in schema and re.fullmatch(schema["pattern"], value) is None:
         raise ValidationError(f"{location}: value does not match {schema['pattern']!r}")
 

@@ -19,5 +19,6 @@ Preserve what happened without converting a plausible explanation into fact.
 5. Feed durable verified facts back into `evidence/`; do not rewrite source
    history to make an outcome look inevitable.
 
-Use `../../../templates/outcome.md` in local mode. In CareerVector mode, use the
-typed outcome operations so the web workspace remains authoritative.
+Use `../../../templates/outcome.md` in local mode. If the user explicitly
+connects another typed workspace, use its outcome operations so that workspace
+remains authoritative.
