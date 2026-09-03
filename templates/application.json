@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "revision": 0,
   "job": {
     "id": "",
@@ -34,29 +34,44 @@
   "tailored_cl": {
     "paragraphs": [
       { "lines": [
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] }
     ],
     "highlights": [

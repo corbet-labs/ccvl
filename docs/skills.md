@@ -9,7 +9,7 @@ portable application lifecycle without duplicating ownership.
 | `ccvl-profile` | source ingestion, claim states, candidate facts and voice | target hypotheses |
 | `ccvl-targets` | MECE organisations, markets, functions, and role families | concrete vacancies |
 | `ccvl-cv` | CV selection, wording, layout, ATS and render checks | unsupported claims |
-| `ccvl-apply` | one vacancy, fit decision, Summary, five-paragraph letter, review | submission authority |
+| `ccvl-apply` | one vacancy, fit decision, Summary, six-paragraph letter, review | submission authority |
 | `ccvl-interview` | stage-specific preparation and honest practice | outcome history |
 | `ccvl-upskill` | recurring gaps, learning priorities, proof plan | automatic enrolment or proficiency claims |
 | `ccvl-outcome` | observed events, exact feedback, funnel evidence, calibration | invented causes |

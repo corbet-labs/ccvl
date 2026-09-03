@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -29,6 +30,53 @@ class DocumentSpec:
     kind: str
     source: Path
     inputs: dict[str, str]
+
+
+def cover_letter_contract() -> dict[str, Any]:
+    return json.loads((ROOT / "ccvl.json").read_text(encoding="utf-8"))["documents"]["cover_letter"]
+
+
+def paragraph_line_counts(spec: DocumentSpec, metrics: list[dict[str, Any]]) -> list[int]:
+    contract = cover_letter_contract()
+    counts = [0 for _ in contract["paragraphs"]]
+    pattern = re.compile(r"^cl\.paragraph\.(\d+)\.(\d+)$")
+    for metric in metrics:
+        if metric.get("kind") != "cl-body":
+            continue
+        match = pattern.fullmatch(str(metric.get("id", "")))
+        if match is None:
+            raise MeasurementError(f"{spec.name}: malformed cover-letter body metric id")
+        paragraph_number = int(match.group(1))
+        if not 1 <= paragraph_number <= len(counts):
+            raise MeasurementError(f"{spec.name}: cover-letter body metric references an unknown paragraph")
+        counts[paragraph_number - 1] += 1
+    return counts
+
+
+def preference_warnings(spec: DocumentSpec, metrics: list[dict[str, Any]]) -> list[str]:
+    if spec.kind != "cl":
+        return []
+    contract = cover_letter_contract()
+    paragraph_counts = paragraph_line_counts(spec, metrics)
+    warnings: list[str] = []
+    for region in contract["paragraph_regions"]:
+        total = sum(paragraph_counts[number - 1] for number in region["paragraphs"])
+        preferred = region["preferred_totals"]
+        if total not in preferred:
+            label = "–".join(str(number) for number in (region["paragraphs"][0], region["paragraphs"][-1]))
+            warnings.append(
+                f"{spec.name}: paragraphs {label} use {total} lines; accepted, but "
+                f"{' or '.join(str(value) for value in preferred)} is preferred"
+            )
+    opening_number, closing_number = contract["mirror_paragraphs"]
+    closing_contract = contract["paragraphs"][closing_number - 1]["lines"]
+    closing_lines = paragraph_counts[closing_number - 1]
+    if closing_lines != closing_contract["target"]:
+        warnings.append(
+            f"{spec.name}: paragraph {closing_number} uses {closing_lines} lines; accepted, but "
+            f"{closing_contract['target']} is preferred to mirror paragraph {opening_number}"
+        )
+    return warnings
 
 
 def showcase_specs() -> list[DocumentSpec]:
@@ -126,18 +174,34 @@ def validate_metric_set(spec: DocumentSpec, metrics: list[dict[str, Any]]) -> No
                 raise MeasurementError(f"{spec.name}: no measured {required} lines found")
     elif spec.kind == "cl":
         body_lines = counts.get("cl-body", 0)
-        contract = json.loads((ROOT / "ccvl.json").read_text(encoding="utf-8"))["documents"]["cover_letter"]
+        contract = cover_letter_contract()
+        paragraph_counts = paragraph_line_counts(spec, metrics)
+        for paragraph_contract, actual_lines in zip(contract["paragraphs"], paragraph_counts, strict=True):
+            line_contract = paragraph_contract["lines"]
+            if not line_contract["minimum"] <= actual_lines <= line_contract["maximum"]:
+                raise MeasurementError(
+                    f"{spec.name}: paragraph {paragraph_contract['number']} ({paragraph_contract['role']}) "
+                    f"must use {line_contract['minimum']}–{line_contract['maximum']} lines, found {actual_lines}"
+                )
+        for region in contract["paragraph_regions"]:
+            region_lines = sum(paragraph_counts[number - 1] for number in region["paragraphs"])
+            if not region["minimum"] <= region_lines <= region["maximum"]:
+                raise MeasurementError(
+                    f"{spec.name}: paragraphs {region['paragraphs'][0]}–{region['paragraphs'][-1]} must use "
+                    f"{region['minimum']}–{region['maximum']} lines, found {region_lines}"
+                )
         body_contract = contract["body_lines"]
         if not body_contract["minimum"] <= body_lines <= body_contract["maximum"]:
             raise MeasurementError(
                 f"{spec.name}: expected {body_contract['minimum']}–{body_contract['maximum']} "
                 f"body lines, found {body_lines}"
             )
-        if counts.get("cl-highlight") != contract["highlights"]:
-            raise MeasurementError(f"{spec.name}: expected {contract['highlights']} one-line highlights")
+        highlight_count = contract["highlights"]["count"]
+        if counts.get("cl-highlight") != highlight_count:
+            raise MeasurementError(f"{spec.name}: expected {highlight_count} one-line highlights")
         if counts.get("cl-vertical-gap") != 1 or counts.get("cl-highlight-center") != 1:
             raise MeasurementError(f"{spec.name}: expected one vertical-gap and one highlight-position metric")
-        if len(metrics) != body_lines + 7:
+        if len(metrics) != body_lines + highlight_count + 2:
             raise MeasurementError(f"{spec.name}: unexpected cover-letter metric set")
 
 
@@ -160,6 +224,10 @@ def measure(specs: list[DocumentSpec], *, show_all: bool = False, emit: bool = T
     for spec in specs:
         metrics = evaluate(spec)
         validate_metric_set(spec, metrics)
+        advisories = preference_warnings(spec, metrics)
+        if emit:
+            for advisory in advisories:
+                print(f"WARN {advisory}")
         document_failures: list[str] = []
         for index, metric in enumerate(metrics, start=1):
             state = violation(metric)
@@ -182,7 +250,11 @@ def measure(specs: list[DocumentSpec], *, show_all: bool = False, emit: bool = T
                 )
         failures.extend(document_failures)
         if emit and not show_all:
-            print(f"{'PASS' if not document_failures else 'FAIL'} {spec.name}: {len(metrics)} measured lines")
+            warning_suffix = f", {len(advisories)} preference warning(s)" if advisories else ""
+            print(
+                f"{'PASS' if not document_failures else 'FAIL'} {spec.name}: "
+                f"{len(metrics)} measured lines{warning_suffix}"
+            )
     if failures and emit:
         print(
             "Line measurement failed. Rewrite with relevant, verified signal—not filler—then run `ccvl measure` again.",

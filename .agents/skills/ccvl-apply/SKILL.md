@@ -1,6 +1,6 @@
 ---
 name: ccvl-apply
-description: Evaluate a concrete vacancy and create its evidence-backed application.json, tailored CV Summary, five cover-letter paragraphs, and five highlights.
+description: Evaluate a concrete vacancy and create its evidence-backed application.json, tailored CV Summary, six cover-letter paragraphs, and five highlights.
 ---
 
 # Build an application
@@ -22,10 +22,10 @@ Create one canonical record at
    preference.
 5. Write the target-specific CV Summary as exactly five explicit rendered
    lines.
-6. Write exactly five cover-letter paragraphs targeting 15 body lines, with
-   14–16 accepted. Target nine lines across paragraphs 1–3 and six across
-   paragraphs 4–5; either region may vary by one line. Add five one-line
-   highlights. Use `../../../docs/cover-letter.md`.
+6. Follow `../../../docs/cover-letter.md`: paragraph 1 uses exactly three lines;
+   paragraphs 2–3 and 4–5 each use 10–12, with 20–22 across all four;
+   paragraph 6 uses two or preferably three. Prefer pair totals of 10 or 12
+   over 11. Add five one-line highlights between paragraphs 3 and 4.
 7. Run a separate review pass for truth, target fit, plain language, repetition,
    tone, and missing evidence.
 8. Run `ccvl measure`. Underfill or overflow is a failed draft: rewrite with

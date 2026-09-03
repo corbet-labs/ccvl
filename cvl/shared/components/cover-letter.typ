@@ -1,6 +1,6 @@
-// Shared renderer for the measured five-paragraph, five-highlight cover-letter contract.
+// Shared renderer for the measured six-paragraph, five-highlight cover-letter contract.
 #import "../application.typ": cover-letter-contract, validate-application
-#import "../line-contract.typ": line-contract-mode, measured-line, measured-lines
+#import "../line-contract.typ": line-contract-mode, measured-line, measured-paragraph
 #import "../profile.typ": profile
 #import "header.typ": application-header
 
@@ -29,19 +29,24 @@
     [Application for #job.title]
   }
   let salutation = if recipient.name.trim() != "" {
-    if is-german { [Guten Tag #recipient.name,] } else { [Dear #recipient.name,] }
+    if is-german { [Guten Tag #recipient.name,] } else {
+      [Dear #recipient.name,]
+    }
   } else if is-german {
     [Guten Tag,]
   } else {
     [Dear Hiring Team,]
   }
-  let closing = if is-german { [Freundliche Grüsse] } else { [Yours sincerely,] }
+  let closing = if is-german { [Freundliche Grüsse] } else {
+    [Yours sincerely,]
+  }
 
   let paragraph(index) = block(breakable: false)[
-    #measured-lines(
+    #measured-paragraph(
       "cl.paragraph." + str(index + 1),
       "cl-body",
       letter.paragraphs.at(index).lines,
+      justify: cover-letter-contract.justify_body,
     )
   ]
   let highlights = block(
@@ -51,13 +56,17 @@
     radius: 2pt,
     width: 100%,
   )[
-    #for index in range(5) {
+    #for index in range(cover-letter-contract.highlights.count) {
       grid(
         columns: (6mm, 1fr),
         [#text(weight: "bold", fill: rgb("#1e3a5f"))[#(index + 1)]],
-        [#measured-line("cl.highlight." + str(index + 1), "cl-highlight", letter.highlights.at(index))],
+        [#measured-line(
+          "cl.highlight." + str(index + 1),
+          "cl-highlight",
+          letter.highlights.at(index),
+        )],
       )
-      if index < 4 { v(5.25pt) }
+      if index < cover-letter-contract.highlights.count - 1 { v(5.25pt) }
     }
   ]
   let header-content = [
@@ -98,14 +107,21 @@
       highlights,
       paragraph(3),
       paragraph(4),
+      paragraph(5),
       closing-content,
     )
-    let heights = content-blocks.map(item => measure(item, width: size.width).height)
+    let heights = content-blocks.map(item => {
+      measure(item, width: size.width).height
+    })
     let fixed-height = heights.fold(0pt, (total, height) => total + height)
     let gap-count = content-blocks.len() - 1
     let gap-height = (size.height - fixed-height) / gap-count
-    let highlight-top = heights.slice(0, 6).fold(0pt, (total, height) => total + height) + 6 * gap-height
-    let highlight-center = 100 * (highlight-top + heights.at(6) / 2) / size.height
+    let highlight-top = (
+      heights.slice(0, 6).fold(0pt, (total, height) => total + height) + 6 * gap-height
+    )
+    let highlight-center = (
+      100 * (highlight-top + heights.at(6) / 2) / size.height
+    )
     let rhythm = cover-letter-contract.vertical_rhythm
     let metrics = (
       (
@@ -177,6 +193,8 @@
           auto,
           1fr,
           auto,
+          1fr,
+          auto,
         ),
         align: (left, top),
         header-content,
@@ -196,6 +214,8 @@
         paragraph(3),
         [],
         paragraph(4),
+        [],
+        paragraph(5),
         [],
         closing-content,
       )

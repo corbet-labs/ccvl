@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "revision": 0,
   "job": {
     "id": "showcase-de-ch",
@@ -34,29 +34,44 @@
   "tailored_cl": {
     "paragraphs": [
       { "lines": [
-        { "text": "Manche Anschreiben beginnen mit Begeisterung für eine Stellenanzeige. Dieses beginnt ehrlicher:", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Ich suche eine Aufgabe, die Innovationsmanagement und Technologie mit Strategie und Finance verbindet.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Dabei zeigt ccvl als Produktdemo, wie ich Bewerbungen strukturiere und belastbar prüfe.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "Manche Anschreiben beginnen mit Begeisterung für eine Stellenanzeige. Dieses beginnt etwas ehrlicher:", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Ich suche eine Aufgabe, die Innovationsmanagement und Technologie mit Strategie und Finance verbindet.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "ccvl zeigt zugleich als Produktdemo, wie ich Bewerbungen strukturiere, messe und belastbar prüfe.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "Bei CENVION brachte ich Claude und RAG-basierte Suche in Investment- und Reporting-Workflows.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Bei Airbus übersetzte ich 20+ Jahre sicherheitskritische Daten in Risiko- und Kostensignale; bei Swisscom", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "modellierte ich Cloud-Ökonomie und Infrastrukturentscheidungen – Technologie für bessere Entscheidungen.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "Bei CENVION führte ich Claude und RAG-basierte Suche in Investment- und Reporting-Workflows ein.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Für sieben Batteriespeicher modellierte ich IRR, NPV, DSCR und Sensitivitäten; die Analysen stützten", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Refinanzierungspakete und Entscheidungen institutioneller Investoren. Zugleich automatisierte ich die", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Datenstrecke von Betriebsdaten bis zu Quartalsberichten und machte Performance-Lücken sowie operative", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Optimierungshebel sichtbar. Damit verband ich neue Technologie nicht mit einer isolierten Demo, sondern", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "direkt mit Kapitalentscheidungen, Risikotransparenz und einem verlässlicheren Blick auf das Portfolio.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "Die wirtschaftliche Seite gehört dazu: Projektfinanzierungs- und M&A-Modelle, achtstellige Investitionen,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Lieferantenverhandlungen über CHF 10 Mio. sowie die vollständige Projekt-P&L meiner eigenen Beratung.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Ich kann einen Prototypen bauen und zugleich erklären, warum er sich rechnet.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "Bei Airbus übersetzte ich 20+ Jahre sicherheitskritische Wartungsdaten von mehr als 500 Flugzeugen in", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "entscheidungsreife Risiko- und Kostensignale. Die Arbeit zeigte über EUR 100'000 jährliches Sparpotenzial", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "und stiess ein internationales Verbesserungsprogramm von über EUR 1 Mio. an. Bei Swisscom modellierte ich", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Cloud-Ökonomie und Infrastrukturentscheidungen unter Rechenzentrumsgrenzen, unterstützte strategische", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Investitionen im achtstelligen Bereich und bereitete Lieferantenverhandlungen über CHF 10 Mio. vor.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Der rote Faden: technische Komplexität in belastbare und gemeinsam nutzbare Entscheidungen übersetzen.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "Das ergibt kein lineares Spezialistenprofil – zum Glück: Ich verstehe neue Technologien praktisch,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "ordne ihre strategische Bedeutung ein und bringe sie mit belastbaren Business Cases in die Umsetzung.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Genau an solchen Schnittstellen entstehen häufig die interessanteren Probleme.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "Das ergibt kein lineares Spezialistenprofil – und genau darin liegt der praktische Mehrwert für ein Team:", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Ich kann einen Prototypen selbst bauen, seine technische Tragfähigkeit prüfen und zugleich erklären,", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "welches Problem er löst, wie der Business Case aussieht und welche Risiken eine Entscheidung mitbringt.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Wo Fachgebiete sonst an Übergaben verlieren, verbinde ich Technologie, Strategie und Finance zu einer", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "gemeinsamen Entscheidungsgrundlage – verständlich für Führungskräfte und belastbar für Fachleute.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "Sucht Ihr Team jemanden, der Innovation nicht nur auf Folien schreibt, sondern analysiert, baut und", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "wirtschaftlich übersetzt, sollten wir sprechen. Wegen der Vorlage hier? Forken, eigene Fakten einsetzen,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "alle Behauptungen prüfen – dann gehört das nächste gute Anschreiben Ihnen.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "Für eine konkrete Bewerbung gehört hier der echte Unternehmensbezug hin: eine Strategie, Initiative oder", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Aufgabe des Zielunternehmens, die mich nachvollziehbar anspricht – recherchiert statt austauschbar gelobt.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Darauf folgt die Brücke von diesem Bedarf zu meiner Erfahrung und ein konkretes Bild meines möglichen", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Beitrags. Diese öffentliche Version bleibt bewusst offen: Wenn Ihr Team Innovation praktisch umsetzen", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "und wirtschaftlich einordnen will, könnte genau diese Verbindung für beide Seiten interessant sein.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "Wenn Sie darin einen möglichen Fit sehen, freue ich mich auf ein offenes Gespräch über Ihre Fragen,", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "meine Erfahrungen und die Aufgaben, bei denen ich Ihrem Team wirklich helfen kann. Vielen Dank für Ihre", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Zeit und vielleicht bis bald – ich würde mich freuen, Sie und Ihr Unternehmen kennenzulernen.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] }
     ],
     "highlights": [

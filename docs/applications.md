@@ -6,13 +6,13 @@ Every concrete opportunity has exactly one canonical tailored-data file:
 applications/<job-id>/application.json
 ```
 
-Create it from `templates/application.json`. Schema version 2 contains:
+Create it from `templates/application.json`. Schema version 3 contains:
 
 - `job`: vacancy, organisation, source, description, context, notes, and
   recipient;
 - `tailored_cv.summary`: exactly five measured line objects;
-- `tailored_cl.paragraphs`: exactly five paragraphs targeting a 9+6 body-line
-  allocation, with one line of tolerance per region and 14–16 lines overall;
+- `tailored_cl.paragraphs`: exactly six paragraphs following the measured
+  semantic and regional budgets in `docs/cover-letter.md`;
 - `tailored_cl.highlights`: exactly five measured one-line highlights.
 
 Every measured line has this portable shape:

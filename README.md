@@ -23,7 +23,7 @@ content is visible for professional evaluation, but is not a reusable template.
 
 - German and English CVs with exact two-, three-, and four-page variants and
   an always-five-line Summary.
-- A target-neutral cover letter with five paragraphs and five highlights.
+- A target-neutral cover letter with six measured paragraphs and five highlights.
 - One schema-validated `application.json` per concrete opportunity.
 - Measured minimum, target, and maximum bounds for controlled line width,
   cover-letter spacing, and highlight position.

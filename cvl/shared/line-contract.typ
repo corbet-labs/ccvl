@@ -5,9 +5,18 @@
   message: "line-contracts must be enforce or report",
 )
 
-#let measured-content-line(id, kind, body, min-fill, target-fill, max-fill, source-text: none) = layout(size => {
+#let line-contract-marker(
+  id,
+  kind,
+  body,
+  min-fill,
+  target-fill,
+  max-fill,
+  available-width,
+  source-text: none,
+) = {
   let measured = measure(body)
-  let actual-fill = calc.round(1000 * measured.width / size.width) / 10
+  let actual-fill = calc.round(1000 * measured.width / available-width) / 10
   let metric = (
     id: id,
     kind: kind,
@@ -48,7 +57,31 @@
         + guidance,
     )
   }
-  [#metadata(metric) <ccvl-line>#box(body)]
+  [#metadata(metric) <ccvl-line>]
+}
+
+#let measured-content-line(
+  id,
+  kind,
+  body,
+  min-fill,
+  target-fill,
+  max-fill,
+  source-text: none,
+) = layout(size => {
+  [
+    #line-contract-marker(
+      id,
+      kind,
+      body,
+      min-fill,
+      target-fill,
+      max-fill,
+      size.width,
+      source-text: source-text,
+    )
+    #box(body)
+  ]
 })
 
 #let measured-line(id, kind, contract) = measured-content-line(
@@ -69,3 +102,29 @@
     }
   }
 }
+
+// Render explicit lines as one justified paragraph while measuring their natural widths.
+// Manual line breaks and the caller's unbreakable block prevent widows and orphans.
+#let measured-paragraph(id, kind, lines, justify: true) = layout(size => {
+  [
+    #for (index, line) in lines.enumerate() {
+      line-contract-marker(
+        id + "." + str(index + 1),
+        kind,
+        text(line.text),
+        line.min_fill,
+        line.target_fill,
+        line.max_fill,
+        size.width,
+        source-text: line.text,
+      )
+    }
+    #set par(justify: justify)
+    #for (index, line) in lines.enumerate() {
+      text(line.text)
+      if index < lines.len() - 1 {
+        linebreak()
+      }
+    }
+  ]
+})

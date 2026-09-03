@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "revision": 0,
   "job": {
     "id": "showcase-en-ch",
@@ -34,29 +34,44 @@
   "tailored_cl": {
     "paragraphs": [
       { "lines": [
-        { "text": "Some cover letters begin with enthusiasm for one vacancy. This one begins more honestly:", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "I am looking for a role connecting innovation management and technology with strategy and finance.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "Along the way, ccvl demonstrates how I structure applications like this one.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "Some cover letters begin with enthusiasm for a particular vacancy. This one begins deliberately more honestly:", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "I am looking for a role connecting innovation management and technology with strategy and finance.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "ccvl also serves as a product demo of how I structure, measure and rigorously review applications.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "At CENVION, I introduced Claude and RAG-based search into investment and reporting workflows.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "At Airbus, I turned 20+ years of safety-critical data into risk and cost signals; at Swisscom,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "I modelled cloud economics and infrastructure decisions – technology used to improve real decisions.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "At CENVION, I introduced Claude and RAG-based search into investment and reporting workflows.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "For seven battery-storage assets, I modelled IRR, NPV, DSCR and sensitivities; the analysis supported", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "refinancing packages and decisions for institutional investors. I also automated the data flow from", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "operating data to quarterly reports, making performance gaps and operational improvement levers visible.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "That connected emerging technology not to an isolated demonstration, but directly to capital decisions,", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "risk transparency, portfolio priorities and a more dependable view of operational performance.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "The commercial side belongs in the same picture: project-finance and M&A models, eight-figure investments,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "CHF 10m+ supplier negotiations and end-to-end project P&L in my own consulting work.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "I can build a prototype and explain the strategic and commercial case for building it.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "At Airbus, I translated 20+ years of safety-critical maintenance data across more than 500 aircraft into", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "decision-ready risk and cost signals. The work surfaced EUR 100k+ in annual savings potential and helped", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "trigger an international improvement programme worth more than EUR 1m. At Swisscom, I then modelled", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "cloud economics and infrastructure choices under data-centre constraints, supported strategic", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "eight-figure investments and supplier negotiations exceeding CHF 10m for infrastructure programmes.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "The recurring pattern is turning technical complexity into evidence specialists and leaders can use together.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "That does not produce a linear specialist profile – fortunately: I understand emerging technology hands-on,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "frame its strategic relevance and carry it into delivery with a sound business case.", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "The more interesting problems tend to live at exactly those intersections.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "This is not a linear specialist profile – and that is precisely where its practical value lies for a team:", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "I can build a prototype myself, test its technical viability and explain the problem it solves at the same time.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "I connect that understanding to the business case, decision risks and the route from an idea into delivery.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "Where disciplines otherwise lose momentum at handovers, I join technology, strategy and finance into one", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "decision base that remains accessible to leaders and credible to the specialists responsible for execution.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] },
       { "lines": [
-        { "text": "If your team needs someone who does more than put innovation on slides – someone who analyses it,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "builds it and translates it commercially – we should talk. Here for the template? Fork it, add your facts,", "min_fill": 65, "target_fill": 86, "max_fill": 100 },
-        { "text": "verify every claim, and turn the same framework into a strong cover letter of your own.", "min_fill": 65, "target_fill": 86, "max_fill": 100 }
+        { "text": "For a real application, this is where specific company fit belongs: a strategy, initiative or challenge", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "that genuinely attracts me – researched and understood rather than praised with interchangeable language.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "It then connects that need to my experience and offers a concrete picture of the contribution I could make.", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "This public version remains deliberately open: if your team wants to implement innovation hands-on and", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "translate it into commercial decisions, that combination may be worth exploring together.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
+      ] },
+      { "lines": [
+        { "text": "If you see a possible fit, I would welcome an open conversation about your questions, my experience and", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "the work where I could genuinely help your team. Thank you for taking the time to consider this unusual", "min_fill": 75, "target_fill": 90, "max_fill": 100 },
+        { "text": "open application – I would be glad to learn more about you, your organisation and the problems ahead.", "min_fill": 75, "target_fill": 90, "max_fill": 100 }
       ] }
     ],
     "highlights": [

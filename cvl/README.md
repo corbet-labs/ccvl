@@ -4,8 +4,8 @@ The suite contains the bilingual CV and cover-letter showcase plus their shared
 Typst presentation layer.
 
 - `cv/`: exact two-, three-, and four-page CV presets;
-- `cl/`: one-page cover letters with five paragraphs, 14–16 body lines, and
-  five near-centred highlights;
+- `cl/`: one-page cover letters with six paragraphs, 25–28 body lines, and five
+  measured highlights;
 - `shared/`: profile, validation, measured line contracts, layout, components,
   and bundled fonts.
 

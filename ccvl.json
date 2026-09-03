@@ -1,6 +1,6 @@
 {
   "format": "ccvl-workspace",
-  "schema_version": 2,
+  "schema_version": 3,
   "application_schema": "schemas/application.schema.json",
   "profile_schema": "schemas/profile.schema.json",
   "applications": {
@@ -32,17 +32,86 @@
     "cover_letter": {
       "de-CH": "cvl/cl/de-ch/main.typ",
       "en-CH": "cvl/cl/en-ch/main.typ",
-      "paragraphs": 5,
-      "highlights": 5,
-      "body_lines": { "minimum": 14, "target": 15, "maximum": 16 },
-      "line_regions": [
-        { "paragraphs": [1, 2, 3], "minimum": 8, "target": 9, "maximum": 10 },
-        { "paragraphs": [4, 5], "minimum": 5, "target": 6, "maximum": 7 }
+      "paragraphs": [
+        {
+          "number": 1,
+          "role": "positioning",
+          "purpose": "Name the target and establish immediate fit.",
+          "lines": { "minimum": 3, "target": 3, "maximum": 3 }
+        },
+        {
+          "number": 2,
+          "role": "primary-evidence",
+          "purpose": "Prove the strongest relevant experience and results.",
+          "lines": { "minimum": 5, "target": 6, "maximum": 7 }
+        },
+        {
+          "number": 3,
+          "role": "complementary-evidence",
+          "purpose": "Add complementary evidence and the career-wide pattern.",
+          "lines": { "minimum": 5, "target": 6, "maximum": 7 }
+        },
+        {
+          "number": 4,
+          "role": "differentiation",
+          "purpose": "Explain the value created by the combined evidence.",
+          "lines": { "minimum": 5, "target": 6, "maximum": 7 }
+        },
+        {
+          "number": 5,
+          "role": "target-fit",
+          "purpose": "Connect that value to the specific organisation and opportunity.",
+          "lines": { "minimum": 5, "target": 6, "maximum": 7 }
+        },
+        {
+          "number": 6,
+          "role": "warm-close",
+          "purpose": "Close warmly with a low-friction invitation to talk.",
+          "lines": { "minimum": 2, "target": 3, "maximum": 3 }
+        }
       ],
+      "paragraph_regions": [
+        {
+          "paragraphs": [2, 3],
+          "minimum": 10,
+          "target": 12,
+          "maximum": 12,
+          "preferred_totals": [10, 12]
+        },
+        {
+          "paragraphs": [4, 5],
+          "minimum": 10,
+          "target": 12,
+          "maximum": 12,
+          "preferred_totals": [10, 12]
+        },
+        {
+          "paragraphs": [2, 3, 4, 5],
+          "minimum": 20,
+          "target": 22,
+          "maximum": 22,
+          "preferred_totals": [20, 21, 22]
+        }
+      ],
+      "body_lines": { "minimum": 25, "target": 28, "maximum": 28 },
+      "highlights": {
+        "count": 5,
+        "lines_each": 1,
+        "position": "between-paragraphs-3-and-4",
+        "purpose": "Provide a fast evidence index across the target's main selection dimensions."
+      },
+      "line_fill": {
+        "body": { "minimum": 75, "target": 90, "maximum": 100 },
+        "highlight": { "minimum": 60, "target": 82, "maximum": 100 }
+      },
+      "mirror_paragraphs": [1, 6],
+      "keep_paragraphs_together": true,
+      "justify_body": true,
       "vertical_rhythm": {
-        "gap_pt": { "minimum": 30, "target": 45, "maximum": 55 },
-        "highlight_center_percent": { "minimum": 56, "target": 61, "maximum": 67 }
-      }
+        "gap_pt": { "minimum": 12, "target": 20, "maximum": 30 },
+        "highlight_center_percent": { "minimum": 50, "target": 56, "maximum": 60 }
+      },
+      "widow_or_orphan_lines": 0
     }
   }
 }
