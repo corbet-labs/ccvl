@@ -26,6 +26,7 @@
 # Editor and office temporary files
 .DS_Store
 Thumbs.db
+.nfs*
 .~lock.*#
 ~$*.doc*
 ~$*.xls*
