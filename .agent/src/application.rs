@@ -539,6 +539,23 @@ mod tests {
     }
 
     #[test]
+    fn german_flowing_summary_with_special_characters_validates() {
+        let workspace = workspace();
+        let mut draft = application(&[3, 6, 6, 5, 5, 3]);
+        draft["cv"]["summary"] = json!(
+            "Mittelstandsmandate verbinden Finanzen, Betrieb und Technologie. \
+             Ich vereine Portfolioanalyse, Corporate Finance und Transformation mit \
+             praktischer Cloud-/KI-Umsetzung. Damit unterstütze ich Leverage Experts \
+             pragmatisch in Performance-, Portfolio- und Transformationsmandaten. \
+             GenAI bei CENVION | RAG-Suche, CHF 10 Mio., 20+ Jahre, für & mit."
+        );
+        validate_record(&workspace, &draft, "fixture", true).unwrap();
+        draft["options"]["generate_cl"] = json!(false);
+        draft.as_object_mut().unwrap().remove("cl");
+        validate_record(&workspace, &draft, "fixture", true).unwrap();
+    }
+
+    #[test]
     fn unknown_fields_are_rejected() {
         let mut draft = application(&[3, 6, 6, 5, 5, 3]);
         draft["job"]["smuggled"] = json!("nope");
