@@ -37,7 +37,11 @@ pub fn validate(
         .with_context(|| format!("invalid downstream policy {}", policy_path.display()))?;
     validate_policy(&policy)?;
 
-    let actual_url = git_text(workspace, &["remote", "get-url", &policy.upstream.remote])?;
+    let remote_url_key = format!("remote.{}.url", policy.upstream.remote);
+    let actual_url = git_text(
+        workspace,
+        &["config", "--local", "--get-all", &remote_url_key],
+    )?;
     ensure!(
         actual_url == policy.upstream.url,
         "remote {:?} points to {actual_url:?}; expected {:?}",
@@ -260,6 +264,18 @@ mod tests {
             &["update-ref", "refs/remotes/upstream/main", &upstream_commit],
         );
         git_at(root, &["remote", "add", "upstream", TEST_UPSTREAM]);
+        git_at(
+            root,
+            &[
+                "config",
+                "url.git@github.com:.insteadOf",
+                "https://github.com/",
+            ],
+        );
+        assert_eq!(
+            git_at(root, &["remote", "get-url", "upstream"]),
+            "git@github.com:corbet-labs/ccvl.git"
+        );
 
         fs::create_dir(root.join("targets")).unwrap();
         fs::write(root.join("targets/company.md"), "private target\n").unwrap();
