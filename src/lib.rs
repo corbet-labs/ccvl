@@ -3,6 +3,7 @@
 pub mod application;
 pub mod check;
 pub mod cli;
+pub mod downstream;
 pub mod format;
 pub mod measure;
 pub mod opportunity;

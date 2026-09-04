@@ -1,0 +1,75 @@
+name: Downstream sync
+
+on:
+  workflow_call:
+    inputs:
+      upstream-url:
+        description: Exact public ccvl Git URL from ccvl-downstream.json
+        required: true
+        type: string
+      upstream-branch:
+        description: Upstream branch
+        required: false
+        default: main
+        type: string
+      policy:
+        description: Downstream ownership policy
+        required: false
+        default: ccvl-downstream.json
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ccvl-upstream-sync-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Merge verified ccvl upstream
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      RUST_TOOLCHAIN: 1.92.0
+      UPSTREAM_URL: ${{ inputs.upstream-url }}
+      UPSTREAM_BRANCH: ${{ inputs.upstream-branch }}
+      POLICY: ${{ inputs.policy }}
+    steps:
+      - name: Check out private downstream
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Install exact Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          test "$(rustc "+$RUST_TOOLCHAIN" --version | awk '{print $2}')" = "$RUST_TOOLCHAIN"
+
+      - name: Merge upstream without publishing partial state
+        id: merge
+        run: |
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
+          upstream_ref="refs/remotes/upstream/$UPSTREAM_BRANCH"
+          if git merge-base --is-ancestor "$upstream_ref" HEAD; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --no-edit "$upstream_ref"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce downstream ownership boundary
+        run: >-
+          cargo "+$RUST_TOOLCHAIN" run --quiet --locked --
+          downstream-check --policy "$POLICY"
+          --upstream-ref "refs/remotes/upstream/$UPSTREAM_BRANCH"
+
+      - name: Run complete deterministic document gate
+        run: cargo "+$RUST_TOOLCHAIN" run --quiet --locked -- check
+
+      - name: Publish verified merge
+        if: steps.merge.outputs.changed == 'true'
+        run: git push origin "HEAD:$GITHUB_REF_NAME"

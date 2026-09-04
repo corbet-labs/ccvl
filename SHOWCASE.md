@@ -6,8 +6,8 @@ also an invitation to talk:
 
 | Language | CV | Cover letter |
 |---|---|---|
-| Deutsch | [four-page CV](cvl/cv/output/de-ch/4pager/cv.pdf) | [open cover letter](cvl/cl/output/de-ch/cl.pdf) |
-| English | [four-page CV](cvl/cv/output/en-ch/4pager/cv.pdf) | [open cover letter](cvl/cl/output/en-ch/cl.pdf) |
+| Deutsch | [four-page CV](cvl/cv/output/de-ch/fourpager/cv.pdf) | [open cover letter](cvl/cl/output/de-ch/cl.pdf) |
+| English | [four-page CV](cvl/cv/output/en-ch/fourpager/cv.pdf) | [open cover letter](cvl/cl/output/en-ch/cl.pdf) |
 
 The two- and three-page CV presets are available in the same output tree.
 

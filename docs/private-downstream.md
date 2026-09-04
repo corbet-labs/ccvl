@@ -29,18 +29,45 @@ Keep the same three top-level working groups as upstream: the general master in
 Create its `application.json` from `templates/application.json`; do not
 maintain a second Markdown copy of its tailored fields.
 
+## Strict ownership policy
+
+Keep a `ccvl-downstream.json` file in the downstream. It names the exact
+upstream remote and the only paths the downstream may own. Julian's private
+`applications` repository deliberately permits only its policy, automatic-sync
+workflow, `targets/`, and `opportunities/`; the general CV, document engine,
+schemas, skills, tests, and fixed layout contracts remain upstream-owned.
+
+Run the boundary gate after fetching upstream:
+
+```sh
+cargo run --locked -- downstream-check \
+  --upstream-ref refs/remotes/upstream/main
+```
+
+The command fails if the downstream does not contain the fetched upstream
+commit, if the configured remote differs, or if even one unlisted path differs.
+There is no implicit exception or compatibility fallback.
+
 ## Updating from ccvl
 
 Keep personal changes in private commits. To import a new upstream release:
 
 ```sh
 git fetch upstream
-git merge --ff-only upstream/main
+git merge --no-edit upstream/main
 ```
 
-If private commits are already ahead, use a normal merge or a deliberate
-rebase according to the repository's history policy. Never force-push a shared
-private repository without reviewing the exact rewritten commits first.
+For unattended updates, the private repository should call the reusable
+`.github/workflows/downstream-sync.yml` workflow on a schedule. It fetches and
+merges upstream only in the isolated runner, enforces the ownership policy,
+runs the complete deterministic document gate, and pushes only the verified
+merge. A conflict, structural deviation, document failure, or ownership breach
+leaves the remote branch unchanged.
+
+If private commits are already ahead, use a normal merge. Reserve a deliberate
+history rewrite for the one-time conversion of an existing standalone
+repository, protect the former tip with a remote tag first, and review the
+exact replacement tree before using `--force-with-lease`.
 
 ## Publishing improvements
 

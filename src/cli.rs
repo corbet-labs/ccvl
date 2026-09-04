@@ -9,6 +9,7 @@ use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
 use crate::check;
+use crate::downstream;
 use crate::format;
 use crate::measure;
 use crate::opportunity;
@@ -62,6 +63,13 @@ enum Command {
     },
     /// Run all checks required before publishing.
     PublicCheck,
+    /// Verify that a private downstream differs only in explicitly owned paths.
+    DownstreamCheck {
+        #[arg(long, default_value = "ccvl-downstream.json")]
+        policy: PathBuf,
+        #[arg(long)]
+        upstream_ref: Option<String>,
+    },
     /// Build every general CV preset and both cover letters.
     Build,
     /// Create one keyed opportunity without overwriting an existing record.
@@ -196,6 +204,10 @@ pub fn run() -> Result<()> {
                 "Public-boundary checks passed. Review PUBLIC_IDENTIFIERS.md before publishing."
             );
         }
+        Command::DownstreamCheck {
+            policy,
+            upstream_ref,
+        } => downstream::validate(&workspace, &policy, upstream_ref.as_deref())?,
         Command::Build => print_outputs(render::render_general(&workspace)?),
         Command::NewOpportunity {
             organisation_key,
@@ -219,9 +231,12 @@ pub fn run() -> Result<()> {
             let profile = workspace.existing_inside(
                 profile.unwrap_or_else(|| PathBuf::from("cvl/general/profile.json")),
             )?;
-            let output = output.unwrap_or_else(|| {
-                workspace.path(format!("cvl/cv/output/{locale}/{pages}pager/cv.pdf"))
-            });
+            let output = if let Some(output) = output {
+                output
+            } else {
+                let preset = render::cv_preset(pages)?;
+                workspace.path(format!("cvl/cv/output/{locale}/{preset}/cv.pdf"))
+            };
             let spec = render::cv_spec(&workspace, locale, pages, &application, &profile, &output)?;
             print_outputs(vec![Compiler::new(&workspace)?.render(&workspace, &spec)?]);
         }

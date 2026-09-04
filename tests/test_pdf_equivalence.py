@@ -18,7 +18,7 @@ import check  # noqa: E402
 
 class PdfEquivalenceTests(unittest.TestCase):
     def test_rendition_identifier_is_not_document_content(self) -> None:
-        original = ROOT / "cvl" / "cv" / "output" / "de-ch" / "2pager" / "cv.pdf"
+        original = ROOT / "cvl" / "cv" / "output" / "de-ch" / "twopager" / "cv.pdf"
         changed = re.sub(
             rb"(<xmpMM:InstanceID>)[^<]*(</xmpMM:InstanceID>)",
             rb"\1AAAAAAAAAAAAAAAAAAAAAA==\2",
@@ -36,7 +36,7 @@ class PdfEquivalenceTests(unittest.TestCase):
             self.assertEqual(check.semantic_pdf_signature(original), check.semantic_pdf_signature(equivalent))
 
     def test_metadata_change_is_detected(self) -> None:
-        original = ROOT / "cvl" / "cv" / "output" / "de-ch" / "2pager" / "cv.pdf"
+        original = ROOT / "cvl" / "cv" / "output" / "de-ch" / "twopager" / "cv.pdf"
         changed = original.read_bytes().replace(b"<dc:language>", b"<dc:languagf>", 1)
         self.assertNotEqual(original.read_bytes(), changed)
         with tempfile.TemporaryDirectory(prefix="ccvl-pdf-equivalence-") as directory:

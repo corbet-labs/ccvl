@@ -267,7 +267,7 @@ def run_checks() -> None:
                 readers[pages] = check_pdf(generated, pages, contacts)
                 if generated.read_bytes() != (second / generated.name).read_bytes():
                     raise CheckError(f"CV build is not byte-reproducible: {locale} {pages} pages")
-                tracked = ROOT / "cvl" / "cv" / "output" / locale / f"{pages}pager" / "cv.pdf"
+                tracked = ROOT / "cvl" / "cv" / "output" / locale / render.cv_preset(pages) / "cv.pdf"
                 require_tracked_pdf(generated, tracked, f"CV {locale} {pages}-page")
             for page_index in (0, 1):
                 baseline = page_content(readers[2].pages[page_index])

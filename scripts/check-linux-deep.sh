@@ -161,13 +161,19 @@ render_suite "$second_build"
 
 for locale in de-ch en-ch; do
   for pages in 2 3 4; do
+    case "$pages" in
+      2) preset=twopager ;;
+      3) preset=threepager ;;
+      4) preset=fourpager ;;
+      *) printf 'Unsupported CV page count: %s\n' "$pages" >&2; exit 1 ;;
+    esac
     pdf="$first_build/cv-$locale-$pages.pdf"
     check_pdf "$pdf" "$pages"
     cmp --silent "$pdf" "$second_build/cv-$locale-$pages.pdf" || {
       printf 'CV build is not byte-reproducible: %s %s pages\n' "$locale" "$pages" >&2
       exit 1
     }
-    same_document "$pdf" "cvl/cv/output/$locale/${pages}pager/cv.pdf" || {
+    same_document "$pdf" "cvl/cv/output/$locale/$preset/cv.pdf" || {
       printf 'Tracked CV output is stale: %s %s pages\n' "$locale" "$pages" >&2
       exit 1
     }

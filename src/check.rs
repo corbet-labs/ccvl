@@ -8,7 +8,7 @@ use crate::format;
 use crate::measure;
 use crate::pdf;
 use crate::public;
-use crate::render::{Compiler, DocumentSpec, general_cl_spec, general_cv_spec};
+use crate::render::{Compiler, DocumentSpec, cv_preset, general_cl_spec, general_cv_spec};
 use crate::skills;
 use crate::stations;
 use crate::workspace::Workspace;
@@ -174,7 +174,8 @@ fn render_and_verify(workspace: &Workspace) -> Result<()> {
                 fs::read(&one.output)? == fs::read(&two.output)?,
                 "CV build is not byte-reproducible: {locale} {pages} pages"
             );
-            let tracked = workspace.path(format!("cvl/cv/output/{locale}/{pages}pager/cv.pdf"));
+            let preset = cv_preset(pages)?;
+            let tracked = workspace.path(format!("cvl/cv/output/{locale}/{preset}/cv.pdf"));
             ensure!(
                 fs::read(&one.output)? == fs::read(&tracked)?,
                 "tracked CV output is stale or platform-dependent: {locale} {pages} pages"

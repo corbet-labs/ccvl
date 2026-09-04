@@ -96,6 +96,15 @@ pub fn normalize_locale(value: &str) -> Result<&'static str> {
     }
 }
 
+pub fn cv_preset(pages: usize) -> Result<&'static str> {
+    match pages {
+        2 => Ok("twopager"),
+        3 => Ok("threepager"),
+        4 => Ok("fourpager"),
+        _ => bail!("CV pages must be 2, 3, or 4: {pages}"),
+    }
+}
+
 pub fn general_cv_spec(
     workspace: &Workspace,
     locale_value: &str,
@@ -103,10 +112,7 @@ pub fn general_cv_spec(
 ) -> Result<DocumentSpec> {
     stations::validate_general(workspace, true)?;
     let locale = normalize_locale(locale_value)?;
-    ensure!(
-        (2..=4).contains(&pages),
-        "CV pages must be 2, 3, or 4: {pages}"
-    );
+    let preset = cv_preset(pages)?;
     let application = workspace.path(format!("cvl/general/{locale}/application.json"));
     let profile = workspace.path("cvl/general/profile.json");
     cv_spec(
@@ -115,7 +121,7 @@ pub fn general_cv_spec(
         pages,
         &application,
         &profile,
-        &workspace.path(format!("cvl/cv/output/{locale}/{pages}pager/cv.pdf")),
+        &workspace.path(format!("cvl/cv/output/{locale}/{preset}/cv.pdf")),
     )
 }
 
@@ -283,4 +289,18 @@ pub fn render_opportunity(
         .iter()
         .map(|spec| compiler.render(workspace, spec))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn page_counts_have_explicit_preset_names() {
+        assert_eq!(cv_preset(2).unwrap(), "twopager");
+        assert_eq!(cv_preset(3).unwrap(), "threepager");
+        assert_eq!(cv_preset(4).unwrap(), "fourpager");
+        assert!(cv_preset(1).is_err());
+        assert!(cv_preset(5).is_err());
+    }
 }

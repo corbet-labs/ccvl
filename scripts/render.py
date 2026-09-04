@@ -97,14 +97,13 @@ def render_cv(
     except ValidationError as exc:
         raise RenderError(f"CV station layout is not ready: {exc}") from exc
     locale = normalize_locale(locale_value)
-    if pages not in {2, 3, 4}:
-        raise RenderError(f"CV pages must be 2, 3, or 4: {pages}")
+    preset = cv_preset(pages)
     application_path = workspace_path(application or general_application(locale))
     profile_path = workspace_path(profile or general_profile())
     output_path = (
         Path(output).resolve()
         if output
-        else ROOT / "cvl" / "cv" / "output" / locale / f"{pages}pager" / "cv.pdf"
+        else ROOT / "cvl" / "cv" / "output" / locale / preset / "cv.pdf"
     )
     return compile_pdf(
         ROOT / "cvl" / "cv" / locale / "main.typ",
@@ -115,6 +114,13 @@ def render_cv(
             "profile": typst_path(profile_path),
         },
     )
+
+
+def cv_preset(pages: int) -> str:
+    try:
+        return {2: "twopager", 3: "threepager", 4: "fourpager"}[pages]
+    except KeyError as exc:
+        raise RenderError(f"CV pages must be 2, 3, or 4: {pages}") from exc
 
 
 def render_cl(

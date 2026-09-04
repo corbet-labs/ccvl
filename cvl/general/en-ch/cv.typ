@@ -345,38 +345,39 @@
 // adjacent and independently developed knowledge, but never imply employment,
 // ownership or results. Use literal ASCII pipes with spaces between list items,
 // keep canonical phrases intact, and target 92-98% width without wrapping.
+// Layout contract: 3 pillars x 3 subheadings x 3 rows. Never rebalance the counts.
 #if cv-pages >= 4 [
   #cv-pagebreak()
 
   #cv-superheading[Capabilities & AI Keywords]
   #block(breakable: false)[
-    #cv-spacious-heading[AI, Data & Technology]
+    #cv-spacious-heading[AI, Software & Data]
     // ccvl-competency: ai-products-tooling
     #cv-h[AI Products, Tooling & Model Ecosystems]
     #v(7.35pt)
-    #cv-b[US AI Tooling: Anthropic Claude Code | Claude Desktop | OpenAI Codex | ChatGPT Desktop | Copilot]
+    #cv-b[US AI Tooling: Anthropic Claude Code | Claude Desktop | OpenAI Codex | Codex App | ChatGPT Desktop]
     #v(8.4pt)
     #cv-b[Open Source AI Tooling: OpenCode | Ollama | vLLM | llama.cpp | Open WebUI | Hugging Face | Langfuse]
     #v(8.4pt)
-    #cv-b[Open Model Ecosystems: GLM | DeepSeek | Qwen | Kimi | MiniMax | MiMo | Llama | Mistral | Gemma]
+    #cv-b[Models: GPT | Claude | Gemini | GLM | DeepSeek | Qwen | Kimi | MiniMax | MiMo | Llama | Mistral | Gemma]
     #cv-entry-gap()
     // ccvl-competency: applied-ai-data
-    #cv-h[AI Engineering, Data Science & Automation]
+    #cv-h[AI Engineering, Agents & Data Science]
     #v(7.35pt)
-    #cv-b[AI Engineering: Large Language Models (LLMs) | Retrieval-Augmented Generation (RAG) | Embeddings]
+    #cv-b[LLM Engineering: Large Language Models (LLMs) | RAG | Embeddings | Vector Search | Evaluations]
     #v(8.4pt)
-    #cv-b[Agentic Systems: AI Agents | Multi-Agent Systems | Model Context Protocol (MCP) | Agent SDKs]
+    #cv-b[Agentic Systems: AI Agents | Multi-Agent Systems | Model Context Protocol (MCP) | Agent SDKs | Tool Use]
     #v(8.4pt)
     #cv-b[Data Science & ML: Statistics | Machine Learning | Time Series | Predictive Modelling | Experiments | R]
     #cv-entry-gap()
     // ccvl-competency: software-infrastructure
-    #cv-h[Software Engineering, Web & Infrastructure]
+    #cv-h[Software Engineering, Web & Platforms]
     #v(7.35pt)
-    #cv-b[Software Engineering: Python | Rust | Go | Java | APIs | Git | CI/CD | Systems Programming | Testing]
+    #cv-b[Engineering: Python | Rust | Go | Java | TypeScript | JavaScript | Bash | SQL | Git | CI/CD | Testing]
     #v(8.4pt)
-    #cv-b[Web Development & Publishing: TypeScript | JavaScript | Svelte | Astro | HTML | CSS | Markdown | Typst]
+    #cv-b[Web & Publishing: Svelte | Astro | HTML | CSS | REST | GraphQL | WebSockets | Markdown | Typst]
     #v(8.4pt)
-    #cv-b[Data & Infrastructure: SQL | Data Pipelines | Linux | Kubernetes | GitOps | Infrastructure as Code (IaC)]
+    #cv-b[Cloud & Data Platforms: PostgreSQL | Data Pipelines | Linux | Nix/NixOS | Kubernetes | GitOps | OpenTofu]
     #cv-spacious-heading[Strategy, Innovation & Transformation]
     // ccvl-competency: innovation-management
     #cv-h[Innovation Management & Emerging Technologies]
