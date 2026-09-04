@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: binaries-${{ github.workflow }}-${{ github.event.workflow_run.head_sha || github.ref }}
+  group: binaries-continuous
   cancel-in-progress: true
 
 jobs:
@@ -73,4 +73,35 @@ jobs:
           name: ccvl-${{ matrix.os }}-${{ matrix.arch }}
           path: target/release/${{ matrix.exe }}
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
+
+  release:
+    name: Attach binaries to the rolling release
+    if: github.repository == 'corbet-labs/ccvl'
+    needs: [build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Download all platform binaries
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          path: binaries
+          merge-multiple: true
+
+      - name: Replace the rolling release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="${{ github.event.workflow_run.head_sha || github.sha }}"
+          ls binaries/
+          if gh release view continuous >/dev/null 2>&1; then
+            gh release delete continuous --cleanup-tag --yes
+          fi
+          gh release create continuous \
+            --prerelease \
+            --title "Continuous prebuilt binaries" \
+            --notes "Prebuilt ccvl binaries from green main at ${sha}. Download your platform, drop the binary next to a workspace checkout, and run setup." \
+            binaries/*
