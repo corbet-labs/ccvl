@@ -70,10 +70,20 @@ pub fn document_metrics(
     Ok(metrics)
 }
 
+/// A summary line is counsel, not verdict: the count rule owns the gate,
+/// density only advises (or fails thin lines without an explicit override).
+/// Shared by the standalone `measure` command and the fused check gate.
+fn is_summary(metric: &Value) -> bool {
+    metric.get("kind").and_then(Value::as_str) == Some("cv-summary")
+}
+
 /// Format the fill violation of one measured line, if any. Shared by the
 /// standalone `measure` command and the fused check gate so both report the
-/// same failure text.
+/// same failure text. Summary lines never fail here; see `summary_failures`.
 pub fn line_failure(spec: &DocumentSpec, index: usize, metric: &Value) -> Result<Option<String>> {
+    if is_summary(metric) {
+        return Ok(None);
+    }
     violation(metric).map(|state| {
         state.map(|state| {
             format!(
@@ -86,6 +96,92 @@ pub fn line_failure(spec: &DocumentSpec, index: usize, metric: &Value) -> Result
             )
         })
     })
+}
+
+/// Soll inputs for summary counsel: the record's explicit thin allowance
+/// plus the contract's density floor and overflow tolerance.
+struct SummaryPolicy {
+    allow_thin: bool,
+    floor: f64,
+    edge: f64,
+    tolerance: f64,
+}
+
+fn summary_policy(workspace: &Workspace, spec: &DocumentSpec) -> Result<SummaryPolicy> {
+    let contract = workspace.read_json("ccvl.json")?;
+    let fill = contract
+        .pointer("/documents/cv/summary_fill")
+        .context("ccvl.json has no summary fill contract")?;
+    let floor = fill
+        .get("minimum")
+        .and_then(Value::as_f64)
+        .context("summary fill contract has no minimum")?;
+    let edge = fill
+        .get("maximum")
+        .and_then(Value::as_f64)
+        .context("summary fill contract has no maximum")?;
+    let tolerance = contract
+        .pointer("/documents/cv/summary_overflow_tolerance")
+        .and_then(Value::as_f64)
+        .context("ccvl.json has no summary overflow tolerance")?;
+    let typst_path = spec
+        .inputs
+        .get("application")
+        .context("summary spec has no application input")?;
+    let record = workspace.read_toml_value(
+        workspace.relative(&workspace.existing_inside(typst_path.trim_start_matches('/'))?)?,
+    )?;
+    let allow_thin = record
+        .pointer("/cv/allow_thin")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    Ok(SummaryPolicy {
+        allow_thin,
+        floor,
+        edge,
+        tolerance,
+    })
+}
+
+/// Diagnose summary lines against the counsel rules. The line COUNT stays
+/// hard in `validate_metric_set`; here thin lines fail unless the record
+/// explicitly wants them, and overflow past the tolerance fails while
+/// invisible spill only counsels.
+pub fn summary_failures(
+    workspace: &Workspace,
+    spec: &DocumentSpec,
+    metrics: &[Value],
+) -> Result<Vec<String>> {
+    if spec.kind != DocumentKind::Cv {
+        return Ok(Vec::new());
+    }
+    let policy = summary_policy(workspace, spec)?;
+    let mut failures = Vec::new();
+    for (index, metric) in metrics
+        .iter()
+        .enumerate()
+        .filter(|(_, metric)| is_summary(metric))
+    {
+        let actual = number_field(metric, "actual_fill")?;
+        if actual < policy.floor && !policy.allow_thin {
+            failures.push(format!(
+                "{} #{} too short: {:.1} below {} (set cv.allow_thin to keep a thin line explicitly)",
+                spec.name,
+                index + 1,
+                actual,
+                policy.floor
+            ));
+        } else if actual > policy.edge + policy.tolerance {
+            failures.push(format!(
+                "{} #{} too long: {:.1} past {} tolerance (rewrite with signal, not filler)",
+                spec.name,
+                index + 1,
+                actual,
+                policy.edge + policy.tolerance
+            ));
+        }
+    }
+    Ok(failures)
 }
 
 pub fn measure(
@@ -104,11 +200,18 @@ pub fn measure(
                 println!("WARN {advisory}");
             }
         }
-        let mut document_failures = Vec::new();
+        let mut document_failures = summary_failures(workspace, spec, &metrics)?;
         for (index, metric) in metrics.iter().enumerate() {
             let state = violation(metric)?;
-            if show_all || state.is_some() {
-                let status = if state.is_none() { "PASS" } else { "FAIL" };
+            let advisory = is_summary(metric);
+            if show_all || state.is_some() || advisory {
+                let status = if advisory {
+                    "NOTE"
+                } else if state.is_none() {
+                    "PASS"
+                } else {
+                    "FAIL"
+                };
                 let unit = metric.get("unit").and_then(Value::as_str).unwrap_or("%");
                 println!(
                     "{status} {} #{} {} {:.1}{unit} (target {}{unit}, allowed {}–{}{unit}): {}",
@@ -254,6 +357,38 @@ fn paragraph_pattern() -> &'static regex::Regex {
     })
 }
 
+fn summary_counsels(
+    workspace: &Workspace,
+    spec: &DocumentSpec,
+    metrics: &[Value],
+) -> Result<Vec<String>> {
+    let policy = summary_policy(workspace, spec)?;
+    let mut warnings = Vec::new();
+    for (index, metric) in metrics
+        .iter()
+        .enumerate()
+        .filter(|(_, metric)| is_summary(metric))
+    {
+        let actual = number_field(metric, "actual_fill")?;
+        if actual < policy.floor && policy.allow_thin {
+            warnings.push(format!(
+                "{}: line {} is thin at {:.1}; accepted as explicitly wanted",
+                spec.name,
+                index + 1,
+                actual
+            ));
+        } else if actual > policy.edge && actual <= policy.edge + policy.tolerance {
+            warnings.push(format!(
+                "{}: line {} spills {:.1} points past the block edge; accepted as invisible",
+                spec.name,
+                index + 1,
+                actual - policy.edge
+            ));
+        }
+    }
+    Ok(warnings)
+}
+
 fn paragraph_counts(spec: &DocumentSpec, metrics: &[Value]) -> Result<Vec<usize>> {
     let pattern = paragraph_pattern();
     let mut counts = vec![0; 6];
@@ -284,6 +419,9 @@ pub fn preference_warnings(
     spec: &DocumentSpec,
     metrics: &[Value],
 ) -> Result<Vec<String>> {
+    if spec.kind == DocumentKind::Cv {
+        return summary_counsels(workspace, spec, metrics);
+    }
     if spec.kind != DocumentKind::CoverLetter {
         return Ok(Vec::new());
     }
@@ -390,6 +528,35 @@ mod tests {
         }
     }
 
+    fn cv_spec(application: &str) -> DocumentSpec {
+        let mut inputs = std::collections::BTreeMap::new();
+        inputs.insert("application".to_owned(), application.to_owned());
+        DocumentSpec {
+            name: "fixture".to_owned(),
+            kind: DocumentKind::Cv,
+            source: PathBuf::from("fixture.typ"),
+            output: PathBuf::from("fixture.pdf"),
+            inputs,
+            expected_pages: 4,
+        }
+    }
+
+    fn summary_metric(actual: f64) -> Value {
+        json!({
+            "kind": "cv-summary",
+            "id": "cv.summary.1",
+            "text": "evidence",
+            "actual_fill": actual,
+            "min_fill": 60,
+            "target_fill": 82,
+            "max_fill": 100,
+        })
+    }
+
+    fn repo_cv_spec() -> DocumentSpec {
+        cv_spec("cvl/de-ch/application.toml")
+    }
+
     fn metric(kind: &str, identifier: &str) -> Value {
         json!({"kind": kind, "id": identifier})
     }
@@ -472,5 +639,59 @@ mod tests {
                 .to_string();
             assert!(error.contains("vertical-gap and one highlight-position"));
         }
+    }
+
+    #[test]
+    fn summary_lines_never_fail_line_failure() {
+        let spec = repo_cv_spec();
+        let thin = summary_metric(9.2);
+        assert!(line_failure(&spec, 0, &thin).unwrap().is_none());
+        let spill = summary_metric(100.8);
+        assert!(line_failure(&spec, 0, &spill).unwrap().is_none());
+    }
+
+    #[test]
+    fn summary_counsel_fails_thin_and_intolerable_spill() {
+        let workspace = workspace();
+        let spec = repo_cv_spec();
+        let failures = summary_failures(&workspace, &spec, &[summary_metric(9.2)]).unwrap();
+        assert_eq!(failures.len(), 1);
+        assert!(failures[0].contains("allow_thin"));
+        assert!(
+            summary_failures(&workspace, &spec, &[summary_metric(100.8)])
+                .unwrap()
+                .is_empty()
+        );
+        let failures = summary_failures(&workspace, &spec, &[summary_metric(102.1)]).unwrap();
+        assert_eq!(failures.len(), 1);
+        assert!(failures[0].contains("tolerance"));
+    }
+
+    #[test]
+    fn summary_counsel_notes_allowed_thin_and_tolerated_spill() {
+        let workspace = workspace();
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::write(
+            directory.path().join("ccvl.json"),
+            "{\"documents\":{\"cv\":{\"summary_fill\":{\"minimum\":60,\"target\":82,\"maximum\":100},\"summary_overflow_tolerance\":2}}}",
+        )
+        .unwrap();
+        std::fs::write(
+            directory.path().join("record.toml"),
+            "[cv]\nsummary = \"Evidence.\"\nallow_thin = true\n",
+        )
+        .unwrap();
+        let allowed = Workspace::at(directory.path()).unwrap();
+        let spec = cv_spec("record.toml");
+        let warnings = preference_warnings(&allowed, &spec, &[summary_metric(9.2)]).unwrap();
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("explicitly wanted"));
+        let warnings =
+            preference_warnings(&workspace, &repo_cv_spec(), &[summary_metric(100.8)]).unwrap();
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("past the block edge"));
+        let warnings =
+            preference_warnings(&workspace, &repo_cv_spec(), &[summary_metric(82.0)]).unwrap();
+        assert!(warnings.is_empty());
     }
 }

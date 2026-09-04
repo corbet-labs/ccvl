@@ -30,8 +30,11 @@ contains:
   `.agent/docs/cover-letter.md` and exactly five one-line highlights.
 
 Line lengths are authored as plain text; fill defaults come from `ccvl.json`.
-Typst measures actual glyph width with the bundled font. Underfill and
-overflow fail and prompt another evidence-backed rewrite.
+Typst measures actual glyph width with the bundled font. The Summary must
+render to exactly five lines; thin Summary lines fail unless explicitly
+allowed, and spill within tolerance counsels instead of failing. Explicit
+cover-letter lines fail outside their bounds. Underfill and overflow past
+tolerance fail and prompt another evidence-backed rewrite.
 
 The opportunity directory is the lifecycle unit. An archived posting,
 research, working rules, interview preparation, or outcome may sit beside the

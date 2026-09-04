@@ -1,11 +1,24 @@
 # Summary contract
 
 Every Summary is one flowing paragraph that must typeset to exactly five
-lines. It is not five hand-broken lines: the author writes natural prose and
-the renderer wraps it, then the measurement gate verifies the count and the
-fill of each laid-out line. The public Summary is both a working example and
-an invitation to contact its author. Its closing exposes the adaptation
-formula:
+lines — not four, not six. The author writes natural prose; the renderer
+wraps it to five explicit lines for measurement.
+
+## The three layers
+
+- **Soll** (contract, `ccvl.json` + record): five lines; density target 82,
+  thin floor 60, invisible-spill tolerance 2 points past the block edge.
+- **Ist** (one measurement): a single compilation emits per-line metrics.
+- **Diagnose** (counsel, never silent): the count rule is hard; density only
+  advises or fails narrow cases:
+  - exactly five lines, else the build fails;
+  - a thin line fails, unless the record sets `cv.allow_thin` explicitly —
+    wanted thinness stays visible instead of sneaking past;
+  - spill within tolerance counsels (`WARN`, with points past the edge);
+    past tolerance fails.
+
+The public Summary is both a working example and an invitation to contact
+its author. Its closing exposes the adaptation formula:
 
 ```text
 target profile | differentiation | two evidenced results | value offered
@@ -16,8 +29,6 @@ for the specific opportunity. Keywords may improve retrieval, but they never
 turn an unsupported capability into a fact. Use plain language that a
 recruiter can understand and a specialist can recognise.
 
-Line-length numbers are not authored; the 60% minimum, 82% target, and 100%
-maximum from `ccvl.json` apply automatically. Underfill and overflow are both
-failures: add relevant, verified signal or tighten the wording, then run
-`bash ./ccvl measure` or `.\ccvl.cmd measure` again. Never pass measurement
-by adding filler.
+Underfill and overflow past tolerance fail: add relevant, verified signal
+or tighten the wording, then run `bash ./ccvl measure` or
+`.\ccvl.cmd measure` again. Never pass measurement by adding filler.

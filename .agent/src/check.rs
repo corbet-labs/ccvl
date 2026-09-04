@@ -140,6 +140,10 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
             == Some(&json!({"minimum": 60, "target": 82, "maximum": 100})),
         "ccvl.json: CV Summary fill defaults must be 60/82/100"
     );
+    ensure!(
+        manifest.pointer("/documents/cv/summary_overflow_tolerance") == Some(&Value::from(2)),
+        "ccvl.json: CV Summary overflow tolerance must be 2 points"
+    );
     let layout = manifest
         .pointer("/documents/cv/layout_contract")
         .context("ccvl.json has no CV layout contract")?;
@@ -315,7 +319,7 @@ fn render_pair(
             .insert("line-contracts".to_owned(), "report".to_owned());
         let document = compiler.compile(workspace, &report)?;
         let metrics = measure::document_metrics(workspace, &one, &document)?;
-        let mut failures = Vec::new();
+        let mut failures = measure::summary_failures(workspace, &one, &metrics)?;
         for (index, metric) in metrics.iter().enumerate() {
             if let Some(failure) = measure::line_failure(&one, index, metric)? {
                 failures.push(failure);

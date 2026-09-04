@@ -244,7 +244,7 @@ pub fn validate_record(
     }
 
     let cv = object_at(application, "/cv")?;
-    ensure_no_unknown(cv, &["summary"], location)?;
+    ensure_no_unknown(cv, &["summary", "allow_thin"], location)?;
     let summary = cv
         .get("summary")
         .and_then(Value::as_str)
@@ -253,6 +253,12 @@ pub fn validate_record(
         !require_text || !summary.trim().is_empty(),
         "{location}.cv.summary: a rendered summary cannot be empty"
     );
+    if let Some(allow_thin) = cv.get("allow_thin") {
+        ensure!(
+            allow_thin.is_boolean(),
+            "{location}.cv.allow_thin must be a boolean"
+        );
+    }
 
     if !generate_cl {
         ensure!(

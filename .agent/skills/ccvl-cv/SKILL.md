@@ -26,9 +26,10 @@ recruiters and specialists.
 Maintain the opportunity-independent master below `cvl/`. For every
 concrete role, read `cv.summary` from
 `opportunities/<organisation-key>/<position-key>/application.toml`. It is
-one flowing paragraph that must typeset to exactly five lines (see
-`.agent/docs/summary.md`) and must
-express:
+one flowing paragraph that must typeset to exactly five lines — not four,
+not six (see `.agent/docs/summary.md`). Density only counsels, except thin
+lines, which fail unless the record explicitly sets `cv.allow_thin`. The
+paragraph must express:
 
 ```text
 target profile | differentiation | two evidenced results | value offered

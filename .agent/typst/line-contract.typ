@@ -14,6 +14,7 @@
   max-fill,
   available-width,
   source-text: none,
+  enforce: true,
 ) = {
   let measured = measure(body)
   let actual-fill = calc.round(1000 * measured.width / available-width) / 10
@@ -26,7 +27,7 @@
     target_fill: target-fill,
     max_fill: max-fill,
   )
-  if line-contract-mode == "enforce" {
+  if line-contract-mode == "enforce" and enforce {
     let guidance = " Rewrite with relevant, verified signal; then run the line measurement again."
     assert(
       actual-fill >= min-fill,
@@ -68,6 +69,7 @@
   target-fill,
   max-fill,
   source-text: none,
+  enforce: true,
 ) = layout(size => {
   [
     #line-contract-marker(
@@ -79,12 +81,13 @@
       max-fill,
       size.width,
       source-text: source-text,
+      enforce: enforce,
     )
     #box(body)
   ]
 })
 
-#let measured-line(id, kind, contract) = measured-content-line(
+#let measured-line(id, kind, contract, enforce: true) = measured-content-line(
   id,
   kind,
   text(contract.text),
@@ -92,30 +95,32 @@
   contract.target_fill,
   contract.max_fill,
   source-text: contract.text,
+  enforce: enforce,
 )
 
-#let measured-lines(id, kind, lines) = {
+#let measured-lines(id, kind, lines, enforce: true) = {
   for (index, line) in lines.enumerate() {
-    measured-line(id + "." + str(index + 1), kind, line)
+    measured-line(id + "." + str(index + 1), kind, line, enforce: enforce)
     if index < lines.len() - 1 {
       linebreak()
     }
   }
 }
 
-// Wrap flowing text into exactly `count` lines at the current style, every
-// line within `min-fill` and `max-fill`. Breaks happen only at spaces, so the
-// measured widths below are exactly what the renderer lays out.
-// Unlike greedy filling (which strands runt last lines), this packs with
-// dynamic programming: among all exact-`count` packings it keeps the one
-// with the fullest thinnest line.
+// Wrap flowing text into exactly `count` lines at the current style.
+// Breaks happen only at spaces, so the measured widths below are exactly
+// what the renderer lays out. Unlike greedy filling (which strands runt
+// last lines), this packs with dynamic programming: among all exact-`count`
+// packings it keeps the one with the fullest thinnest line.
+// Candidate lines may run to `ceiling` percent: density itself is counsel,
+// decided downstream — the wrapper guarantees the count, never the taste.
+// Anything beyond the ceiling is gross overflow and fails here.
 #let wrap-exact(
   text,
   width,
   count,
   scope,
-  min-fill: 60,
-  max-fill: 100,
+  ceiling: 120,
 ) = {
   // Split on single spaces and drop the gaps from runs of whitespace, so no
   // regex engine behavior can smuggle fragments into the word list.
@@ -132,10 +137,8 @@
     for end in range(start + 1, total + 1) {
       line = if end == start + 1 { words.at(start) } else { line + " " + words.at(end - 1) }
       let fill = calc.round(1000 * measure(box(line)).width / width) / 10
-      if fill > max-fill { break }
-      if fill >= min-fill {
-        options.push((end: end, fill: fill))
-      }
+      if fill > ceiling { break }
+      options.push((end: end, fill: fill))
     }
     candidates.push(options)
   }
@@ -146,7 +149,7 @@
   // i words packed into exactly k lines; absent when unreachable. A flat
   // dictionary keeps every access to definitely supported primitives.
   let best = (:)
-  best.insert("0:0", (fill: max-fill + 1, prev: -1))
+  best.insert("0:0", (fill: ceiling + 1, prev: -1))
   for k in range(1, count + 1) {
     for start in range(total) {
       let prev = best.at(str(k - 1) + ":" + str(start), default: none)
@@ -167,11 +170,9 @@
     message: scope
       + " cannot pack into "
       + str(count)
-      + " lines within "
-      + str(min-fill)
-      + "–"
-      + str(max-fill)
-      + "%. Rewrite with relevant, verified signal—not filler—until it fits.",
+      + " lines below "
+      + str(ceiling)
+      + "%. Add or cut signal until the count fits.",
   )
   let lines = ()
   let cursor = total
