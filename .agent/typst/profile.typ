@@ -1,6 +1,6 @@
 // Machine-readable profile adapter shared by the CV and cover letter.
-#let profile-path = sys.inputs.at("profile", default: "/cvl/profile.json")
-#let profile-data = json(profile-path)
+#let profile-path = sys.inputs.at("profile", default: "/cvl/profile.toml")
+#let profile-data = toml(profile-path)
 #assert(profile-data.schema_version == 1, message: "unsupported profile schema version")
 
 #let profile = (

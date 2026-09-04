@@ -24,9 +24,10 @@ recruiters and specialists.
 ## Summary
 
 Maintain the opportunity-independent master below `cvl/`. For every
-concrete role, read `tailored_cv.summary` from
-`opportunities/<organisation-key>/<position-key>/application.json`. It is
-always exactly five explicit rendered lines and must
+concrete role, read `cv.summary` from
+`opportunities/<organisation-key>/<position-key>/application.toml`. It is
+one flowing paragraph that must typeset to exactly five lines (see
+`.agent/docs/summary.md`) and must
 express:
 
 ```text
@@ -38,7 +39,7 @@ author. A real application must be target-specific.
 
 ## Fixed layout gate
 
-Before polishing or tailoring, load `interview/stations.json` and run
+Before polishing or tailoring, load `interview/stations.toml` and run
 `ccvl profile-status --verify-sources`. Page 1 must contain 6–8 full experience
 stations. Page 2 contains exactly 10 supporting stations with two bullets each.
 Page 3 contains exactly 10 projects or initiatives with two bullets each. Page
@@ -62,11 +63,11 @@ content is valid, and never relax the manifest to fit the draft. Restoring the
 fixed slots and iterating on the failed gate are two separately required
 actions: always do both.
 
-Every controlled CV line declares or inherits a minimum, target, and maximum
-fill percentage for its actual Typst container. A sparse or overflowing line is
-a failed draft. Add relevant, verified signal or tighten the wording, then run
-`ccvl measure` again. Never use filler or weaken a bound merely to make a draft
-pass.
+Every controlled CV line is measured against a minimum, target, and maximum
+fill percentage from `ccvl.json` for its actual Typst container. A sparse or
+overflowing line is a failed draft. Add relevant, verified signal or tighten
+the wording, then run `ccvl measure` again. Never use filler merely to make a
+draft pass.
 
 ## Verification
 

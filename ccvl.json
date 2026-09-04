@@ -1,24 +1,21 @@
 {
   "format": "ccvl-workspace",
   "schema_version": 5,
-  "application_schema": ".agent/schemas/application.schema.json",
-  "profile_schema": ".agent/schemas/profile.schema.json",
-  "station_schema": ".agent/schemas/stations.schema.json",
   "workspace_groups": {
     "interview": {
       "root": "interview",
-      "stations": "interview/stations.json"
+      "stations": "interview/stations.toml"
     },
     "cvl": {
       "root": "cvl",
-      "profile": "cvl/profile.json",
-      "de-CH": "cvl/de-ch/application.json",
-      "en-CH": "cvl/en-ch/application.json"
+      "profile": "cvl/profile.toml",
+      "de-CH": "cvl/de-ch/application.toml",
+      "en-CH": "cvl/en-ch/application.toml"
     },
     "opportunities": {
       "root": "opportunities",
       "path": "opportunities/<organisation-key>/<position-key>",
-      "record": "application.json",
+      "record": "application.toml",
       "output": "output"
     }
   },
@@ -37,6 +34,7 @@
       "en-CH": "cvl/en-ch/cv.typ",
       "presets": [2, 3, 4],
       "summary_lines": 5,
+      "summary_fill": {"minimum": 60, "target": 82, "maximum": 100},
       "layout_contract": {
         "definition": "A station, project, or competency block is one full CV entry with its own heading and supporting content. Compact standalone lines do not count.",
         "page_1": { "entries": { "minimum": 6, "target": 7, "maximum": 8 } },

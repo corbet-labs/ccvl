@@ -28,7 +28,7 @@ The profile interview maintains three complementary records:
   ledger;
 - `interview/journal.md` records inputs, progress, conflicts, preferences, and
   deferred prompts;
-- `interview/stations.json` assigns verified atomic facts to CV stations.
+- `interview/stations.toml` assigns verified atomic facts to CV stations.
 
 A station has one truthful kind, one final page and section, and one or more
 uniquely owned fact IDs. The distinction between kind and placement lets
@@ -36,7 +36,7 @@ substantial independent work appear under Experience without becoming a false
 employment claim. See [Profile interview and station
 allocation](profile-interview.md).
 
-`cvl/profile.json` is deliberately narrower: it contains approved public
+`cvl/profile.toml` is deliberately narrower: it contains approved public
 fields needed to render the CV and cover letter. It is not a second rich
 profile or evidence store.
 
@@ -50,7 +50,7 @@ opportunities/<organisation-key>/<position-key>/
 
 Keys use lowercase ASCII letters, numbers, hyphens, or underscores. There are
 no generic `companies/` or `positions/` levels. The canonical tailored record
-is `application.json`; generated documents belong in the adjacent `output/`
+is `application.toml`; generated documents belong in the adjacent `output/`
 directory.
 
 The record owns:

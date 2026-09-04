@@ -28,7 +28,7 @@ Keep the same domains as upstream: private user knowledge in `interview/`, the
 approved general document in `cvl/`, and one keyed package at
 `opportunities/<organisation-key>/<position-key>/` for every concrete job.
 Create an opportunity with `ccvl new-opportunity`; do not maintain a second
-Markdown copy of the tailored fields in `application.json`.
+Markdown copy of the tailored fields in `application.toml`.
 
 ## Strict ownership policy
 

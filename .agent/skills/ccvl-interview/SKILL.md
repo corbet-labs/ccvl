@@ -10,7 +10,7 @@ what the interviewer actually received, not from a newer generic CV.
 
 ## Workflow
 
-1. Read the opportunity's `application.json`, archived posting, submitted CV
+1. Read the opportunity's `application.toml`, archived posting, submitted CV
    and cover letter, interview stage, and any exact feedback from earlier
    rounds.
 2. Research the organisation, role, interviewers, and likely format from

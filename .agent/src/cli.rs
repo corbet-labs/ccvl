@@ -45,7 +45,7 @@ enum Command {
     Check,
     /// Check station coverage and MECE ownership.
     ProfileStatus {
-        #[arg(default_value = "interview/stations.json")]
+        #[arg(default_value = "interview/stations.toml")]
         plan: PathBuf,
         #[arg(long)]
         verify_sources: bool,
@@ -230,10 +230,10 @@ pub fn run() -> Result<ExitCode> {
             let application =
                 workspace
                     .existing_inside(application.unwrap_or_else(|| {
-                        PathBuf::from(format!("cvl/{locale}/application.json"))
+                        PathBuf::from(format!("cvl/{locale}/application.toml"))
                     }))?;
             let profile = workspace
-                .existing_inside(profile.unwrap_or_else(|| PathBuf::from("cvl/profile.json")))?;
+                .existing_inside(profile.unwrap_or_else(|| PathBuf::from("cvl/profile.toml")))?;
             let output = if let Some(output) = output {
                 output
             } else {
@@ -252,10 +252,10 @@ pub fn run() -> Result<ExitCode> {
             let application =
                 workspace
                     .existing_inside(application.unwrap_or_else(|| {
-                        PathBuf::from(format!("cvl/{locale}/application.json"))
+                        PathBuf::from(format!("cvl/{locale}/application.toml"))
                     }))?;
             let profile = workspace
-                .existing_inside(profile.unwrap_or_else(|| PathBuf::from("cvl/profile.json")))?;
+                .existing_inside(profile.unwrap_or_else(|| PathBuf::from("cvl/profile.toml")))?;
             let output =
                 output.unwrap_or_else(|| workspace.path(format!("cvl/{locale}/output/cl.pdf")));
             let spec = render::cl_spec(&workspace, locale, &application, &profile, &output)?;

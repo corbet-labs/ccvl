@@ -3,7 +3,6 @@ version = 1
 [[annotations]]
 path = [
   ".agent/AGENT.md",
-  ".agent/schemas/**",
   ".agent/scripts/**",
   ".agent/skills/**",
   ".agent/src/**",
@@ -53,10 +52,10 @@ path = [
   ".agent/docs/public-identifiers.md",
   ".agent/docs/showcase.md",
   ".agent/docs/signature.md",
-  "cvl/**/*.json",
+  "cvl/**/*.toml",
   "cvl/**/*.typ",
   "cvl/assets/signature.png",
-  "interview/stations.json",
+  "interview/stations.toml",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Julian Y. Richard Corbet"

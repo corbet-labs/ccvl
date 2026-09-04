@@ -7,7 +7,7 @@
 !/interview/imports/
 /interview/imports/*
 !/interview/imports/README.md
-!/interview/stations.json
+!/interview/stations.toml
 
 # Local build state
 /.agent/cache/

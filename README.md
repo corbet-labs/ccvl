@@ -43,7 +43,7 @@ Included are:
 - a deterministic layout gate for every fixed CV page;
 - a target-neutral cover letter with six measured paragraphs and five
   highlights;
-- one schema-validated `application.json` per concrete opportunity;
+- one validated `application.toml` per concrete opportunity;
 - a shared Rust and Typst engine with bundled fonts and reproducible PDF
   output;
 - seven agent skills for setup, evidence-backed profiles, CV work,
@@ -67,7 +67,7 @@ bash ./ccvl setup
 bash ./ccvl check
 bash ./ccvl build
 bash ./ccvl new-opportunity example-org strategy-lead
-# Complete the new application.json with the ccvl-apply skill, then:
+# Complete the new application.toml with the ccvl-apply skill, then:
 bash ./ccvl build-opportunity example-org strategy-lead
 ```
 
@@ -78,7 +78,7 @@ On native Windows, use the root dispatcher from Command Prompt or PowerShell:
 .\ccvl.cmd check
 .\ccvl.cmd build
 .\ccvl.cmd new-opportunity example-org strategy-lead
-# Complete the new application.json with the ccvl-apply skill, then:
+# Complete the new application.toml with the ccvl-apply skill, then:
 .\ccvl.cmd build-opportunity example-org strategy-lead
 ```
 
@@ -104,7 +104,7 @@ interview/ -> cvl/ -> opportunities/<organisation>/<position>/
 
 Start with `ccvl-profile`: import sources or answer one question at a time
 while the agent maintains `interview/profile.md`, `interview/journal.md`, and
-`interview/stations.json`. Once the evidence and fixed station layout are
+`interview/stations.toml`. Once the evidence and fixed station layout are
 complete, replace the general showcase under `cvl/` with approved wording.
 Create one directory for each concrete job; its posting, research, tailored
 documents, interview preparation, submission record, and outcome all stay

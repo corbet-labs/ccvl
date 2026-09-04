@@ -6,9 +6,8 @@ use anyhow::{Context, Result, bail, ensure};
 use ctypst::{CompileRequest, Document, Engine, PageConstraint};
 use serde_json::Value;
 
-use crate::application::validate_line_contracts;
+use crate::application::validate_record;
 use crate::opportunity;
-use crate::schema::validate_json_file;
 use crate::stations;
 use crate::workspace::Workspace;
 
@@ -117,8 +116,8 @@ pub fn cvl_cv_spec(
 ) -> Result<DocumentSpec> {
     stations::validate_interview(workspace, true)?;
     let locale = normalize_locale(locale_value)?;
-    let application = workspace.path(format!("cvl/{locale}/application.json"));
-    let profile = workspace.path("cvl/profile.json");
+    let application = workspace.path(format!("cvl/{locale}/application.toml"));
+    let profile = workspace.path("cvl/profile.toml");
     cv_spec(
         workspace,
         locale,
@@ -131,8 +130,8 @@ pub fn cvl_cv_spec(
 
 pub fn cvl_cl_spec(workspace: &Workspace, locale_value: &str) -> Result<DocumentSpec> {
     let locale = normalize_locale(locale_value)?;
-    let application = workspace.path(format!("cvl/{locale}/application.json"));
-    let profile = workspace.path("cvl/profile.json");
+    let application = workspace.path(format!("cvl/{locale}/application.toml"));
+    let profile = workspace.path("cvl/profile.toml");
     cl_spec(
         workspace,
         locale,
@@ -207,11 +206,8 @@ pub fn opportunity_specs(
 ) -> Result<Vec<DocumentSpec>> {
     stations::validate_interview(workspace, true)?;
     let application = opportunity::record_path(workspace, organisation, position, true)?;
-    let document = validate_json_file(
-        &application,
-        &workspace.path(".agent/schemas/application.schema.json"),
-    )?;
-    validate_line_contracts(
+    let document = workspace.read_toml_value(workspace.relative(&application)?)?;
+    validate_record(
         workspace,
         &document,
         &workspace.relative(&application)?.display().to_string(),
@@ -225,7 +221,7 @@ pub fn opportunity_specs(
         .parent()
         .context("application record has no parent")?
         .join("output");
-    let profile = workspace.path("cvl/profile.json");
+    let profile = workspace.path("cvl/profile.toml");
     let mut specs = vec![cv_spec(
         workspace,
         locale,
@@ -252,20 +248,20 @@ pub fn opportunity_specs(
 fn opportunity_options(document: &Value) -> Result<OpportunityOptions> {
     let locale = normalize_locale(
         document
-            .pointer("/job/language")
+            .pointer("/options/language")
             .and_then(Value::as_str)
             .unwrap_or_default(),
     )?;
     let pages = usize::try_from(
         document
-            .pointer("/tailored_cv/pages")
+            .pointer("/options/pages")
             .and_then(Value::as_u64)
-            .context("tailored_cv.pages is missing")?,
+            .context("options.pages is missing")?,
     )?;
     let cover_enabled = document
-        .pointer("/tailored_cl/enabled")
+        .pointer("/options/generate_cl")
         .and_then(Value::as_bool)
-        .context("tailored_cl.enabled is missing")?;
+        .context("options.generate_cl is missing")?;
     Ok(OpportunityOptions {
         locale,
         pages,
@@ -329,10 +325,13 @@ mod tests {
     #[test]
     fn opportunity_record_selects_its_locale_pages_and_documents() {
         let workspace = Workspace::at(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap();
-        let mut document = workspace.read_json("cvl/en-ch/application.json").unwrap();
-        document["job"]["language"] = "en-CH".into();
-        document["tailored_cv"]["pages"] = 3.into();
-        document["tailored_cl"] = serde_json::json!({"enabled": false});
+        let mut document = workspace
+            .read_toml_value("cvl/en-ch/application.toml")
+            .unwrap();
+        document["options"]["language"] = "en-CH".into();
+        document["options"]["pages"] = 3.into();
+        document["options"]["generate_cl"] = false.into();
+        document.as_object_mut().unwrap().remove("cl");
         assert_eq!(
             opportunity_options(&document).unwrap(),
             OpportunityOptions {

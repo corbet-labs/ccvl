@@ -6,7 +6,6 @@ use anyhow::{Context, Result, bail, ensure};
 use regex::Regex;
 use serde_json::Value;
 
-use crate::schema::validate_json_file;
 use crate::workspace::Workspace;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -40,7 +39,7 @@ struct SourceEntry {
 }
 
 pub fn load_plan(workspace: &Workspace, path: &Path) -> Result<Value> {
-    validate_json_file(path, &workspace.path(".agent/schemas/stations.schema.json"))
+    workspace.read_toml_value(workspace.relative(path)?)
 }
 
 pub fn assess(workspace: &Workspace, document: &Value, location: &str) -> Result<Assessment> {
@@ -128,9 +127,9 @@ pub fn assess(workspace: &Workspace, document: &Value, location: &str) -> Result
 }
 
 pub fn validate_interview(workspace: &Workspace, require_ready: bool) -> Result<Assessment> {
-    let plan_path = workspace.path("interview/stations.json");
+    let plan_path = workspace.path("interview/stations.toml");
     let document = load_plan(workspace, &plan_path)?;
-    let assessment = assess(workspace, &document, "interview/stations.json")?;
+    let assessment = assess(workspace, &document, "interview/stations.toml")?;
     if require_ready && !assessment.ready() {
         bail!(
             "{}. Run ccvl profile-status and continue the profile interview",

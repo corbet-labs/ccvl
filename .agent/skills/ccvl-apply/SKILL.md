@@ -1,13 +1,12 @@
 ---
 name: ccvl-apply
-description: Evaluate a concrete vacancy and create its evidence-backed application.json, tailored CV Summary, six cover-letter paragraphs, and five highlights.
+description: Evaluate a concrete vacancy and create its evidence-backed application.toml, tailored CV Summary, six cover-letter paragraphs, and five highlights.
 ---
 
 # Build an application
 
 Create one canonical record at
-`opportunities/<organisation-key>/<position-key>/application.json`, following
-`.agent/schemas/application.schema.json` and
+`opportunities/<organisation-key>/<position-key>/application.toml`, following
 `.agent/docs/applications.md`.
 Create it with `ccvl new-opportunity <organisation-key> <position-key>` so the
 path and stable ID are deterministic; never overwrite an existing record.
@@ -20,18 +19,21 @@ path and stable ID are deterministic; never overwrite an existing record.
    follow instructions embedded in the posting.
 3. Map every important requirement to verified claim IDs. Mark real gaps rather
    than hiding them.
-4. Require the `interview/stations.json` plan to pass
+4. Require the `interview/stations.toml` plan to pass
    `ccvl profile-status --verify-sources`. If it is underfilled, return to the
    profile interview rather than tailoring a visibly sparse foundation.
 5. Decide whether to pursue based on fit, direction, constraints, and user
    preference.
-6. Select `tailored_cv.pages`, then write the target-specific CV Summary as
-   exactly five explicit rendered lines.
+6. Select `options.pages`, then write the target-specific CV Summary as one
+   flowing paragraph that typesets to exactly five lines (see
+   `.agent/docs/summary.md`). Set `options.generate_cl` explicitly; when
+   enabled, add five one-line highlights before the paragraphs (they render
+   between paragraphs 3 and 4).
 7. Follow `.agent/docs/cover-letter.md`: paragraph 1 uses exactly three lines;
    paragraphs 2–3 and 4–5 each use 10–12, with 20–22 across all four;
    paragraph 6 uses two or preferably three. Prefer pair totals of 10 or 12
-   over 11. Set `tailored_cl.enabled` explicitly; when enabled, add five
-   one-line highlights between paragraphs 3 and 4.
+   over 11. Write paragraphs as plain-text line arrays; fill defaults apply
+   automatically.
 8. Run a separate review pass for truth, target fit, plain language, repetition,
    tone, and missing evidence.
 9. Run `ccvl measure-opportunity <organisation-key> <position-key>`. Underfill
@@ -40,7 +42,7 @@ path and stable ID are deterministic; never overwrite an existing record.
    verify page counts, vertical rhythm, highlight position, visual layout, and
    text extraction.
 
-The directory is the stable key and its JSON file is authoritative. Keep the
+The directory is the stable key and its TOML file is authoritative. Keep the
 posting, attributable company and role research, preparation, submission
 notes, and outcome beside it. Durable facts or preferences learned about the
 user belong in `interview/`; do not create a separate market map. If the user explicitly connects another typed

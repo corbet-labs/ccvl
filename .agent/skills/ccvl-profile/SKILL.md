@@ -39,8 +39,8 @@ Before the first interview question:
   `.agent/scaffolds/interview/profile.md`;
 - create `interview/journal.md` from
   `.agent/scaffolds/interview/profile-journal.md`;
-- replace the author's example `interview/stations.json` with the neutral
-  `.agent/scaffolds/interview/stations.json` before recording the new candidate;
+- replace the author's example `interview/stations.toml` with the neutral
+  `.agent/scaffolds/interview/stations.toml` before recording the new candidate;
 - tell the user that the journal is updated continuously and can be inspected
   at any time. They may also paste a document or add one to
   `interview/imports/`.
@@ -51,7 +51,7 @@ progress, and deferred prompts. Neither is polished application copy.
 
 After every meaningful answer or imported source, update both files before
 asking the next question. Preserve the user's substance and uncertainty. Then
-update `interview/stations.json` and run the platform command:
+update `interview/stations.toml` and run the platform command:
 
 ```text
 Linux/macOS: bash ./ccvl profile-status
@@ -165,15 +165,14 @@ one coherent station. Move rather than copy. Keep unused material in the
 working profile and leave its station unassigned so future opportunities can
 reuse it without creating CV duplication.
 
-Use `.agent/schemas/stations.schema.json` and
-`.agent/scaffolds/interview/stations.json` exactly. Claims are `verified`,
+Use `.agent/scaffolds/interview/stations.toml` exactly. Claims are `verified`,
 `conflicted`, or `unverified`; explicit user confirmation is valid provenance.
 Only verified facts may enter the rendered CV.
 
 ## Completion gate
 
-Once allocation is ready, populate `cvl/profile.json` with the approved public
-contact fields using `.agent/scaffolds/interview/profile.json` as its shape.
+Once allocation is ready, populate `cvl/profile.toml` with the approved public
+contact fields using `.agent/scaffolds/interview/profile.toml` as its shape.
 Then write both locale masters below `cvl/<locale>/` in plain
 recruiter-readable language while retaining recognised specialist terms.
 Place `// ccvl-station: <station-id>` immediately before the `#cv-h[...]` of

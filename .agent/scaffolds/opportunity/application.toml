@@ -1,0 +1,52 @@
+# New opportunity scaffold. Fill every field; empty text fails the gate.
+# Summary is one flowing paragraph (must typeset to exactly 5 lines).
+# Highlights are written before the paragraphs but render between 3 and 4.
+
+schema_version = 4
+revision = 0
+
+[options]
+language = ""
+pages = 4
+generate_cl = true
+application_date = ""
+
+[job]
+id = ""
+title = ""
+organization = ""
+location = ""
+source = ""
+url = ""
+description = ""
+connections = ""
+company_context = ""
+notes = ""
+
+[job.cl_recipient]
+name = ""
+title = ""
+company = ""
+address_line_1 = ""
+address_line_2 = ""
+
+[cv]
+summary = """"""
+
+[cl]
+highlights = [
+  "",
+  "",
+  "",
+  "",
+  "",
+]
+
+paragraphs = [
+  ["", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", ""],
+  ["", "", "", "", ""],
+  ["", "", ""],
+]

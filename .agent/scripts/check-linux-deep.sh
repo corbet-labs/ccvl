@@ -34,10 +34,10 @@ profile_value() {
   local key="$1"
   local value
   value="$(sed -n \
-    "s/^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\",\{0,1\}[[:space:]]*$/\\1/p" \
-    cvl/profile.json)"
+    "s/^[[:space:]]*$key[[:space:]]*=[[:space:]]*\"\([^\"]*\)\"[[:space:]]*$/\1/p" \
+    cvl/profile.toml)"
   [[ -n "$value" ]] || {
-    printf 'Could not read %s from cvl/profile.json\n' "$key" >&2
+    printf 'Could not read %s from cvl/profile.toml\n' "$key" >&2
     return 1
   }
   printf '%s\n' "$value"
@@ -164,14 +164,14 @@ render_suite() {
       "$binary" build-cv \
         "$locale" \
         "$pages" \
-        --application "cvl/$locale/application.json" \
-        --profile cvl/profile.json \
+        --application "cvl/$locale/application.toml" \
+        --profile cvl/profile.toml \
         --output "$destination/cv-$locale-$pages.pdf" >/dev/null
     done
     "$binary" build-cl \
       "$locale" \
-      --application "cvl/$locale/application.json" \
-      --profile cvl/profile.json \
+      --application "cvl/$locale/application.toml" \
+      --profile cvl/profile.toml \
       --output "$destination/cl-$locale.pdf" >/dev/null
   done
 }

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result, bail};
 use regex::Regex;
 
-use crate::workspace::{Workspace, read_json};
+use crate::workspace::Workspace;
 
 pub fn record_path(
     workspace: &Workspace,
@@ -19,11 +19,11 @@ pub fn record_path(
         }
     }
     let record = workspace.path(format!(
-        "opportunities/{organisation}/{position}/application.json"
+        "opportunities/{organisation}/{position}/application.toml"
     ));
     if require_exists && !record.is_file() {
         bail!(
-            "opportunity record does not exist: opportunities/{organisation}/{position}/application.json"
+            "opportunity record does not exist: opportunities/{organisation}/{position}/application.toml"
         );
     }
     Ok(record)
@@ -37,15 +37,19 @@ pub fn create_record(workspace: &Workspace, organisation: &str, position: &str) 
             workspace.relative(&destination)?.display()
         );
     }
-    let mut document = read_json(&workspace.path(".agent/scaffolds/opportunity/application.json"))?;
-    document["job"]["id"] = format!("{organisation}--{position}").into();
+    let mut document: toml::Value =
+        toml::from_str(&fs::read_to_string(
+            &workspace.path(".agent/scaffolds/opportunity/application.toml"),
+        )?)
+        .context("invalid scaffold application.toml")?;
+    document["job"]["id"] = toml::Value::String(format!("{organisation}--{position}"));
     let parent = destination
         .parent()
         .context("opportunity path has no parent")?;
     fs::create_dir_all(parent)?;
     fs::write(
         &destination,
-        format!("{}\n", serde_json::to_string_pretty(&document)?),
+        format!("{}\n", toml::to_string(&document)?),
     )?;
     Ok(destination)
 }
@@ -63,8 +67,8 @@ mod tests {
         fs::write(
             directory
                 .path()
-                .join(".agent/scaffolds/opportunity/application.json"),
-            "{\"job\":{\"id\":\"\"}}\n",
+                .join(".agent/scaffolds/opportunity/application.toml"),
+            "[job]\nid = \"\"\n",
         )
         .unwrap();
         let workspace = Workspace::at(directory.path()).unwrap();
@@ -76,7 +80,7 @@ mod tests {
         let workspace = Workspace::at(std::path::Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap();
         assert_eq!(
             record_path(&workspace, "acme", "strategy-lead", false).unwrap(),
-            workspace.path("opportunities/acme/strategy-lead/application.json")
+            workspace.path("opportunities/acme/strategy-lead/application.toml")
         );
         assert!(record_path(&workspace, "../acme", "lead", false).is_err());
         assert!(record_path(&workspace, "ACME", "lead", false).is_err());
@@ -87,8 +91,12 @@ mod tests {
     fn new_opportunity_is_keyed_and_never_overwritten() {
         let (_directory, workspace) = temporary_workspace();
         let record = create_record(&workspace, "example_org", "strategy-lead").unwrap();
-        let document = read_json(&record).unwrap();
-        assert_eq!(document["job"]["id"], "example_org--strategy-lead");
+        let text = fs::read_to_string(&record).unwrap();
+        let document: toml::Value = toml::from_str(&text).unwrap();
+        assert_eq!(
+            document["job"]["id"].as_str(),
+            Some("example_org--strategy-lead")
+        );
         let error = create_record(&workspace, "example_org", "strategy-lead")
             .unwrap_err()
             .to_string();

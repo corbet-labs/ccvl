@@ -1,12 +1,253 @@
+// The real German cover letter: every block is visible and editable here.
+// Data comes from the TOML record; shared machinery (measurement, styles,
+// header chrome) stays below .agent/typst and carries no content.
 #import "/.agent/typst/styles/document.typ": document-style
-#import "/.agent/typst/components/cover-letter.typ": cover-letter
+#import "/.agent/typst/application.typ": cover-letter-contract, validate-application
+#import "/.agent/typst/line-contract.typ": line-contract-mode, measured-line, measured-paragraph
+#import "/.agent/typst/profile.typ": localized-profile, profile
 #show: document-style.with(locale: "de-ch")
 
-#let application-path = sys.inputs.at("application", default: "/cvl/de-ch/application.json")
-#let application = json(application-path)
+#let application-path = sys.inputs.at("application", default: "/cvl/de-ch/application.toml")
+#let application = toml(application-path)
+#validate-application(application, expected-language: "de-CH", require-cl: true)
 
-#cover-letter(
-  "de-CH",
-  application,
-  signature-path: "/cvl/assets/signature.png",
+#set document(title: "Anschreiben | " + profile.name, author: (profile.name,))
+
+#let job = application.job
+#let letter = application.cl
+#let recipient = job.cl_recipient
+
+#let body-fill = cover-letter-contract.line_fill.body
+#let highlight-fill = cover-letter-contract.line_fill.highlight
+#let with-body-fill(lines) = lines.map(text => (
+  text: text,
+  min_fill: body-fill.minimum,
+  target_fill: body-fill.target,
+  max_fill: body-fill.maximum,
+))
+#let with-highlight-fill(text) = (
+  text: text,
+  min_fill: highlight-fill.minimum,
+  target_fill: highlight-fill.target,
+  max_fill: highlight-fill.maximum,
 )
+
+#let recipient-lines = (
+  recipient.name,
+  recipient.title,
+  recipient.company,
+  recipient.address_line_1,
+  recipient.address_line_2,
+).filter(line => line.trim() != "")
+
+#let subject = if job.organization.trim() == "" {
+  [Offene Bewerbung | #job.title]
+} else {
+  [Bewerbung als #job.title]
+}
+#let salutation = if recipient.name.trim() != "" {
+  [Guten Tag #recipient.name,]
+} else {
+  [Guten Tag,]
+}
+#let closing = [Freundliche Grüsse]
+
+#let paragraph(index) = block(breakable: false)[
+  #measured-paragraph(
+    "cl.paragraph." + str(index + 1),
+    "cl-body",
+    with-body-fill(letter.paragraphs.at(index)),
+    justify: cover-letter-contract.justify_body,
+  )
+]
+#let highlights = block(
+  fill: rgb("#f8fafc"),
+  stroke: (left: 2.5pt + rgb("#1e3a5f")),
+  inset: 8pt,
+  radius: 2pt,
+  width: 100%,
+)[
+  #for index in range(cover-letter-contract.highlights.count) {
+    grid(
+      columns: (6mm, 1fr),
+      [#text(weight: "bold", fill: rgb("#1e3a5f"))[#(index + 1)]],
+      [#measured-line(
+        "cl.highlight." + str(index + 1),
+        "cl-highlight",
+        with-highlight-fill(letter.highlights.at(index)),
+      )],
+    )
+    if index < cover-letter-contract.highlights.count - 1 { v(5.25pt) }
+  }
+]
+
+#let header-content = {
+  let localized = localized-profile.at("de-ch")
+  let contacts = (
+    link("mailto:" + profile.email)[#profile.email],
+    if profile.phone-label != none and profile.phone-href != none {
+      link(profile.phone-href)[#profile.phone-label]
+    },
+    profile.location,
+    profile.languages,
+    localized.nationality-and-permit,
+    link(profile.linkedin)[LinkedIn],
+    link(profile.website)[Web],
+    localized.availability,
+  ).filter(item => item != none)
+
+  align(center)[#text(size: 15.75pt, weight: "bold")[#profile.name]]
+  v(6.3pt)
+  align(center)[
+    #text(size: 9.03pt)[
+      #contacts.join([ | ])
+    ]
+  ]
+}
+#let subject-content = [
+  #grid(
+    columns: (1fr, auto),
+    align: (left, right),
+    text(size: 12pt, weight: "bold", subject), text(size: 10.5pt, application.options.application_date),
+  )
+  #v(4.41pt)
+  #line(length: 100%, stroke: 0.5pt + black)
+  #if recipient-lines.len() > 0 {
+    v(13.125pt)
+    align(right)[#recipient-lines.join(linebreak())]
+  }
+]
+#let salutation-content = [#salutation]
+#let closing-content = block(breakable: false)[
+  #closing
+  #v(5.25pt)
+  #image("/cvl/assets/signature.png", height: 31.5pt)
+  #v(2pt)
+  #profile.name
+]
+
+#layout(size => {
+  let content-blocks = (
+    header-content,
+    subject-content,
+    salutation-content,
+    paragraph(0),
+    paragraph(1),
+    paragraph(2),
+    highlights,
+    paragraph(3),
+    paragraph(4),
+    paragraph(5),
+    closing-content,
+  )
+  let heights = content-blocks.map(item => {
+    measure(item, width: size.width).height
+  })
+  let fixed-height = heights.fold(0pt, (total, height) => total + height)
+  let gap-count = content-blocks.len() - 1
+  let gap-height = (size.height - fixed-height) / gap-count
+  let highlight-top = (
+    heights.slice(0, 6).fold(0pt, (total, height) => total + height) + 6 * gap-height
+  )
+  let highlight-center = (
+    100 * (highlight-top + heights.at(6) / 2) / size.height
+  )
+  let rhythm = cover-letter-contract.vertical_rhythm
+  let metrics = (
+    (
+      id: "cl.vertical-gap",
+      kind: "cl-vertical-gap",
+      text: "equal distributed gap between cover-letter content blocks",
+      actual_fill: calc.round(10 * gap-height / 1pt) / 10,
+      min_fill: rhythm.gap_pt.minimum,
+      target_fill: rhythm.gap_pt.target,
+      max_fill: rhythm.gap_pt.maximum,
+      unit: "pt",
+    ),
+    (
+      id: "cl.highlight-center",
+      kind: "cl-highlight-center",
+      text: "vertical centre of the highlight block",
+      actual_fill: calc.round(10 * highlight-center) / 10,
+      min_fill: rhythm.highlight_center_percent.minimum,
+      target_fill: rhythm.highlight_center_percent.target,
+      max_fill: rhythm.highlight_center_percent.maximum,
+      unit: "%",
+    ),
+  )
+  if line-contract-mode == "enforce" {
+    for metric in metrics {
+      assert(
+        metric.actual_fill >= metric.min_fill and metric.actual_fill <= metric.max_fill,
+        message: metric.id
+          + " measured "
+          + str(metric.actual_fill)
+          + metric.unit
+          + ", target "
+          + str(metric.target_fill)
+          + metric.unit
+          + ", allowed "
+          + str(metric.min_fill)
+          + "–"
+          + str(metric.max_fill)
+          + metric.unit
+          + ". Adjust evidenced content or line allocation, then measure again.",
+      )
+    }
+  }
+  [
+    #for metric in metrics [
+      #metadata(metric) <ccvl-layout>
+    ]
+  ]
+  block(width: 100%, height: size.height)[
+    #grid(
+      columns: (1fr,),
+      rows: (
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+        1fr,
+        auto,
+      ),
+      align: (left, top),
+      header-content,
+      [],
+      subject-content,
+      [],
+      salutation-content,
+      [],
+      paragraph(0),
+      [],
+      paragraph(1),
+      [],
+      paragraph(2),
+      [],
+      highlights,
+      [],
+      paragraph(3),
+      [],
+      paragraph(4),
+      [],
+      paragraph(5),
+      [],
+      closing-content,
+    )
+  ]
+})

@@ -1,0 +1,89 @@
+schema_version = 4
+revision = 0
+
+[options]
+language = "de-CH"
+pages = 4
+generate_cl = true
+application_date = "September 2026"
+
+[job]
+id = "showcase-de-ch"
+title = "Innovation, Technologie & Strategie"
+organization = ""
+location = "Schweiz | hybrid | remote"
+source = "ccvl showcase"
+url = "https://github.com/corbet-labs/ccvl"
+description = "Aufgaben an der Schnittstelle von Innovationsmanagement, Technologie, Strategie und Finance."
+connections = ""
+company_context = "Target-neutrales, öffentliches Arbeitsbeispiel und offene Bewerbung."
+notes = "Der Inhalt beschreibt Julian Corbet; neue Nutzer ersetzen ihn ausschliesslich mit eigenen belegten Fakten."
+
+[job.cl_recipient]
+name = ""
+title = ""
+company = ""
+address_line_1 = ""
+address_line_2 = ""
+
+[cv]
+# One flowing paragraph. It must typeset to exactly 5 lines; the checker
+# verifies instead of you counting. (The fifth sentence exposes the adaptation
+# formula for new users; a real application rewrites it target-specifically.)
+summary = """
+Dieses CV ist Arbeitsbeispiel, technische Produktdemo und offene Bewerbung zugleich. Ich verbinde Technologie- und Innovationsmanagement mit Strategie und Finance. Belegt durch GenAI bei CENVION | Entscheidungsanalysen für Swisscom und Airbus. Dazu kommen M&A, Banking und Beratung. Passt das Profil, lassen Sie uns sprechen – gern über Ihre Mandate, Ziele und offenen Fragen. Für den eigenen CV: Zielprofil | Differenzierung | zwei belegte Resultate | klarer Mehrwert für Ihr Team.
+"""
+
+[cl]
+# Five one-line highlights. Written first, rendered between paragraphs 3 and 4.
+highlights = [
+  "Innovation & Technologie | Agentic AI, Cloud-Systeme und 50+ Open-Source-Projekte",
+  "Applied AI & Data | RAG-Suche, ML-Risikoanalysen und intelligente Automatisierung",
+  "Strategie & Transformation | SteerCo-Entscheidungen, TOM und operative Umsetzung",
+  "Finance & Investment | Projektfinanzierung, DCF, Portfolio- und Szenarioanalysen",
+  "Unternehmerische Umsetzung | Beratung in vier Märkten und Projekt-P&L aus einer Hand",
+]
+
+# Six paragraphs, one array of lines each.
+paragraphs = [
+  [
+    "Manche Anschreiben beginnen mit Begeisterung für eine Stellenanzeige. Dieses beginnt etwas ehrlicher:",
+    "Ich suche eine Aufgabe, die Innovationsmanagement und Technologie mit Strategie und Finance verbindet.",
+    "ccvl zeigt zugleich als Produktdemo, wie ich Bewerbungen strukturiere, messe und belastbar prüfe.",
+  ],
+  [
+    "Bei CENVION führte ich Claude und RAG-basierte Suche in Investment- und Reporting-Workflows ein.",
+    "Für sieben Batteriespeicher modellierte ich IRR, NPV, DSCR und Sensitivitäten; die Analysen stützten",
+    "Refinanzierungspakete und Entscheidungen institutioneller Investoren. Zugleich automatisierte ich die",
+    "Datenstrecke von Betriebsdaten bis zu Quartalsberichten und machte Performance-Lücken sowie operative",
+    "Optimierungshebel sichtbar. Damit verband ich neue Technologie nicht mit einer isolierten Demo, sondern",
+    "direkt mit Kapitalentscheidungen, Risikotransparenz und einem verlässlicheren Blick auf das Portfolio.",
+  ],
+  [
+    "Bei Airbus übersetzte ich 20+ Jahre sicherheitskritische Wartungsdaten von mehr als 500 Flugzeugen in",
+    "entscheidungsreife Risiko- und Kostensignale. Die Arbeit zeigte über EUR 100'000 jährliches Sparpotenzial",
+    "und stiess ein internationales Verbesserungsprogramm von über EUR 1 Mio. an. Bei Swisscom modellierte ich",
+    "Cloud-Ökonomie und Infrastrukturentscheidungen unter Rechenzentrumsgrenzen, unterstützte strategische",
+    "Investitionen im achtstelligen Bereich und bereitete Lieferantenverhandlungen über CHF 10 Mio. vor.",
+    "Der rote Faden: technische Komplexität in belastbare und gemeinsam nutzbare Entscheidungen übersetzen.",
+  ],
+  [
+    "Das ergibt kein lineares Spezialistenprofil – und genau darin liegt der praktische Mehrwert für ein Team:",
+    "Ich kann einen Prototypen selbst bauen, seine technische Tragfähigkeit prüfen und zugleich erklären,",
+    "welches Problem er löst, wie der Business Case aussieht und welche Risiken eine Entscheidung mitbringt.",
+    "Wo Fachgebiete sonst an Übergaben verlieren, verbinde ich Technologie, Strategie und Finance zu einer",
+    "gemeinsamen Entscheidungsgrundlage – verständlich für Führungskräfte und belastbar für Fachleute.",
+  ],
+  [
+    "Für eine konkrete Bewerbung gehört hier der echte Unternehmensbezug hin: eine Strategie, Initiative oder",
+    "Aufgabe des Zielunternehmens, die mich nachvollziehbar anspricht – recherchiert statt austauschbar gelobt.",
+    "Darauf folgt die Brücke von diesem Bedarf zu meiner Erfahrung und ein konkretes Bild meines möglichen",
+    "Beitrags. Diese öffentliche Version bleibt bewusst offen: Wenn Ihr Team Innovation praktisch umsetzen",
+    "und wirtschaftlich einordnen will, könnte genau diese Verbindung für beide Seiten interessant sein.",
+  ],
+  [
+    "Wenn Sie darin einen möglichen Fit sehen, freue ich mich auf ein offenes Gespräch über Ihre Fragen,",
+    "meine Erfahrungen und die Aufgaben, bei denen ich Ihrem Team wirklich helfen kann. Vielen Dank für Ihre",
+    "Zeit und vielleicht bis bald – ich würde mich freuen, Sie und Ihr Unternehmen kennenzulernen.",
+  ],
+]

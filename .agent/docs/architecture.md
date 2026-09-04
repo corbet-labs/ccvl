@@ -35,27 +35,30 @@ uniquely assigned facts may cross into `cvl/` or an opportunity.
 ## `cvl/`: the general document
 
 `cvl/` contains only approved sources and outputs for the general bilingual CV
-and cover letter. `cvl/profile.json` supplies the public header fields. Each
-locale has one `cv.typ`, one `cl.typ`, one general `application.json`, and an
+and cover letter. `cvl/profile.toml` supplies the public header fields. Each
+locale has one `cv.typ`, one `cl.typ`, one general `application.toml`, and an
 output directory:
 
 ```text
 cvl/<locale>/cv.typ
 cvl/<locale>/cl.typ
-cvl/<locale>/application.json
+cvl/<locale>/application.toml
 cvl/<locale>/output/cv-{2,3,4}.pdf
 cvl/<locale>/output/cl.pdf
 ```
 
-The Typst engine, shared presentation components, fonts, and layout contracts
-live under `.agent/typst/`; they are mechanism, not a second CV data model.
+Both `cv.typ` files hold the complete visible CV logic and both `cl.typ`
+files the complete cover-letter logic; they are the editing surface. The
+Typst engine, shared measurement primitives, styles, fonts, and layout
+contracts live under `.agent/typst/`; they are mechanism, not a second CV
+data model.
 
 ## `opportunities/`: keyed job packages
 
 One concrete role owns one directory and one canonical tailored record:
 
 ```text
-opportunities/<organisation-key>/<position-key>/application.json
+opportunities/<organisation-key>/<position-key>/application.toml
 ```
 
 The job directory owns the posting, attributable organisation and role
@@ -71,7 +74,7 @@ role belongs inside its concrete opportunity. There are also no top-level
 
 ## Product mechanism
 
-`.agent/` owns the canonical skills, neutral scaffolds, schemas, Rust source,
+`.agent/` owns the canonical skills, neutral scaffolds, Rust source,
 tests, bootstrap scripts, internal documentation, Typst engine, and
 machine-readable `ccvl.json` contract. Skills own editorial judgment;
 deterministic code owns paths, validation, rendering, measurement, and checks.

@@ -84,12 +84,29 @@ impl Workspace {
     pub fn read_json(&self, relative: impl AsRef<Path>) -> Result<Value> {
         read_json(&self.path(relative))
     }
+
+    /// Read a TOML record and convert it to a JSON value so the existing
+    /// structural and semantic checks keep working on one value model.
+    /// Only plain TOML data (strings, integers, booleans, arrays, tables)
+    /// is supported; datetimes have no meaning in ccvl records.
+    pub fn read_toml_value(&self, relative: impl AsRef<Path>) -> Result<Value> {
+        read_toml_value(&self.path(relative))
+    }
 }
 
 pub fn read_json(path: &Path) -> Result<Value> {
     let text = fs::read_to_string(path)
         .with_context(|| format!("cannot read JSON file {}", path.display()))?;
     serde_json::from_str(&text).with_context(|| format!("invalid JSON in {}", path.display()))
+}
+
+pub fn read_toml_value(path: &Path) -> Result<Value> {
+    let text = fs::read_to_string(path)
+        .with_context(|| format!("cannot read TOML file {}", path.display()))?;
+    let value: toml::Value = toml::from_str(&text)
+        .with_context(|| format!("invalid TOML in {}", path.display()))?;
+    serde_json::to_value(&value)
+        .with_context(|| format!("unsupported TOML data in {}", path.display()))
 }
 
 fn find_root(start: &Path) -> Option<PathBuf> {
@@ -140,13 +157,13 @@ mod tests {
 
         let manifest: Value = serde_json::from_str(&manifest_text).unwrap();
         let groups = manifest["workspace_groups"].as_object().unwrap();
-        assert_eq!(groups["interview"]["stations"], "interview/stations.json");
-        assert_eq!(groups["cvl"]["profile"], "cvl/profile.json");
+        assert_eq!(groups["interview"]["stations"], "interview/stations.toml");
+        assert_eq!(groups["cvl"]["profile"], "cvl/profile.toml");
         assert_eq!(
             groups["opportunities"]["path"],
             "opportunities/<organisation-key>/<position-key>"
         );
-        assert_eq!(groups["opportunities"]["record"], "application.json");
+        assert_eq!(groups["opportunities"]["record"], "application.toml");
         assert_eq!(groups["opportunities"]["output"], "output");
     }
 

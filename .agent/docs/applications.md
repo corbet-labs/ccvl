@@ -3,7 +3,7 @@
 Every concrete opportunity has one canonical tailored-data file:
 
 ```text
-opportunities/<organisation-key>/<position-key>/application.json
+opportunities/<organisation-key>/<position-key>/application.toml
 ```
 
 The general CV foundation must first pass `ccvl profile-status
@@ -17,36 +17,25 @@ bash ./ccvl new-opportunity <organisation-key> <position-key>
 ```
 
 The command validates both keys, copies
-`.agent/scaffolds/opportunity/application.json`, assigns a stable ID, and
+`.agent/scaffolds/opportunity/application.toml`, assigns a stable ID, and
 refuses to overwrite an existing record. Schema version 4
 contains:
 
+- `options`: language, CV page count, cover-letter switch, application date;
 - `job`: vacancy, organisation, source, description, context, notes, and
   recipient;
-- `tailored_cv.pages`: the selected two-, three-, or four-page CV;
-- `tailored_cv.summary`: exactly five measured line objects;
-- `tailored_cl.enabled`: whether this opportunity needs a cover letter;
-- when enabled, exactly six measured paragraphs following
+- `cv.summary`: one flowing paragraph that must typeset to exactly five
+  lines;
+- when the cover letter is enabled, exactly six paragraphs following
   `.agent/docs/cover-letter.md` and exactly five one-line highlights.
 
-Every measured line has this portable shape:
-
-```json
-{
-  "text": "One explicit rendered line",
-  "min_fill": 75,
-  "target_fill": 90,
-  "max_fill": 100
-}
-```
-
-The schema checks shape and values; Typst measures actual glyph width with the
-bundled font. Underfill and overflow fail and prompt another evidence-backed
-rewrite.
+Line lengths are authored as plain text; fill defaults come from `ccvl.json`.
+Typst measures actual glyph width with the bundled font. Underfill and
+overflow fail and prompt another evidence-backed rewrite.
 
 The opportunity directory is the lifecycle unit. An archived posting,
 research, working rules, interview preparation, or outcome may sit beside the
-JSON file. Summary and cover-letter fields remain solely in `application.json`.
+TOML file. Summary and cover-letter fields remain solely in `application.toml`.
 
 Measure and render one opportunity from the repository root:
 

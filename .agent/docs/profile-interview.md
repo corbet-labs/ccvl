@@ -12,7 +12,7 @@ then applies a deterministic station gate to the publishable CV plan.
 | `interview/imports/` | read-only source-document inbox | private and ignored |
 | `interview/profile.md` | informal, source-linked working portrait | private and ignored |
 | `interview/journal.md` | visible interview progress and deferred questions | private and ignored |
-| `interview/stations.json` | selected and unassigned station candidates | private working state |
+| `interview/stations.toml` | selected and unassigned station candidates | private working state |
 | `cvl/<locale>/cv.typ` | approved rendered wording and presentation | publishable candidate data |
 
 The journal is written before the next question is asked. A user can inspect it

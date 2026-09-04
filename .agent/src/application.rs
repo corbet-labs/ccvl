@@ -1,15 +1,63 @@
 use anyhow::{Context, Result, bail, ensure};
+use regex::Regex;
 use serde_json::{Map, Value};
 
-use crate::schema::validate_json_file;
-use crate::workspace::Workspace;
+use crate::workspace::{Workspace, read_toml_value};
+
+const RECORD_VERSION: u64 = 4;
+const PROFILE_VERSION: u64 = 1;
+const STATIONS_VERSION: u64 = 1;
+
+const JOB_FIELDS: &[&str] = &[
+    "id",
+    "title",
+    "organization",
+    "location",
+    "source",
+    "url",
+    "description",
+    "connections",
+    "company_context",
+    "notes",
+];
+
+const RECIPIENT_FIELDS: &[&str] = &[
+    "name",
+    "title",
+    "company",
+    "address_line_1",
+    "address_line_2",
+];
+
+const PROFILE_FIELDS: &[&str] = &[
+    "name",
+    "email",
+    "phone_label",
+    "phone_href",
+    "location",
+    "languages",
+    "linkedin",
+    "website",
+];
+
+const PROFILE_TOP: &[&str] = &[
+    "schema_version",
+    "name",
+    "email",
+    "phone_label",
+    "phone_href",
+    "location",
+    "languages",
+    "linkedin",
+    "website",
+    "localized",
+];
 
 pub fn validate_all(workspace: &Workspace) -> Result<()> {
-    let schema = workspace.path(".agent/schemas/application.schema.json");
     let mut candidates = vec![
-        workspace.path(".agent/scaffolds/opportunity/application.json"),
-        workspace.path("cvl/de-ch/application.json"),
-        workspace.path("cvl/en-ch/application.json"),
+        workspace.path(".agent/scaffolds/opportunity/application.toml"),
+        workspace.path("cvl/de-ch/application.toml"),
+        workspace.path("cvl/en-ch/application.toml"),
     ];
     let opportunities = workspace.path("opportunities");
     if opportunities.is_dir() {
@@ -20,7 +68,7 @@ pub fn validate_all(workspace: &Workspace) -> Result<()> {
             }
             for position in std::fs::read_dir(organisation.path())? {
                 let position = position?;
-                let record = position.path().join("application.json");
+                let record = position.path().join("application.toml");
                 if record.is_file() {
                     candidates.push(record);
                 }
@@ -29,22 +77,22 @@ pub fn validate_all(workspace: &Workspace) -> Result<()> {
     }
     candidates.sort();
     for path in candidates {
-        let application = validate_json_file(&path, &schema)?;
-        let template = path == workspace.path(".agent/scaffolds/opportunity/application.json");
-        validate_line_contracts(
+        let application = read_toml_value(&path)?;
+        let template = path == workspace.path(".agent/scaffolds/opportunity/application.toml");
+        validate_record(
             workspace,
             &application,
             &workspace.relative(&path)?.display().to_string(),
             !template,
         )?;
         let relative = workspace.relative(&path)?;
-        if relative == std::path::Path::new("cvl/de-ch/application.json")
-            && application.pointer("/job/language").and_then(Value::as_str) != Some("de-CH")
+        if relative == std::path::Path::new("cvl/de-ch/application.toml")
+            && application.pointer("/options/language").and_then(Value::as_str) != Some("de-CH")
         {
             bail!("{}: expected de-CH language", relative.display());
         }
-        if relative == std::path::Path::new("cvl/en-ch/application.json")
-            && application.pointer("/job/language").and_then(Value::as_str) != Some("en-CH")
+        if relative == std::path::Path::new("cvl/en-ch/application.toml")
+            && application.pointer("/options/language").and_then(Value::as_str) != Some("en-CH")
         {
             bail!("{}: expected en-CH language", relative.display());
         }
@@ -53,93 +101,186 @@ pub fn validate_all(workspace: &Workspace) -> Result<()> {
 }
 
 pub fn validate_profiles(workspace: &Workspace) -> Result<()> {
-    let schema = workspace.path(".agent/schemas/profile.schema.json");
-    validate_json_file(
-        &workspace.path(".agent/scaffolds/interview/profile.json"),
-        &schema,
-    )?;
-    validate_json_file(&workspace.path("cvl/profile.json"), &schema)?;
+    for relative in [
+        ".agent/scaffolds/interview/profile.toml",
+        "cvl/profile.toml",
+    ] {
+        let profile = read_toml_value(&workspace.path(relative))?;
+        validate_profile(&profile, relative)?;
+    }
+    Ok(())
+}
+
+fn validate_profile(profile: &Value, location: &str) -> Result<()> {
+    let object = object_at(profile, "")?;
+    ensure!(
+        u64_at(profile, "/schema_version")? == PROFILE_VERSION,
+        "{location}: unsupported profile schema version"
+    );
+    ensure_no_unknown(object, PROFILE_TOP, location)?;
+    for field in PROFILE_FIELDS {
+        string_at(profile, &format!("/{field}"), location)?;
+    }
+    let localized = object_at(profile, "/localized")?;
+    ensure_no_unknown(localized, &["de-CH", "en-CH"], location)?;
+    for locale in ["de-CH", "en-CH"] {
+        let table = localized
+            .get(locale)
+            .and_then(Value::as_object)
+            .with_context(|| format!("{location}.localized.{locale} is missing"))?;
+        ensure_no_unknown(
+            table,
+            &["nationality_and_permit", "availability"],
+            location,
+        )?;
+        for field in ["nationality_and_permit", "availability"] {
+            table
+                .get(field)
+                .and_then(Value::as_str)
+                .with_context(|| format!("{location}.localized.{locale}.{field} is missing"))?;
+        }
+    }
     Ok(())
 }
 
 pub fn validate_station_files(workspace: &Workspace) -> Result<()> {
-    let schema = workspace.path(".agent/schemas/stations.schema.json");
-    validate_json_file(
-        &workspace.path(".agent/scaffolds/interview/stations.json"),
-        &schema,
-    )?;
-    validate_json_file(&workspace.path("interview/stations.json"), &schema)?;
+    for relative in [
+        ".agent/scaffolds/interview/stations.toml",
+        "interview/stations.toml",
+    ] {
+        let stations = read_toml_value(&workspace.path(relative))?;
+        ensure!(
+            u64_at(&stations, "/schema_version")? == STATIONS_VERSION,
+            "{relative}: unsupported stations schema version"
+        );
+        array_at(&stations, "/stations")
+            .with_context(|| format!("{relative}: missing stations array"))?;
+    }
     Ok(())
 }
 
-pub fn validate_line_contracts(
+pub fn validate_record(
     workspace: &Workspace,
     application: &Value,
     location: &str,
     require_text: bool,
 ) -> Result<()> {
-    let pages = application
-        .pointer("/tailored_cv/pages")
+    let object = object_at(application, "")?;
+    ensure_no_unknown(object, &["schema_version", "revision", "options", "job", "cv", "cl"], location)?;
+    ensure!(
+        u64_at(application, "/schema_version")? == RECORD_VERSION,
+        "{location}: unsupported application schema version"
+    );
+    u64_at(application, "/revision")?;
+
+    let options = object_at(application, "/options")?;
+    ensure_no_unknown(
+        options,
+        &["language", "pages", "generate_cl", "application_date"],
+        location,
+    )?;
+    let language = options
+        .get("language")
+        .and_then(Value::as_str)
+        .context("options.language is missing")?;
+    ensure!(
+        ["", "de-CH", "en-CH"].contains(&language),
+        "{location}.options.language: expected de-CH or en-CH"
+    );
+    let pages = options
+        .get("pages")
         .and_then(Value::as_u64)
-        .context("tailored_cv.pages is missing")?;
+        .context("options.pages is missing")?;
     ensure!(
         [2, 3, 4].contains(&pages),
-        "{location}.tailored_cv.pages: expected 2, 3, or 4"
+        "{location}.options.pages: expected 2, 3, or 4"
     );
-    let summary = array_at(application, "/tailored_cv/summary")?;
+    let generate_cl = options
+        .get("generate_cl")
+        .and_then(Value::as_bool)
+        .context("options.generate_cl is not a boolean")?;
+    options
+        .get("application_date")
+        .and_then(Value::as_str)
+        .context("options.application_date is missing")?;
+
+    let job = object_at(application, "/job")?;
+    let mut allowed = JOB_FIELDS.to_vec();
+    allowed.push("cl_recipient");
+    ensure_no_unknown(job, &allowed, location)?;
+    for field in JOB_FIELDS {
+        job.get(*field)
+            .and_then(Value::as_str)
+            .with_context(|| format!("{location}.job.{field} is missing"))?;
+    }
+    let id = job
+        .get("id")
+        .and_then(Value::as_str)
+        .context("job.id is missing")?;
     ensure!(
-        summary.len() == 5,
-        "{location}.tailored_cv.summary: expected exactly five lines"
+        Regex::new(r"^[A-Za-z0-9_-]*$")?.is_match(id),
+        "{location}.job.id: expected letters, numbers, hyphens, or underscores"
     );
-    for (index, line) in summary.iter().enumerate() {
-        validate_line(
-            line,
-            &format!("{location}.tailored_cv.summary[{}]", index + 1),
-            require_text,
-        )?;
+    ensure!(
+        !require_text || !id.trim().is_empty(),
+        "{location}.job.id is required"
+    );
+    let recipient = job
+        .get("cl_recipient")
+        .and_then(Value::as_object)
+        .context("job.cl_recipient is missing")?;
+    ensure_no_unknown(recipient, RECIPIENT_FIELDS, location)?;
+    for field in RECIPIENT_FIELDS {
+        recipient
+            .get(*field)
+            .and_then(Value::as_str)
+            .with_context(|| format!("{location}.job.cl_recipient.{field} is missing"))?;
     }
 
-    let cover = object_at(application, "/tailored_cl")?;
-    let enabled = cover
-        .get("enabled")
-        .and_then(Value::as_bool)
-        .context("tailored_cl.enabled is not a boolean")?;
-    if !enabled {
+    let cv = object_at(application, "/cv")?;
+    ensure_no_unknown(cv, &["summary"], location)?;
+    let summary = cv
+        .get("summary")
+        .and_then(Value::as_str)
+        .context("cv.summary is missing")?;
+    ensure!(
+        !require_text || !summary.trim().is_empty(),
+        "{location}.cv.summary: a rendered summary cannot be empty"
+    );
+
+    if !generate_cl {
         ensure!(
-            cover.len() == 1,
-            "{location}.tailored_cl: a disabled cover letter may not retain hidden content"
+            object.get("cl").is_none(),
+            "{location}.cl: a disabled cover letter may not retain hidden content"
         );
         return Ok(());
     }
-    ensure!(
-        cover.len() == 3 && cover.contains_key("paragraphs") && cover.contains_key("highlights"),
-        "{location}.tailored_cl: an enabled cover letter requires paragraphs and highlights"
-    );
+    let cl = object_at(application, "/cl")?;
+    ensure_no_unknown(cl, &["paragraphs", "highlights"], location)?;
 
     let contract = workspace.read_json("ccvl.json")?;
     let cl_contract = contract
         .pointer("/documents/cover_letter")
         .context("ccvl.json has no cover-letter contract")?;
     let paragraph_contracts = array_at(cl_contract, "/paragraphs")?;
-    let paragraphs = cover
+    let paragraphs = cl
         .get("paragraphs")
         .and_then(Value::as_array)
-        .context("tailored_cl.paragraphs is not an array")?;
+        .context("cl.paragraphs is not an array")?;
     ensure!(
         paragraphs.len() == paragraph_contracts.len(),
-        "{location}.tailored_cl.paragraphs: expected {} paragraphs, found {}",
+        "{location}.cl.paragraphs: expected {} paragraphs, found {}",
         paragraph_contracts.len(),
         paragraphs.len()
     );
 
-    let body_floor = cl_contract
-        .pointer("/line_fill/body")
-        .context("missing body line-fill contract")?;
     let mut counts = Vec::with_capacity(paragraphs.len());
     for (index, (paragraph, paragraph_contract)) in
         paragraphs.iter().zip(paragraph_contracts).enumerate()
     {
-        let lines = array_at(paragraph, "/lines")?;
+        let lines = paragraph
+            .as_array()
+            .with_context(|| format!("{location}.cl.paragraphs[{}] is not an array", index + 1))?;
         let bounds = paragraph_contract
             .get("lines")
             .context("missing paragraph bounds")?;
@@ -147,19 +288,25 @@ pub fn validate_line_contracts(
         let maximum = usize::try_from(u64_at(bounds, "/maximum")?)?;
         ensure!(
             (minimum..=maximum).contains(&lines.len()),
-            "{location}.tailored_cl.paragraphs[{}]: expected {minimum}–{maximum} lines, found {}",
+            "{location}.cl.paragraphs[{}]: expected {minimum}–{maximum} lines, found {}",
             index + 1,
             lines.len()
         );
         counts.push(lines.len());
         for (line_index, line) in lines.iter().enumerate() {
-            let line_location = format!(
-                "{location}.tailored_cl.paragraphs[{}].lines[{}]",
+            let text = line.as_str().with_context(|| {
+                format!(
+                    "{location}.cl.paragraphs[{}].lines[{}] is not text",
+                    index + 1,
+                    line_index + 1
+                )
+            })?;
+            ensure!(
+                !require_text || !text.trim().is_empty(),
+                "{location}.cl.paragraphs[{}].lines[{}]: a rendered line cannot be empty",
                 index + 1,
                 line_index + 1
             );
-            validate_line(line, &line_location, require_text)?;
-            validate_floor(line, body_floor, &line_location)?;
         }
     }
     let total = counts.iter().sum::<usize>();
@@ -168,7 +315,7 @@ pub fn validate_line_contracts(
         cl_contract
             .pointer("/body_lines")
             .context("missing body line contract")?,
-        &format!("{location}.tailored_cl.paragraphs"),
+        &format!("{location}.cl.paragraphs"),
         "body lines",
     )?;
     for region in array_at(cl_contract, "/paragraph_regions")? {
@@ -182,61 +329,44 @@ pub fn validate_line_contracts(
         validate_count(
             counts[start..end].iter().sum(),
             region,
-            &format!("{location}.tailored_cl.paragraphs[{}:{}]", start + 1, end),
+            &format!("{location}.cl.paragraphs[{}:{}]", start + 1, end),
             "shared lines",
         )?;
     }
 
-    let highlights = cover
+    let highlights = cl
         .get("highlights")
         .and_then(Value::as_array)
-        .context("tailored_cl.highlights is not an array")?;
+        .context("cl.highlights is not an array")?;
     let expected = usize::try_from(u64_at(cl_contract, "/highlights/count")?)?;
     ensure!(
         highlights.len() == expected,
-        "{location}.tailored_cl.highlights: expected {expected} items, found {}",
+        "{location}.cl.highlights: expected {expected} items, found {}",
         highlights.len()
     );
-    let highlight_floor = cl_contract
-        .pointer("/line_fill/highlight")
-        .context("missing highlight line-fill contract")?;
-    for (index, line) in highlights.iter().enumerate() {
-        let line_location = format!("{location}.tailored_cl.highlights[{}]", index + 1);
-        validate_line(line, &line_location, require_text)?;
-        validate_floor(line, highlight_floor, &line_location)?;
+    for (index, highlight) in highlights.iter().enumerate() {
+        let text = highlight.as_str().with_context(|| {
+            format!("{location}.cl.highlights[{}] is not text", index + 1)
+        })?;
+        ensure!(
+            !require_text || !text.trim().is_empty(),
+            "{location}.cl.highlights[{}]: a rendered highlight cannot be empty",
+            index + 1
+        );
     }
     Ok(())
 }
 
-fn validate_line(line: &Value, location: &str, require_text: bool) -> Result<()> {
-    let text = line
-        .get("text")
-        .and_then(Value::as_str)
-        .context("line text is missing")?;
+fn ensure_no_unknown(object: &Map<String, Value>, allowed: &[&str], location: &str) -> Result<()> {
+    let unknown = object
+        .keys()
+        .filter(|key| !allowed.contains(&key.as_str()))
+        .cloned()
+        .collect::<Vec<_>>();
     ensure!(
-        !require_text || !text.trim().is_empty(),
-        "{location}.text: a rendered line cannot be empty"
-    );
-    let minimum = u64_at(line, "/min_fill")?;
-    let target = u64_at(line, "/target_fill")?;
-    let maximum = u64_at(line, "/max_fill")?;
-    ensure!(
-        minimum <= target && target <= maximum,
-        "{location}: expected min_fill <= target_fill <= max_fill"
-    );
-    ensure!(
-        minimum >= 1 && maximum <= 100,
-        "{location}: fill bounds must remain within 1–100"
-    );
-    Ok(())
-}
-
-fn validate_floor(line: &Value, floor: &Value, location: &str) -> Result<()> {
-    ensure!(
-        u64_at(line, "/min_fill")? >= u64_at(floor, "/minimum")?
-            && u64_at(line, "/target_fill")? >= u64_at(floor, "/target")?
-            && u64_at(line, "/max_fill")? <= u64_at(floor, "/maximum")?,
-        "{location}: line contract weakens the required fill floor or target"
+        unknown.is_empty(),
+        "{location}: unknown fields {}",
+        unknown.join(", ")
     );
     Ok(())
 }
@@ -272,6 +402,13 @@ pub(crate) fn u64_at(value: &Value, pointer: &str) -> Result<u64> {
         .with_context(|| format!("missing integer at {pointer}"))
 }
 
+fn string_at<'a>(value: &'a Value, pointer: &str, location: &str) -> Result<&'a str> {
+    value
+        .pointer(pointer)
+        .and_then(Value::as_str)
+        .with_context(|| format!("{location}: missing text at {pointer}"))
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::json;
@@ -282,36 +419,56 @@ mod tests {
         Workspace::at(std::path::Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap()
     }
 
-    fn line() -> Value {
-        json!({"text": "evidence", "min_fill": 75, "target_fill": 90, "max_fill": 100})
+    fn lines(count: usize) -> Vec<Value> {
+        (0..count).map(|_| json!("evidence")).collect()
     }
 
     fn application(paragraph_lengths: &[usize]) -> Value {
         json!({
-            "tailored_cv": {
+            "schema_version": 4,
+            "revision": 0,
+            "options": {
+                "language": "de-CH",
                 "pages": 4,
-                "summary": (0..5).map(|_| line()).collect::<Vec<_>>()
+                "generate_cl": true,
+                "application_date": "September 2026",
             },
-            "tailored_cl": {
-                "enabled": true,
-                "paragraphs": paragraph_lengths.iter().map(|length| json!({
-                    "lines": (0..*length).map(|_| line()).collect::<Vec<_>>()
-                })).collect::<Vec<_>>(),
-                "highlights": (0..5).map(|_| {
-                    json!({"text": "evidence", "min_fill": 60, "target_fill": 82, "max_fill": 100})
-                }).collect::<Vec<_>>()
-            }
+            "job": {
+                "id": "fixture",
+                "title": "Fixture",
+                "organization": "Fixture",
+                "location": "Fixture",
+                "source": "Fixture",
+                "url": "Fixture",
+                "description": "Fixture",
+                "connections": "",
+                "company_context": "",
+                "notes": "",
+                "cl_recipient": {
+                    "name": "",
+                    "title": "",
+                    "company": "",
+                    "address_line_1": "",
+                    "address_line_2": "",
+                },
+            },
+            "cv": {"summary": "Flowing evidence paragraph."},
+            "cl": {
+                "paragraphs": paragraph_lengths.iter().map(|length| lines(*length)).collect::<Vec<_>>(),
+                "highlights": lines(5),
+            },
         })
     }
 
     #[test]
     fn cv_only_application_is_valid_without_hidden_cover_letter_content() {
         let mut draft = application(&[3, 6, 6, 5, 5, 3]);
-        draft["tailored_cl"] = json!({"enabled": false});
-        validate_line_contracts(&workspace(), &draft, "fixture", true).unwrap();
+        draft.as_object_mut().unwrap().remove("cl");
+        draft["options"]["generate_cl"] = json!(false);
+        validate_record(&workspace(), &draft, "fixture", true).unwrap();
 
-        draft["tailored_cl"]["paragraphs"] = json!([]);
-        let error = validate_line_contracts(&workspace(), &draft, "fixture", true)
+        draft["cl"] = json!({"paragraphs": [], "highlights": []});
+        let error = validate_record(&workspace(), &draft, "fixture", true)
             .unwrap_err()
             .to_string();
         assert!(error.contains("disabled cover letter"));
@@ -327,7 +484,7 @@ mod tests {
             [3, 5, 5, 5, 5, 2],
             [3, 5, 6, 5, 5, 3],
         ] {
-            validate_line_contracts(&workspace, &application(&lengths), "fixture", true).unwrap();
+            validate_record(&workspace, &application(&lengths), "fixture", true).unwrap();
         }
     }
 
@@ -343,10 +500,9 @@ mod tests {
                 "paragraphs[4:5]: expected 10–12 shared lines",
             ),
         ] {
-            let error =
-                validate_line_contracts(&workspace, &application(&lengths), "fixture", true)
-                    .unwrap_err()
-                    .to_string();
+            let error = validate_record(&workspace, &application(&lengths), "fixture", true)
+                .unwrap_err()
+                .to_string();
             assert!(error.contains(expected), "unexpected error: {error}");
         }
     }
@@ -365,7 +521,7 @@ mod tests {
                             && (20..=22).contains(&middle.iter().sum::<usize>());
                         let lengths = [3, second, third, fourth, fifth, 3];
                         assert_eq!(
-                            validate_line_contracts(
+                            validate_record(
                                 &workspace,
                                 &application(&lengths),
                                 "fixture",
@@ -382,26 +538,28 @@ mod tests {
     }
 
     #[test]
-    fn weakened_fill_floor_is_rejected() {
+    fn unknown_fields_are_rejected() {
         let mut draft = application(&[3, 6, 6, 5, 5, 3]);
-        draft["tailored_cl"]["paragraphs"][0]["lines"][0]["min_fill"] = json!(74);
-        let error = validate_line_contracts(&workspace(), &draft, "fixture", true)
+        draft["job"]["smuggled"] = json!("nope");
+        let error = validate_record(&workspace(), &draft, "fixture", true)
             .unwrap_err()
             .to_string();
-        assert!(error.contains("weakens the required fill floor"));
+        assert!(error.contains("unknown fields"));
     }
 
     #[test]
-    fn fill_bounds_are_ordered() {
-        let mut invalid = line();
-        invalid["min_fill"] = json!(91);
-        assert!(validate_line(&invalid, "fixture", true).is_err());
-    }
-
-    #[test]
-    fn empty_rendered_lines_are_rejected() {
-        let mut invalid = line();
-        invalid["text"] = json!("  ");
-        assert!(validate_line(&invalid, "fixture", true).is_err());
+    fn empty_rendered_text_is_rejected() {
+        let mut draft = application(&[3, 6, 6, 5, 5, 3]);
+        draft["cv"]["summary"] = json!("  ");
+        let error = validate_record(&workspace(), &draft, "fixture", true)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("cannot be empty"));
+        draft["cv"]["summary"] = json!("Flowing evidence paragraph.");
+        draft["cl"]["highlights"][0] = json!("  ");
+        let error = validate_record(&workspace(), &draft, "fixture", true)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("cannot be empty"));
     }
 }

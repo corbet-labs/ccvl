@@ -1,0 +1,89 @@
+schema_version = 4
+revision = 0
+
+[options]
+language = "en-CH"
+pages = 4
+generate_cl = true
+application_date = "September 2026"
+
+[job]
+id = "showcase-en-ch"
+title = "Innovation, Technology & Strategy"
+organization = ""
+location = "Switzerland | hybrid | remote"
+source = "ccvl showcase"
+url = "https://github.com/corbet-labs/ccvl"
+description = "Roles at the intersection of innovation management, technology, strategy and finance."
+connections = ""
+company_context = "Target-neutral public working example and open application."
+notes = "The content describes Julian Corbet; new users replace it only with their own evidenced facts."
+
+[job.cl_recipient]
+name = ""
+title = ""
+company = ""
+address_line_1 = ""
+address_line_2 = ""
+
+[cv]
+# One flowing paragraph. It must typeset to exactly 5 lines; the checker
+# verifies instead of you counting. (The fifth sentence exposes the adaptation
+# formula for new users; a real application rewrites it target-specifically.)
+summary = """
+This CV is a working example, technical product demonstration and open application. I combine technology and innovation management with strategy and finance. Evidence: GenAI at CENVION | decision analysis for Swisscom and Airbus. I also bring M&A, banking and consulting experience across four markets. If that fits, let's talk – gladly about your mandates, goals and open questions, in Switzerland or remote. To adapt it: target profile | differentiation | two evidenced results | clear value for your team.
+"""
+
+[cl]
+# Five one-line highlights. Written first, rendered between paragraphs 3 and 4.
+highlights = [
+  "Innovation & Technology | Agentic AI, cloud systems and 50+ open-source projects",
+  "Applied AI & Data | RAG search, ML risk analysis and intelligent automation",
+  "Strategy & Transformation | SteerCo decisions, TOM and operational delivery",
+  "Finance & Investment | Project finance, DCF, portfolio and scenario analysis",
+  "Entrepreneurial Delivery | Consulting across four markets and end-to-end project P&L",
+]
+
+# Six paragraphs, one array of lines each.
+paragraphs = [
+  [
+    "Some cover letters begin with enthusiasm for a particular vacancy. This one begins deliberately more honestly:",
+    "I am looking for a role connecting innovation management and technology with strategy and finance.",
+    "ccvl also serves as a product demo of how I structure, measure and rigorously review applications.",
+  ],
+  [
+    "At CENVION, I introduced Claude and RAG-based search into investment and reporting workflows.",
+    "For seven battery-storage assets, I modelled IRR, NPV, DSCR and sensitivities; the analysis supported",
+    "refinancing packages and decisions for institutional investors. I also automated the data flow from",
+    "operating data to quarterly reports, making performance gaps and operational improvement levers visible.",
+    "That connected emerging technology not to an isolated demonstration, but directly to capital decisions,",
+    "risk transparency, portfolio priorities and a more dependable view of operational performance.",
+  ],
+  [
+    "At Airbus, I translated 20+ years of safety-critical maintenance data across more than 500 aircraft into",
+    "decision-ready risk and cost signals. The work surfaced EUR 100k+ in annual savings potential and helped",
+    "trigger an international improvement programme worth more than EUR 1m. At Swisscom, I then modelled",
+    "cloud economics and infrastructure choices under data-centre constraints, supported strategic",
+    "eight-figure investments and supplier negotiations exceeding CHF 10m for infrastructure programmes.",
+    "The recurring pattern is turning technical complexity into evidence specialists and leaders can use together.",
+  ],
+  [
+    "This is not a linear specialist profile – and that is precisely where its practical value lies for a team:",
+    "I can build a prototype myself, test its technical viability and explain the problem it solves at the same time.",
+    "I connect that understanding to the business case, decision risks and the route from an idea into delivery.",
+    "Where disciplines otherwise lose momentum at handovers, I join technology, strategy and finance into one",
+    "decision base that remains accessible to leaders and credible to the specialists responsible for execution.",
+  ],
+  [
+    "For a real application, this is where specific company fit belongs: a strategy, initiative or challenge",
+    "that genuinely attracts me – researched and understood rather than praised with interchangeable language.",
+    "It then connects that need to my experience and offers a concrete picture of the contribution I could make.",
+    "This public version remains deliberately open: if your team wants to implement innovation hands-on and",
+    "translate it into commercial decisions, that combination may be worth exploring together.",
+  ],
+  [
+    "If you see a possible fit, I would welcome an open conversation about your questions, my experience and",
+    "the work where I could genuinely help your team. Thank you for taking the time to consider this unusual",
+    "open application – I would be glad to learn more about you, your organisation and the problems ahead.",
+  ],
+]

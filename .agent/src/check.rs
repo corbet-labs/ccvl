@@ -35,28 +35,13 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
         "ccvl.json: unsupported workspace format or schema version"
     );
     let expected_groups = json!({
-        "interview": {"root": "interview", "stations": "interview/stations.json"},
-        "cvl": {"root": "cvl", "profile": "cvl/profile.json", "de-CH": "cvl/de-ch/application.json", "en-CH": "cvl/en-ch/application.json"},
-        "opportunities": {"root": "opportunities", "path": "opportunities/<organisation-key>/<position-key>", "record": "application.json", "output": "output"}
+        "interview": {"root": "interview", "stations": "interview/stations.toml"},
+        "cvl": {"root": "cvl", "profile": "cvl/profile.toml", "de-CH": "cvl/de-ch/application.toml", "en-CH": "cvl/en-ch/application.toml"},
+        "opportunities": {"root": "opportunities", "path": "opportunities/<organisation-key>/<position-key>", "record": "application.toml", "output": "output"}
     });
     ensure!(
         manifest.get("workspace_groups") == Some(&expected_groups),
         "ccvl.json: workspace groups must be interview, cvl, and keyed opportunities"
-    );
-    ensure!(
-        manifest.get("application_schema")
-            == Some(&Value::String(
-                ".agent/schemas/application.schema.json".to_owned()
-            ))
-            && manifest.get("profile_schema")
-                == Some(&Value::String(
-                    ".agent/schemas/profile.schema.json".to_owned()
-                ))
-            && manifest.get("station_schema")
-                == Some(&Value::String(
-                    ".agent/schemas/stations.schema.json".to_owned()
-                )),
-        "ccvl.json: schema paths must live below .agent/schemas"
     );
     ensure!(
         manifest.pointer("/documents/cv/de-CH")
@@ -70,13 +55,10 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
         "ccvl.json: document entry points must live below cvl/<locale>"
     );
     for relative in [
-        ".agent/schemas/application.schema.json",
-        ".agent/schemas/profile.schema.json",
-        ".agent/schemas/stations.schema.json",
-        "cvl/profile.json",
-        "interview/stations.json",
-        "cvl/de-ch/application.json",
-        "cvl/en-ch/application.json",
+        "cvl/profile.toml",
+        "interview/stations.toml",
+        "cvl/de-ch/application.toml",
+        "cvl/en-ch/application.toml",
         "cvl/README.md",
         "interview/README.md",
         "opportunities/README.md",
@@ -96,6 +78,10 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
         ".crow",
         ".vscode",
         ".zed",
+        ".agent/schemas",
+        ".agent/scaffolds/opportunity/application.json",
+        ".agent/scaffolds/interview/profile.json",
+        ".agent/scaffolds/interview/stations.json",
         "docs",
         "schemas",
         "scripts",
@@ -109,6 +95,10 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
         "cvl/shared",
         "cvl/cv",
         "cvl/cl",
+        "cvl/profile.json",
+        "cvl/de-ch/application.json",
+        "cvl/en-ch/application.json",
+        "interview/stations.json",
     ] {
         ensure!(
             !path_has_content(&workspace.path(legacy))?,
@@ -143,7 +133,12 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
     );
     ensure!(
         manifest.pointer("/documents/cv/summary_lines") == Some(&Value::from(5)),
-        "ccvl.json: every CV Summary must contain exactly five rendered lines"
+        "ccvl.json: every CV Summary must render to exactly five lines"
+    );
+    ensure!(
+        manifest.pointer("/documents/cv/summary_fill")
+            == Some(&json!({"minimum": 60, "target": 82, "maximum": 100})),
+        "ccvl.json: CV Summary fill defaults must be 60/82/100"
     );
     let layout = manifest
         .pointer("/documents/cv/layout_contract")
@@ -230,7 +225,7 @@ fn validate_embedded_fonts(workspace: &Workspace) -> Result<()> {
 }
 
 fn render_and_verify(workspace: &Workspace) -> Result<()> {
-    let profile = workspace.read_json("cvl/profile.json")?;
+    let profile = workspace.read_toml_value("cvl/profile.toml")?;
     let contacts = ["name", "email", "phone_label"]
         .into_iter()
         .map(|field| {

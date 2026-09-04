@@ -5,10 +5,10 @@ projection of verified user evidence, not the evidence store itself.
 
 ```text
 cvl/
-├── profile.json
+├── profile.toml
 ├── assets/
 ├── de-ch/
-│   ├── application.json
+│   ├── application.toml
 │   ├── cv.typ
 │   ├── cl.typ
 │   └── output/{cv-2.pdf,cv-3.pdf,cv-4.pdf,cl.pdf}
@@ -16,13 +16,15 @@ cvl/
     └── ...
 ```
 
-`profile.json` contains only approved fields used in the rendered header. Each
-locale's `application.json` provides the general five-line Summary and cover
-letter. Shared rendering code, fonts, schemas, and neutral scaffolds belong in
-`.agent/`; source documents, the rich profile, journal, and station allocation
-belong in `interview/`.
+`profile.toml` contains only approved fields used in the rendered header. Each
+locale's `application.toml` provides the general Summary paragraph and cover
+letter; both `cv.typ` files hold the complete visible CV logic and both
+`cl.typ` files the complete cover-letter logic. Shared measurement
+primitives, styles, and neutral scaffolds belong in `.agent/`; source
+documents, the rich profile, journal, and station allocation belong in
+`interview/`.
 
-A keyed opportunity supplies its own `application.json` from
+A keyed opportunity supplies its own `application.toml` from
 `../opportunities/<organisation>/<position>/` while reusing this general CV
 body and render profile.
 

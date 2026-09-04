@@ -10,7 +10,6 @@ pub mod opportunity;
 pub mod pdf;
 pub mod public;
 pub mod render;
-pub mod schema;
 pub mod skills;
 pub mod stations;
 pub mod workspace;

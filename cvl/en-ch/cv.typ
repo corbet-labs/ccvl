@@ -12,23 +12,131 @@
 // (outcome, metric, scope, reference, ownership, or method) and ask for the
 // relevant fact instead of padding or weakening the wording.
 
-#import "/.agent/typst/styles/document.typ": *
-#import "/.agent/typst/components/header.typ": application-header
-#import "/.agent/typst/application.typ": validate-application
-#import "/.agent/typst/line-contract.typ": measured-lines
-#import "/.agent/typst/profile.typ": profile
+#import "/.agent/typst/styles/document.typ": document-style
+#import "/.agent/typst/application.typ": cv-contract, validate-application
+#import "/.agent/typst/line-contract.typ": measured-content-line, measured-lines, wrap-exact
+#import "/.agent/typst/profile.typ": localized-profile, profile
 #show: document-style.with(locale: "en-ch")
 #set document(title: "Curriculum Vitae | " + profile.name, author: (profile.name,))
+
+// Visible CV presentation: every element style and the letterhead live here
+// so editors never hunt below .agent/typst. Only page setup, measurement,
+// validation, and profile data stay imported.
+#let cv-bullet() = box(width: 10.5pt, height: 7.35pt, align(horizon, align(center, polygon(
+  fill: rgb("#000000"),
+  (0pt, 0pt),
+  (4.41pt, 2.75625pt),
+  (0pt, 5.5125pt),
+))))
+
+// Entry heading (bold). Override size: #cv-h(size: 14pt)[...]
+#let cv-h(size: 11pt, min-fill: 15, target-fill: 45, max-fill: 100, t) = measured-content-line(
+  "cv.heading",
+  "cv-heading",
+  text(size: size, weight: "bold", t),
+  min-fill,
+  target-fill,
+  max-fill,
+)
+#let cv-hu(size: 11pt, min-fill: 60, target-fill: 85, max-fill: 100, t) = {
+  set strong(delta: -300)
+  measured-content-line(
+    "cv.emphasized-heading",
+    "cv-emphasized-heading",
+    text(size: size, weight: "bold", t),
+    min-fill,
+    target-fill,
+    max-fill,
+  )
+}
+// Entry subheading. Override size: #cv-s(size: 9pt)[...]
+#let cv-s(size: 10pt, min-fill: 35, target-fill: 65, max-fill: 100, t) = measured-content-line(
+  "cv.subheading",
+  "cv-subheading",
+  text(size: size, t),
+  min-fill,
+  target-fill,
+  max-fill,
+)
+// Bullet row. Override indent/gutter: #cv-b(indent: 12pt)[...]
+#let cv-b(indent: 10.5pt, gutter: 0pt, min-fill: 80, target-fill: 90, max-fill: 100, t) = grid(
+  columns: (indent, 1fr),
+  gutter: gutter,
+  cv-bullet(), measured-content-line("cv.bullet", "cv-bullet", t, min-fill, target-fill, max-fill),
+)
+
+#let cv-superheading-outer-spacing = 17.85pt
+#let cv-compact-heading-spacing = 9.45pt
+#let cv-spacious-heading-spacing = 19.35pt
+#let cv-entry-spacing = 11.75pt
+
+#let cv-entry-gap() = v(cv-entry-spacing)
+
+// Page-level heading for dedicated CV pages such as projects or competencies.
+#let cv-superheading(t) = {
+  block(width: 100%, breakable: false, inset: (top: cv-superheading-outer-spacing))[
+    #set par(spacing: 0pt)
+    #line(length: 100%, stroke: 0.5pt + black)
+    #v(5.25pt)
+    #align(center, text(size: 17pt, weight: "bold", upper(t)))
+    #v(5.25pt)
+    #line(length: 100%, stroke: 0.5pt + black)
+  ]
+}
+
+// Shared renderer for section headings with symmetric outer spacing.
+#let cv-section-heading(spacing, t) = block(breakable: false)[
+  #v(spacing)
+  #set par(spacing: 0pt)
+  #text(size: 12pt, weight: "bold", upper(t))
+  #v(4.41pt)
+  #line(length: 100%, stroke: 0.5pt + black)
+  #v(spacing)
+]
+
+// Compact section heading for dense CV pages.
+#let cv-compact-heading(t) = cv-section-heading(cv-compact-heading-spacing, t)
+
+// Spacious section heading for dedicated project and competency pages.
+#let cv-spacious-heading(t) = cv-section-heading(cv-spacious-heading-spacing, t)
+
+// Keep named CV variants honest: a fourpager must render exactly four pages.
+#let assert-page-count(expected) = context {
+  let actual = counter(page).final().first()
+  assert(actual == expected, message: "CV rendered " + str(actual) + " pages; expected " + str(expected))
+}
 
 // Page count is selected at compile time: 2 = core, 3 = projects, 4 = competencies.
 #let cv-pages = int(sys.inputs.at("cv-pages", default: "4"))
 #assert(cv-pages >= 2 and cv-pages <= 4, message: "cv-pages must be 2, 3, or 4")
-#let application-path = sys.inputs.at("application", default: "/cvl/en-ch/application.json")
-#let application = json(application-path)
+#let application-path = sys.inputs.at("application", default: "/cvl/en-ch/application.toml")
+#let application = toml(application-path)
 #validate-application(application, expected-language: "en-CH", require-cv: true)
 
 #let brand(body) = box(body)
-#let cv-header() = application-header(locale: "en-ch")
+#let cv-header() = {
+  let localized = localized-profile.at("en-ch")
+  let contacts = (
+    link("mailto:" + profile.email)[#profile.email],
+    if profile.phone-label != none and profile.phone-href != none {
+      link(profile.phone-href)[#profile.phone-label]
+    },
+    profile.location,
+    profile.languages,
+    localized.nationality-and-permit,
+    link(profile.linkedin)[LinkedIn],
+    link(profile.website)[Web],
+    localized.availability,
+  ).filter(item => item != none)
+
+  align(center)[#text(size: 15.75pt, weight: "bold")[#profile.name]]
+  v(6.3pt)
+  align(center)[
+    #text(size: 9.03pt)[
+      #contacts.join([ | ])
+    ]
+  ]
+}
 #let cv-pagebreak() = [
   #pagebreak()
   #cv-header()
@@ -38,7 +146,23 @@
 
 #block(breakable: false)[
   #cv-compact-heading[Summary]
-  #measured-lines("cv.summary", "cv-summary", application.tailored_cv.summary)
+  // The record holds one flowing paragraph; wrapping to exactly five lines
+  // happens here so authors never count breaks by hand.
+  #set text(hyphenate: false)
+  #layout(size => {
+    let fill = cv-contract.summary_fill
+    let lines = wrap-exact(application.cv.summary, size.width, 5, "application.cv.summary")
+    measured-lines(
+      "cv.summary",
+      "cv-summary",
+      lines.map(line => (
+        text: line,
+        min_fill: fill.minimum,
+        target_fill: fill.target,
+        max_fill: fill.maximum,
+      )),
+    )
+  })
 ]
 
 #block(breakable: false)[

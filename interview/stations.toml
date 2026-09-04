@@ -1,0 +1,254 @@
+schema_version = 1
+updated = "2026-09-03"
+
+[[stations]]
+id = "cenvion"
+label = "Infrastructure investments and asset management"
+anchor = "CENVION | 2026"
+kind = "employment"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "cenvion-scope", text = "Investment, reporting, AI search, and financial modelling work" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "swisscom"
+label = "Cloud strategy and transformation"
+anchor = "Swisscom Financial Services | 2024–2025"
+kind = "employment"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "swisscom-scope", text = "Infrastructure investment, supplier negotiation, and cloud economics work" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "airbus"
+label = "AI engineering in risk and compliance"
+anchor = "AIRBUS Defence & Space | 2023–2024"
+kind = "employment"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "airbus-scope", text = "Machine-learning analysis and cross-functional pilot delivery" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "covendit"
+label = "M&A and corporate finance"
+anchor = "COVENDIT | 2022"
+kind = "employment"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "covendit-scope", text = "Transaction execution, financial modelling, and target screening" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "nexgen"
+label = "Strategy and technology consulting"
+anchor = "NEXGEN Business Consultants | 2022"
+kind = "employment"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "nexgen-scope", text = "Banking technology, regulation, data, and client-development work" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "consulting-venture"
+label = "Management and technology consulting"
+anchor = "A Softer Space and Corbet Consulting | 2018–2023"
+kind = "independent-work"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "consulting-scope", text = "Business development, consulting delivery, and project economics" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "student-consulting"
+label = "Student consulting and innovation organisations"
+anchor = "GREEN Finance Consulting, Enactus, and AIESEC | 2016–2023"
+kind = "engagement"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "student-consulting-scope", text = "Systems, social venture, and international placement delivery" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "teaching-research-venture"
+label = "Teaching, market research, and entrepreneurship"
+anchor = "University, employment, and independent settings"
+kind = "independent-work"
+status = "verified"
+page = 1
+section = "experience"
+experience_eligible = true
+facts = [
+  { id = "teaching-research-scope", text = "Teaching, interview research, repairs, service, and ecommerce" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "executive-education"
+label = "Executive education"
+anchor = "Collège des Ingénieurs | 2024–2025"
+kind = "education"
+status = "verified"
+page = 2
+section = "education"
+experience_eligible = false
+facts = [
+  { id = "executive-education-scope", text = "General management, consulting, and finance curriculum" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "physics-degrees"
+label = "Physics degrees"
+anchor = "Goethe University Frankfurt | completed 2024"
+kind = "education"
+status = "verified"
+page = 2
+section = "education"
+experience_eligible = false
+facts = [
+  { id = "physics-scope", text = "Physics, AI and machine learning, electronics, and experimental research" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "psychology-degree"
+label = "Psychology degree"
+anchor = "Goethe University Frankfurt | completed 2017"
+kind = "education"
+status = "verified"
+page = 2
+section = "education"
+experience_eligible = false
+facts = [
+  { id = "psychology-scope", text = "Psychology, neuroscience, machine learning, and research" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "certificates"
+label = "Certificates and continuing education"
+anchor = "Finance, data, AI, and leadership"
+kind = "professional-development"
+status = "verified"
+page = 2
+section = "professional-development"
+experience_eligible = false
+facts = [
+  { id = "certificates-scope", text = "Finance, data analysis, AI, leadership, and communication training" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "consulting-finance-networks"
+label = "Consulting and finance networks"
+anchor = "Programmes, competitions, alumni, and industry networks"
+kind = "professional-development"
+status = "verified"
+page = 2
+section = "professional-development"
+experience_eligible = false
+facts = [
+  { id = "networks-scope", text = "Selected programmes, competitions, alumni, and industry networks" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "technology-communities"
+label = "Technology communities and conferences"
+anchor = "Conference delivery and technology communities"
+kind = "professional-development"
+status = "verified"
+page = 2
+section = "professional-development"
+experience_eligible = false
+facts = [
+  { id = "technology-community-scope", text = "Conference operations and participation in technology communities" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "crisis-support"
+label = "Harm reduction and crisis support"
+anchor = "Crisis intervention and acute support"
+kind = "engagement"
+status = "verified"
+page = 2
+section = "engagement"
+experience_eligible = false
+facts = [
+  { id = "crisis-support-scope", text = "Acute first aid and psychosocial de-escalation" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "mentoring"
+label = "Advisory, mentoring, and student representation"
+anchor = "Youth advisory work, universities, and student communities"
+kind = "engagement"
+status = "verified"
+page = 2
+section = "engagement"
+experience_eligible = false
+facts = [
+  { id = "mentoring-scope", text = "Youth advisory work, mentoring, and faculty engagement" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "family-responsibility"
+label = "Educational mobility and family responsibility"
+anchor = "Long-term family support and care responsibility"
+kind = "personal-responsibility"
+status = "verified"
+page = 2
+section = "personal"
+experience_eligible = false
+facts = [
+  { id = "family-responsibility-scope", text = "Long-term family support and care responsibility" },
+]
+source_refs = ["author-confirmed:2026-09-03"]
+
+[[stations]]
+id = "open-source-community"
+label = "Sharing and contributing"
+anchor = "Intercultural community and international open-source work"
+kind = "project"
+status = "verified"
+page = 2
+section = "personal"
+experience_eligible = true
+facts = [
+  { id = "open-source-community-scope", text = "Intercultural living and international open-source collaboration" },
+]
+source_refs = ["author-confirmed:2026-09-03"]

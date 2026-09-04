@@ -4,7 +4,7 @@ Every concrete job lives directly under a stable two-part key:
 
 ```text
 opportunities/<organisation-key>/<position-key>/
-├── application.json
+├── application.toml
 ├── posting.md                 optional archived source
 ├── research.md                optional attributable company and role research
 ├── interview-<stage>.md       optional preparation
@@ -16,8 +16,9 @@ opportunities/<organisation-key>/<position-key>/
 ```
 
 Both keys use lowercase ASCII letters, numbers, hyphens, or underscores. The
-single `application.json` owns the selected CV page count, five tailored
-Summary lines, optional six-paragraph cover letter, and five highlights. Its
+single `application.toml` owns the options (language, pages, cover-letter
+switch), the flowing Summary paragraph, optional six-paragraph cover letter,
+and five highlights. Its
 directory is the key; do not add generic `companies/`, `positions/`,
 `applications/`, or market-map layers.
 

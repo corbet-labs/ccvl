@@ -103,6 +103,40 @@
   }
 }
 
+// Wrap flowing text into exactly `count` lines at the current style.
+// Hyphenation must be off at the call site so breaks happen only at spaces,
+// which is exactly what this greedy pass replicates with measured widths.
+// The caller renders the returned lines explicitly (e.g. measured-lines),
+// so no second breaking pass can move the breaks.
+#let wrap-exact(text, width, count, scope) = {
+  let words = text.replace(regex("\s+"), " ").trim().split(" ")
+  let lines = ()
+  let current = ""
+  for word in words {
+    let trial = if current == "" { word } else { current + " " + word }
+    if measure(box(trial)).width <= width {
+      current = trial
+    } else {
+      assert(current != "", message: scope + ": word does not fit the line: " + word)
+      lines.push(current)
+      current = word
+    }
+  }
+  if current != "" {
+    lines.push(current)
+  }
+  assert(
+    lines.len() == count,
+    message: scope
+      + " renders to "
+      + str(lines.len())
+      + " lines; want exactly "
+      + str(count)
+      + ". Rewrite with relevant, verified signal—not filler—until it fits.",
+  )
+  lines
+}
+
 // Render explicit lines as one justified paragraph while measuring their natural widths.
 // Manual line breaks and the caller's unbreakable block prevent widows and orphans.
 #let measured-paragraph(id, kind, lines, justify: true) = layout(size => {

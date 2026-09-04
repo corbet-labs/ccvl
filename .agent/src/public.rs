@@ -122,7 +122,7 @@ pub fn validate_boundary(workspace: &Workspace) -> Result<()> {
     let allowed = BTreeSet::from([
         PathBuf::from("interview/README.md"),
         PathBuf::from("interview/imports/README.md"),
-        PathBuf::from("interview/stations.json"),
+        PathBuf::from("interview/stations.toml"),
         PathBuf::from("opportunities/README.md"),
     ]);
     for path in public_files(workspace)? {
