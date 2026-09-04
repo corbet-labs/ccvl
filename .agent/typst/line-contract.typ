@@ -103,38 +103,84 @@
   }
 }
 
-// Wrap flowing text into exactly `count` lines at the current style.
-// Hyphenation must be off at the call site so breaks happen only at spaces,
-// which is exactly what this greedy pass replicates with measured widths.
-// The caller renders the returned lines explicitly (e.g. measured-lines),
-// so no second breaking pass can move the breaks.
-#let wrap-exact(text, width, count, scope) = {
-  let words = text.replace(regex("\s+"), " ").trim().split(" ")
-  let lines = ()
-  let current = ""
-  for word in words {
-    let trial = if current == "" { word } else { current + " " + word }
-    if measure(box(trial)).width <= width {
-      current = trial
-    } else {
-      assert(current != "", message: scope + ": word does not fit the line: " + word)
-      lines.push(current)
-      current = word
+// Wrap flowing text into exactly `count` lines at the current style, every
+// line within `min-fill` and `max-fill`. Breaks happen only at spaces, so the
+// measured widths below are exactly what the renderer lays out.
+// Unlike greedy filling (which strands runt last lines), this packs with
+// dynamic programming: among all exact-`count` packings it keeps the one
+// with the fullest thinnest line.
+#let wrap-exact(
+  text,
+  width,
+  count,
+  scope,
+  min-fill: 60,
+  max-fill: 100,
+) = {
+  // Split on single spaces and drop the gaps from runs of whitespace, so no
+  // regex engine behavior can smuggle fragments into the word list.
+  let words = text.trim().split(" ").filter(word => word != "")
+  assert(words.len() > 0, message: scope + ": nothing to lay out")
+  let total = words.len()
+  // Candidate lines from each start word, with exact measured fills.
+  // Plain loops (not mapped closures) so every measure call runs in the
+  // caller's layout context.
+  let candidates = ()
+  for start in range(total) {
+    let options = ()
+    let line = ""
+    for end in range(start + 1, total + 1) {
+      line = if end == start + 1 { words.at(start) } else { line + " " + words.at(end - 1) }
+      let fill = calc.round(1000 * measure(box(line)).width / width) / 10
+      if fill > max-fill { break }
+      if fill >= min-fill {
+        options.push((end: end, fill: fill))
+      }
+    }
+    candidates.push(options)
+  }
+  // No per-word pre-check here: it misfired on valid input, while the
+  // packing assert below plus the measured line gate cover truly overfull
+  // words with precise locations.
+  // best["k:i"]: fullest thinnest line and predecessor start for the first
+  // i words packed into exactly k lines; absent when unreachable. A flat
+  // dictionary keeps every access to definitely supported primitives.
+  let best = (:)
+  best.insert("0:0", (fill: max-fill + 1, prev: -1))
+  for k in range(1, count + 1) {
+    for start in range(total) {
+      let prev = best.at(str(k - 1) + ":" + str(start), default: none)
+      if prev == none { continue }
+      for option in candidates.at(start) {
+        let fill = calc.min(prev.fill, option.fill)
+        let key = str(k) + ":" + str(option.end)
+        let current = best.at(key, default: none)
+        if current == none or fill > current.fill {
+          best.insert(key, (fill: fill, prev: start))
+        }
+      }
     }
   }
-  if current != "" {
-    lines.push(current)
-  }
+  let final = best.at(str(count) + ":" + str(total), default: none)
   assert(
-    lines.len() == count,
+    final != none,
     message: scope
-      + " renders to "
-      + str(lines.len())
-      + " lines; want exactly "
+      + " cannot pack into "
       + str(count)
-      + ". Rewrite with relevant, verified signal—not filler—until it fits.",
+      + " lines within "
+      + str(min-fill)
+      + "–"
+      + str(max-fill)
+      + "%. Rewrite with relevant, verified signal—not filler—until it fits.",
   )
-  lines
+  let lines = ()
+  let cursor = total
+  for k in range(count, 0, step: -1) {
+    let entry = best.at(str(k) + ":" + str(cursor))
+    lines.push(words.slice(entry.prev, cursor).join(" "))
+    cursor = entry.prev
+  }
+  lines.rev()
 }
 
 // Render explicit lines as one justified paragraph while measuring their natural widths.
