@@ -32,9 +32,10 @@ contains:
 Line lengths are authored as plain text; fill defaults come from `ccvl.json`.
 Typst measures actual glyph width with the bundled font. The Summary must
 render to exactly five lines; thin Summary lines fail unless explicitly
-allowed, and spill within tolerance counsels instead of failing. Explicit
+allowed, and a closing line may spill invisibly up to the uniform
+closing-line maximum (cover-letter paragraphs share the rule). Explicit
 cover-letter lines fail outside their bounds. Underfill and overflow past
-tolerance fail and prompt another evidence-backed rewrite.
+the maximum fail and prompt another evidence-backed rewrite.
 
 The opportunity directory is the lifecycle unit. An archived posting,
 research, working rules, interview preparation, or outcome may sit beside the

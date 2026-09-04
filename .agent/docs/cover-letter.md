@@ -44,9 +44,11 @@ lines provide the preferred visual and tonal mirror of paragraph 1.
 ## Justification and paragraph integrity
 
 Every body line is explicit and measured before justification. Its natural
-glyph width must cover at least 75% of the available measure, targets 90%, and
-may never exceed 100%. This prevents a short stranded line from being hidden by
-extreme word spacing. Non-final lines are then justified; the final line stays
+glyph width must cover at least 75% of the available measure, targets 90%,
+and may never exceed 100% — except a paragraph's closing line, which shares
+the uniform closing-line maximum of 102% with the CV Summary. This prevents
+a short stranded line from being hidden by extreme word spacing.
+Non-final lines are then justified; the final line stays
 ragged but remains subject to the same natural-width floor.
 
 Each paragraph is an unbreakable Typst block. Manual line breaks, the one-page

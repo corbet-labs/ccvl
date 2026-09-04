@@ -99,12 +99,12 @@ pub fn line_failure(spec: &DocumentSpec, index: usize, metric: &Value) -> Result
 }
 
 /// Soll inputs for summary counsel: the record's explicit thin allowance
-/// plus the contract's density floor and overflow tolerance.
+/// plus the contract's density floor and uniform closing-line maximum.
 struct SummaryPolicy {
     allow_thin: bool,
     floor: f64,
     edge: f64,
-    tolerance: f64,
+    last_max: f64,
 }
 
 fn summary_policy(workspace: &Workspace, spec: &DocumentSpec) -> Result<SummaryPolicy> {
@@ -120,10 +120,10 @@ fn summary_policy(workspace: &Workspace, spec: &DocumentSpec) -> Result<SummaryP
         .get("maximum")
         .and_then(Value::as_f64)
         .context("summary fill contract has no maximum")?;
-    let tolerance = contract
-        .pointer("/documents/cv/summary_overflow_tolerance")
+    let last_max = contract
+        .pointer("/last_line_maximum")
         .and_then(Value::as_f64)
-        .context("ccvl.json has no summary overflow tolerance")?;
+        .context("ccvl.json has no closing-line maximum")?;
     let typst_path = spec
         .inputs
         .get("application")
@@ -139,14 +139,14 @@ fn summary_policy(workspace: &Workspace, spec: &DocumentSpec) -> Result<SummaryP
         allow_thin,
         floor,
         edge,
-        tolerance,
+        last_max,
     })
 }
 
 /// Diagnose summary lines against the counsel rules. The line COUNT stays
 /// hard in `validate_metric_set`; here thin lines fail unless the record
-/// explicitly wants them, and overflow past the tolerance fails while
-/// invisible spill only counsels.
+/// explicitly wants them, and overflow past the closing-line maximum fails
+/// while invisible spill only counsels.
 pub fn summary_failures(
     workspace: &Workspace,
     spec: &DocumentSpec,
@@ -171,13 +171,13 @@ pub fn summary_failures(
                 actual,
                 policy.floor
             ));
-        } else if actual > policy.edge + policy.tolerance {
+        } else if actual > policy.last_max {
             failures.push(format!(
-                "{} #{} too long: {:.1} past {} tolerance (rewrite with signal, not filler)",
+                "{} #{} too long: {:.1} past {} closing-line maximum (rewrite with signal, not filler)",
                 spec.name,
                 index + 1,
                 actual,
-                policy.edge + policy.tolerance
+                policy.last_max
             ));
         }
     }
@@ -377,7 +377,7 @@ fn summary_counsels(
                 index + 1,
                 actual
             ));
-        } else if actual > policy.edge && actual <= policy.edge + policy.tolerance {
+        } else if actual > policy.edge && actual <= policy.last_max {
             warnings.push(format!(
                 "{}: line {} spills {:.1} points past the block edge; accepted as invisible",
                 spec.name,
@@ -664,7 +664,7 @@ mod tests {
         );
         let failures = summary_failures(&workspace, &spec, &[summary_metric(102.1)]).unwrap();
         assert_eq!(failures.len(), 1);
-        assert!(failures[0].contains("tolerance"));
+        assert!(failures[0].contains("closing-line maximum"));
     }
 
     #[test]
@@ -673,7 +673,7 @@ mod tests {
         let directory = tempfile::tempdir().unwrap();
         std::fs::write(
             directory.path().join("ccvl.json"),
-            "{\"documents\":{\"cv\":{\"summary_fill\":{\"minimum\":60,\"target\":82,\"maximum\":100},\"summary_overflow_tolerance\":2}}}",
+            "{\"documents\":{\"cv\":{\"summary_fill\":{\"minimum\":60,\"target\":82,\"maximum\":100}}},\"last_line_maximum\":102}",
         )
         .unwrap();
         std::fs::write(

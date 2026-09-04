@@ -1,6 +1,7 @@
 {
   "format": "ccvl-workspace",
   "schema_version": 5,
+  "last_line_maximum": 102,
   "workspace_groups": {
     "interview": {
       "root": "interview",
@@ -35,7 +36,6 @@
       "presets": [2, 3, 4],
       "summary_lines": 5,
       "summary_fill": {"minimum": 60, "target": 82, "maximum": 100},
-      "summary_overflow_tolerance": 2,
       "layout_contract": {
         "definition": "A station, project, or competency block is one full CV entry with its own heading and supporting content. Compact standalone lines do not count.",
         "page_1": { "entries": { "minimum": 6, "target": 7, "maximum": 8 } },

@@ -2,7 +2,7 @@
 // Data comes from the TOML record; shared machinery (measurement, styles,
 // header chrome) stays below .agent/typst and carries no content.
 #import "/.agent/typst/styles/document.typ": document-style
-#import "/.agent/typst/application.typ": cover-letter-contract, validate-application
+#import "/.agent/typst/application.typ": cover-letter-contract, last-line-maximum, validate-application
 #import "/.agent/typst/line-contract.typ": line-contract-mode, measured-line, measured-paragraph
 #import "/.agent/typst/profile.typ": localized-profile, profile
 #show: document-style.with(locale: "de-ch")
@@ -19,11 +19,11 @@
 
 #let body-fill = cover-letter-contract.line_fill.body
 #let highlight-fill = cover-letter-contract.line_fill.highlight
-#let with-body-fill(lines) = lines.map(text => (
-  text: text,
+#let with-body-fill(lines) = range(lines.len()).map(index => (
+  text: lines.at(index),
   min_fill: body-fill.minimum,
   target_fill: body-fill.target,
-  max_fill: body-fill.maximum,
+  max_fill: if index + 1 == lines.len() { last-line-maximum } else { body-fill.maximum },
 ))
 #let with-highlight-fill(text) = (
   text: text,

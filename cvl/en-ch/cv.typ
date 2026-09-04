@@ -13,7 +13,7 @@
 // relevant fact instead of padding or weakening the wording.
 
 #import "/.agent/typst/styles/document.typ": document-style
-#import "/.agent/typst/application.typ": cv-contract, validate-application
+#import "/.agent/typst/application.typ": cv-contract, last-line-maximum, validate-application
 #import "/.agent/typst/line-contract.typ": measured-content-line, measured-lines, wrap-exact
 #import "/.agent/typst/profile.typ": localized-profile, profile
 #show: document-style.with(locale: "en-ch")
@@ -151,18 +151,24 @@
   #set text(hyphenate: false)
   #layout(size => {
     let fill = cv-contract.summary_fill
-    let lines = wrap-exact(application.cv.summary, size.width, 5, "application.cv.summary")
-    measured-lines(
-      "cv.summary",
-      "cv-summary",
-      lines.map(line => (
-        text: line,
-        min_fill: fill.minimum,
-        target_fill: fill.target,
-        max_fill: fill.maximum,
-      )),
-      enforce: false,
+    let thin-ok = "allow_thin" in application.cv and application.cv.allow_thin
+    let lines = wrap-exact(
+      application.cv.summary,
+      size.width,
+      5,
+      "application.cv.summary",
+      last-max: last-line-maximum,
     )
+    let mapped = range(lines.len()).map(index => {
+      let line = lines.at(index)
+      (
+        text: line,
+        min_fill: if thin-ok { 1 } else { fill.minimum },
+        target_fill: fill.target,
+        max_fill: if index + 1 == lines.len() { last-line-maximum } else { fill.maximum },
+      )
+    })
+    measured-lines("cv.summary", "cv-summary", mapped)
   })
 ]
 

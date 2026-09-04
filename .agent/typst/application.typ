@@ -5,6 +5,9 @@
 #let workspace = json("/ccvl.json")
 #let cover-letter-contract = workspace.documents.cover_letter
 #let cv-contract = workspace.documents.cv
+// Uniform closing-line grace for every measured paragraph (summary and
+// cover letter alike): a closing line may spill invisibly past the block.
+#let last-line-maximum = workspace.at("last_line_maximum", default: 102)
 
 #let require-fields(value, fields, scope) = {
   for field in fields {

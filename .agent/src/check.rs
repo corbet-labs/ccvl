@@ -141,8 +141,8 @@ fn validate_manifest(workspace: &Workspace) -> Result<()> {
         "ccvl.json: CV Summary fill defaults must be 60/82/100"
     );
     ensure!(
-        manifest.pointer("/documents/cv/summary_overflow_tolerance") == Some(&Value::from(2)),
-        "ccvl.json: CV Summary overflow tolerance must be 2 points"
+        manifest.pointer("/last_line_maximum") == Some(&Value::from(102)),
+        "ccvl.json: closing-line maximum must be 102"
     );
     let layout = manifest
         .pointer("/documents/cv/layout_contract")
