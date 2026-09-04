@@ -45,6 +45,15 @@ class WorkspaceLayoutTests(unittest.TestCase):
                 for preset in expected:
                     self.assertTrue((output_root / locale / preset / "cv.pdf").is_file())
 
+    def test_editor_previews_use_only_the_bundled_font_path(self) -> None:
+        vscode = json.loads((ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8"))
+        zed = json.loads((ROOT / ".zed" / "settings.json").read_text(encoding="utf-8"))
+        self.assertEqual(vscode["tinymist.fontPaths"], ["${workspaceFolder}/cvl/shared/fonts"])
+        self.assertFalse(vscode["tinymist.systemFonts"])
+        zed_tinymist = zed["lsp"]["tinymist"]["settings"]
+        self.assertEqual(zed_tinymist["fontPaths"], ["cvl/shared/fonts"])
+        self.assertFalse(zed_tinymist["systemFonts"])
+
     def test_opportunity_keys_resolve_to_one_canonical_record(self) -> None:
         expected = ROOT / "opportunities" / "acme" / "strategy-lead" / "application.json"
         self.assertEqual(opportunity.record_path("acme", "strategy-lead", require_exists=False), expected)

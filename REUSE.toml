@@ -6,6 +6,7 @@ path = [
   ".claude/**",
   ".github/**",
   ".vscode/**",
+  ".zed/**",
   ".python-version",
   ".gitattributes",
   ".gitignore",

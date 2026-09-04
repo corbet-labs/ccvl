@@ -1,0 +1,11 @@
+{
+  "lsp": {
+    "tinymist": {
+      "settings": {
+        "rootPath": ".",
+        "fontPaths": ["cvl/shared/fonts"],
+        "systemFonts": false
+      }
+    }
+  }
+}

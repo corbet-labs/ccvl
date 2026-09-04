@@ -44,8 +44,9 @@ typst compile --root . --font-path cvl/shared/fonts --ignore-system-fonts SOURCE
 
 Without `--font-path`, Typst cannot discover a repository-local font and may
 render a fallback while only emitting a warning. The platform `check` command
-treats any Typst diagnostic or non-Archivo PDF font as a failure. The workspace's Tinymist
-settings configure the same bundled path for editor previews.
+treats any Typst diagnostic or non-Archivo PDF font as a failure. The checked-in
+Visual Studio Code and Zed Tinymist settings configure the same bundled path for
+editor previews.
 
 Do not widen permissions, enable package lifecycle scripts, add hidden hooks,
 or weaken `.gitignore` as part of setup.
