@@ -133,7 +133,10 @@ mod tests {
     #[test]
     fn parent_escape_is_rejected() {
         let workspace = repository();
-        assert!(workspace.existing_inside("../applications").is_err());
+        // "../.." always exists and always lies outside the workspace, unlike
+        // a named sibling which may resolve back inside when the checkout
+        // itself carries that name.
+        assert!(workspace.existing_inside("../..").is_err());
     }
 
     #[test]
