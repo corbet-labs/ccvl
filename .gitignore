@@ -1,22 +1,19 @@
 # Opportunity-specific generated output
 /opportunities/*/*/output/
 
-# Private profile sources and working evidence
-/cvl/imports/*
-!/cvl/imports/README.md
-/cvl/evidence/*
-!/cvl/evidence/README.md
+# Private user knowledge; only the public scaffold and station example ship.
+/interview/*
+!/interview/README.md
+!/interview/imports/
+/interview/imports/*
+!/interview/imports/README.md
+!/interview/stations.json
 
 # Local build state
-/.cache/
+/.agent/cache/
 __pycache__/
 *.py[cod]
-/result
 /target/
-/tmp/
-
-# Local review notes are not part of the public template
-/Schw*chen.md
 
 # Secrets
 .env

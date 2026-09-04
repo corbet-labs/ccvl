@@ -9,15 +9,15 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $RepoRoot = $PSScriptRoot
-$Binary = Join-Path $RepoRoot ".cache\ccvl\bin\ccvl.exe"
+$Binary = Join-Path $RepoRoot ".agent\cache\ccvl\bin\ccvl.exe"
 
 switch ($Command.ToLowerInvariant()) {
     "setup" {
-        & (Join-Path $RepoRoot "scripts\bootstrap.ps1") install @Arguments
+        & (Join-Path $RepoRoot ".agent\scripts\bootstrap.ps1") install @Arguments
         exit 0
     }
     "bootstrap" {
-        & (Join-Path $RepoRoot "scripts\bootstrap.ps1") plan @Arguments
+        & (Join-Path $RepoRoot ".agent\scripts\bootstrap.ps1") plan @Arguments
         exit 0
     }
     default {

@@ -1,4 +1,5 @@
-* text=auto
+* text=auto eol=lf
+*.rs text eol=lf
 *.typ text eol=lf
 *.md text eol=lf
 *.cmd text eol=lf
@@ -7,11 +8,13 @@
 *.lock text eol=lf
 *.ps1 text eol=lf
 *.sh text eol=lf
+*.txt text eol=lf
 *.toml text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
 ccvl text eol=lf
-justfile text eol=lf
 
 *.pdf binary
 *.doc binary

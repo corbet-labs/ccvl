@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - ".agents/skills/**"
+      - ".agent/skills/**"
       - ".github/workflows/skill-eval.yml"
       - "Cargo.lock"
       - "Cargo.toml"
       - "rust-toolchain.toml"
-      - "src/**"
-      - "tests/skill-cases.json"
+      - ".agent/src/**"
+      - ".agent/tests/skill-cases.json"
   workflow_dispatch:
 
 permissions:
@@ -53,7 +53,9 @@ jobs:
         run: |
           set +e
           cargo "+$RUST_TOOLCHAIN" run --quiet --locked -- skill-eval \
-            --output tmp/ai-skill-eval/report.json \
+            --cases .agent/tests/skill-cases.json \
+            --skills-root .agent/skills \
+            --output .agent/cache/ai-skill-eval/report.json \
             --summary "$GITHUB_STEP_SUMMARY"
           status=$?
           set -e
@@ -64,7 +66,8 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ai-skill-evaluation
-          path: tmp/ai-skill-eval/report.json
+          path: .agent/cache/ai-skill-eval/report.json
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
 

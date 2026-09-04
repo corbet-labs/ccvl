@@ -97,12 +97,12 @@ jobs:
           complete="$(bash ./ccvl bootstrap)"
           grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$complete"
           grep -Fq 'ccvl binary: ready' <<<"$complete"
-          mv .cache/ccvl/bin/ccvl "$RUNNER_TEMP/ccvl"
+          mv .agent/cache/ccvl/bin/ccvl "$RUNNER_TEMP/ccvl"
           partial="$(bash ./ccvl bootstrap)"
           printf '%s\n' "$partial"
           grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$partial"
           grep -Fq 'ccvl binary: install' <<<"$partial"
-          mv "$RUNNER_TEMP/ccvl" .cache/ccvl/bin/ccvl
+          mv "$RUNNER_TEMP/ccvl" .agent/cache/ccvl/bin/ccvl
           bash ./ccvl public-check
 
   macos-native:
@@ -136,12 +136,12 @@ jobs:
           complete="$(bash ./ccvl bootstrap)"
           grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$complete"
           grep -Fq 'ccvl binary: ready' <<<"$complete"
-          mv .cache/ccvl/bin/ccvl "$RUNNER_TEMP/ccvl"
+          mv .agent/cache/ccvl/bin/ccvl "$RUNNER_TEMP/ccvl"
           partial="$(bash ./ccvl bootstrap)"
           printf '%s\n' "$partial"
           grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$partial"
           grep -Fq 'ccvl binary: install' <<<"$partial"
-          mv "$RUNNER_TEMP/ccvl" .cache/ccvl/bin/ccvl
+          mv "$RUNNER_TEMP/ccvl" .agent/cache/ccvl/bin/ccvl
           bash ./ccvl public-check
 
   windows-native:
@@ -170,7 +170,7 @@ jobs:
 
       - name: Prove empty, complete, and partial bootstrap states
         run: |
-          $Plan = (& .\scripts\bootstrap.ps1 plan | Out-String)
+          $Plan = (& .\.agent\scripts\bootstrap.ps1 plan | Out-String)
           Write-Host $Plan
           if ((-not $Plan.Contains("Rust toolchain: install 1.94.0 with pinned rustup-init 1.29.1")) -or
               (-not $Plan.Contains("ccvl binary: install"))) {
@@ -178,19 +178,19 @@ jobs:
           }
           & .\ccvl.cmd setup
           if ($LASTEXITCODE -ne 0) { throw "native Windows setup failed" }
-          $Complete = (& .\scripts\bootstrap.ps1 plan | Out-String)
+          $Complete = (& .\.agent\scripts\bootstrap.ps1 plan | Out-String)
           if ((-not $Complete.Contains("Rust toolchain: managed 1.94.0")) -or
               (-not $Complete.Contains("ccvl binary: ready"))) {
             throw "complete Windows environment was not a no-op"
           }
-          Move-Item .cache\ccvl\bin\ccvl.exe "$env:RUNNER_TEMP\ccvl.exe"
-          $Partial = (& .\scripts\bootstrap.ps1 plan | Out-String)
+          Move-Item .agent\cache\ccvl\bin\ccvl.exe "$env:RUNNER_TEMP\ccvl.exe"
+          $Partial = (& .\.agent\scripts\bootstrap.ps1 plan | Out-String)
           Write-Host $Partial
           if ((-not $Partial.Contains("Rust toolchain: managed 1.94.0")) -or
               (-not $Partial.Contains("ccvl binary: install"))) {
             throw "partial Windows environment was not detected"
           }
-          Move-Item "$env:RUNNER_TEMP\ccvl.exe" .cache\ccvl\bin\ccvl.exe
+          Move-Item "$env:RUNNER_TEMP\ccvl.exe" .agent\cache\ccvl\bin\ccvl.exe
           & .\ccvl.cmd public-check
           if ($LASTEXITCODE -ne 0) { throw "native Windows public check failed" }
 
@@ -226,10 +226,10 @@ jobs:
       - name: Check workflows and shell scripts
         run: |
           actionlint -shellcheck shellcheck
-          shellcheck scripts/*.sh tests/*.sh ccvl
+          shellcheck .agent/scripts/*.sh .agent/tests/*.sh ccvl
 
       - name: Run Linux-specific independent PDF checks
-        run: bash scripts/check-linux-deep.sh
+        run: bash .agent/scripts/check-linux-deep.sh
 
       - name: Run public release checks
         run: bash ./ccvl public-check

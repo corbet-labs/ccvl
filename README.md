@@ -10,34 +10,45 @@ layer, strict document checks, and portable agent skills for the complete
 application loop.
 
 The showcase is intentionally a real CV rather than fictional sample data. It
-serves two purposes: demonstrating the system at production quality and making
-its author discoverable for suitable roles. It is reference-only personal
-content, not a reusable template. New users start from the neutral templates
-and replace the profile and evidence with their own verified facts.
+demonstrates the system at production quality and makes its author discoverable
+for suitable roles. It is reference-only personal content, not reusable
+template wording. New users replace it with their own verified facts.
 
 ## Showcase and open application
 
-[View the bilingual CV and cover-letter showcase](SHOWCASE.md). The personal
-content is visible for professional evaluation, but is not a reusable template.
+[View the bilingual CV and cover-letter showcase](.agent/docs/showcase.md).
+The personal content is visible for professional evaluation, but is not a
+reusable template.
 
-## What is included
+## A simple workspace
 
-- Three visible working groups: `cvl/` for the general master, `targets/` for
-  the market map, and `opportunities/<organisation>/<position>/` for each
-  tailored package.
+The product has four domains:
+
+```text
+.agent/                                  implementation and agent workflows
+interview/                               knowledge and evidence about the user
+cvl/                                     approved general CV and cover letter
+opportunities/<organisation>/<position>/ one concrete job and its documents
+```
+
+`.github/` contains hosting automation and `LICENSES/` contains the complete
+legal texts. There is no separate market map. General preferences discovered
+with the user belong in `interview/`; company and role research belongs beside
+the concrete job in `opportunities/`.
+
+Included are:
+
 - German and English CVs with exact two-, three-, and four-page variants and
-  an always-five-line Summary.
-- A deterministic layout gate: 6–8 experience entries on page 1; exactly 10
-  supporting entries with two bullets each on page 2; exactly 10 projects with
-  two bullets each on page 3; and a fixed 3×3 competency structure on page 4.
-- A target-neutral cover letter with six measured paragraphs and five highlights.
-- One schema-validated `application.json` per concrete opportunity.
-- Measured minimum, target, and maximum bounds for controlled line width,
-  cover-letter spacing, and highlight position.
-- A shared `ctypst` Rust engine with embedded fonts and reproducible PDF output.
-- Eight agent skills for setup, evidence-backed profiles, target research, CV
-  work, applications, interview preparation, upskilling, and outcome tracking.
-- Privacy and provenance rules for keeping personal application data in a
+  an always-five-line Summary;
+- a deterministic layout gate for every fixed CV page;
+- a target-neutral cover letter with six measured paragraphs and five
+  highlights;
+- one schema-validated `application.json` per concrete opportunity;
+- a shared Rust and Typst engine with bundled fonts and reproducible PDF
+  output;
+- seven agent skills for setup, evidence-backed profiles, CV work,
+  applications, interview preparation, upskilling, and outcome tracking;
+- privacy and provenance rules for keeping personal application data in a
   private downstream repository.
 
 ## Quick start
@@ -47,7 +58,7 @@ archive](https://github.com/corbet-labs/ccvl/archive/refs/heads/main.zip), or
 clone the repository if you already use Git. Open the folder in a
 filesystem-capable coding agent and ask it to set up ccvl using `AGENTS.md`.
 The complete novice and terminal workflows are in [Getting
-started](docs/getting-started.md).
+started](.agent/docs/getting-started.md).
 
 ```sh
 git clone https://github.com/corbet-labs/ccvl.git
@@ -60,8 +71,7 @@ bash ./ccvl new-opportunity example-org strategy-lead
 bash ./ccvl build-opportunity example-org strategy-lead
 ```
 
-On native Windows, use the matching dispatcher from Command Prompt or
-PowerShell:
+On native Windows, use the root dispatcher from Command Prompt or PowerShell:
 
 ```powershell
 .\ccvl.cmd setup
@@ -72,71 +82,68 @@ PowerShell:
 .\ccvl.cmd build-opportunity example-org strategy-lead
 ```
 
-Generated PDFs are written below `cvl/cv/output/` and `cvl/cl/output/`.
+Generated general documents are written to
+`cvl/<locale>/output/cv-{2,3,4}.pdf` and `cvl/<locale>/output/cl.pdf`.
+Opportunity-specific documents are written beside their job record under
+`opportunities/<organisation>/<position>/output/`.
+
 The same commands work in a downloaded source archive; Git knowledge is not
 required. On Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows
-x86_64/ARM64, setup builds a repository-local binary from Rust source with the
-locked Cargo dependency graph. Typst, Typstyle, and the font pack are embedded.
-Existing POSIX Just users may use the equivalent `just` recipes.
+x86_64/ARM64, setup builds a repository-local binary from the locked Rust
+dependency graph. Typst, Typstyle, and the font pack are embedded.
 
 ## Make it yours
 
-Keep the same structure in every fork or private downstream:
+The workflow moves in one direction:
 
 ```text
-cvl/                                      your general CV and cover letter
-targets/                                  organisations and role families
-opportunities/<organisation>/<position>/ tailored CV and optional CL
+interview/ -> cvl/ -> opportunities/<organisation>/<position>/
+     ^                         |
+     +----- verified facts ----+
 ```
 
-Replace `cvl/general/` with your verified profile and wording, then build each
-concrete role under `opportunities/`. `new-opportunity` creates exactly
-`opportunities/<organisation>/<position>/application.json`; its build writes
-the CV and optional cover letter beside it under `output/`. A private standalone repository may
-retain ccvl as `upstream`; a public fork must remove the original author's
-personal content before publishing its replacement. See [Private
-downstreams](docs/private-downstream.md).
+Start with `ccvl-profile`: import sources or answer one question at a time
+while the agent maintains `interview/profile.md`, `interview/journal.md`, and
+`interview/stations.json`. Once the evidence and fixed station layout are
+complete, replace the general showcase under `cvl/` with approved wording.
+Create one directory for each concrete job; its posting, research, tailored
+documents, interview preparation, submission record, and outcome all stay
+together.
 
-The checked-in showcase is reference material, not evidence about a new user.
-Start with the `ccvl-profile` skill, establish a verified fact base, and only
-then replace the general showcase content. The interview writes a visible local
-journal, accepts pasted or dropped-in documents, and keeps collecting until
-`ccvl profile-status` confirms that both core pages are full without being
-overcrowded. Its personal claims and wording may not be reused as template
-content. Claims drawn from the new user's own evidence may be selected and
-compressed, but must never be invented.
+A private standalone repository may retain ccvl as `upstream`; a public fork
+must remove the original author's personal content before publishing its
+replacement. See [Private downstreams](.agent/docs/private-downstream.md).
+
+The checked-in showcase is visual and implementation evidence, never evidence
+about another user. Claims may be selected and compressed from that user's own
+evidence, but must never be invented.
 
 ## Agent workflows
 
-Canonical skills live under `.agents/skills/`:
+Canonical skills live under `.agent/skills/`:
 
 - `ccvl-install`
 - `ccvl-profile`
-- `ccvl-targets`
 - `ccvl-cv`
 - `ccvl-apply`
 - `ccvl-interview`
 - `ccvl-upskill`
 - `ccvl-outcome`
 
-Repository-wide operating rules are in [AGENTS.md](AGENTS.md). The data model
-is documented in [docs/data-model.md](docs/data-model.md), and the deterministic
-plus small-model checks are described in [docs/testing.md](docs/testing.md).
-The [skill map](docs/skills.md) defines the eight ownership boundaries and what
-is deliberately left to an explicitly connected system or user action.
+Repository-wide operating rules are in [AGENTS.md](AGENTS.md). The [data
+model](.agent/docs/data-model.md), [testing contract](.agent/docs/testing.md),
+and [skill map](.agent/docs/skills.md) document the boundaries in detail.
 
 ## License
 
 ccvl uses path-specific licensing:
 
 - software, Typst sources, scripts, and skills: FSL-1.1-ALv2;
-- documentation and neutral templates: CC-BY-4.0;
+- documentation and neutral scaffolds: CC-BY-4.0;
 - personal showcase data and Typst content, generated signature, and rendered
-  showcase PDFs: LicenseRef-CCVL-Personal-Content (all rights reserved, with
-  only narrow evaluation and private replacement permissions);
+  showcase PDFs: LicenseRef-CCVL-Personal-Content;
 - bundled fonts: OFL-1.1.
 
 FSL is a Fair Source license, not an OSI Open Source license. Each published
-version becomes available under Apache-2.0 two years after that version was
-made available. See [LICENSE.md](LICENSE.md) and [REUSE.toml](REUSE.toml) for
-the exact per-path mapping.
+version becomes available under Apache-2.0 two years after publication. See
+[LICENSE.md](LICENSE.md) and [REUSE.toml](REUSE.toml) for the exact mapping.

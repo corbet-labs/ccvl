@@ -1,25 +1,32 @@
-# Document suite
+# General CV and cover letter
 
-This top-level group is the candidate's complete general CV and cover-letter
-workspace plus its reusable Typst presentation layer.
+This directory contains the approved, renderable general document. It is a
+projection of verified user evidence, not the evidence store itself.
 
-- `general/`: profile, station plan, bilingual master content, five-line
-  Summaries, and general cover letters that an AI agent helps the user create;
-- `imports/`: ignored private inbox for source documents;
-- `evidence/`: ignored private working profile and interview journal;
-- `cv/`: exact two-, three-, and four-page CV presets;
-- `cl/`: one-page cover letters with six paragraphs, 25–28 body lines, and five
-  measured highlights;
-- `shared/`: profile, validation, measured line contracts, layout, components,
-  and bundled fonts.
+```text
+cvl/
+├── profile.json
+├── assets/
+├── de-ch/
+│   ├── application.json
+│   ├── cv.typ
+│   ├── cl.typ
+│   └── output/{cv-2.pdf,cv-3.pdf,cv-4.pdf,cl.pdf}
+└── en-ch/
+    └── ...
+```
 
-Both document types consume a versioned `application.json`. The default comes
-from `general/<locale>/application.json`. A keyed opportunity supplies its own
-record from `../opportunities/<organisation>/<position>/application.json` while
-reusing the general CV body and profile.
+`profile.json` contains only approved fields used in the rendered header. Each
+locale's `application.json` provides the general five-line Summary and cover
+letter. Shared rendering code, fonts, schemas, and neutral scaffolds belong in
+`.agent/`; source documents, the rich profile, journal, and station allocation
+belong in `interview/`.
 
-The CV has a deterministic layout contract. Experience uses 6–8 full entries
-on page 1. Page 2 uses exactly 10 supporting entries with two bullets each;
-page 3 uses exactly 10 projects with two bullets each; page 4 uses three
-competency groups with three blocks and three keyword lines per block. Run
-`ccvl profile-status` while interviewing and `--verify-sources` before rendering.
+A keyed opportunity supplies its own `application.json` from
+`../opportunities/<organisation>/<position>/` while reusing this general CV
+body and render profile.
+
+The CV has a fixed layout: 6–8 full experience entries on page 1, exactly 10
+two-bullet supporting entries on page 2, exactly 10 two-bullet projects on page
+3, and three groups of three three-line competency blocks on page 4. Run
+`bash ./ccvl profile-status --verify-sources` before rendering.

@@ -1,20 +1,19 @@
 {
   "format": "ccvl-workspace",
-  "schema_version": 4,
-  "application_schema": "schemas/application.schema.json",
-  "profile_schema": "schemas/profile.schema.json",
-  "station_schema": "schemas/stations.schema.json",
+  "schema_version": 5,
+  "application_schema": ".agent/schemas/application.schema.json",
+  "profile_schema": ".agent/schemas/profile.schema.json",
+  "station_schema": ".agent/schemas/stations.schema.json",
   "workspace_groups": {
+    "interview": {
+      "root": "interview",
+      "stations": "interview/stations.json"
+    },
     "cvl": {
       "root": "cvl",
-      "general": "cvl/general",
-      "profile": "cvl/general/profile.json",
-      "stations": "cvl/general/stations.json",
-      "de-CH": "cvl/general/de-ch/application.json",
-      "en-CH": "cvl/general/en-ch/application.json"
-    },
-    "targets": {
-      "root": "targets"
+      "profile": "cvl/profile.json",
+      "de-CH": "cvl/de-ch/application.json",
+      "en-CH": "cvl/en-ch/application.json"
     },
     "opportunities": {
       "root": "opportunities",
@@ -26,7 +25,6 @@
   "skills": [
     "ccvl-install",
     "ccvl-profile",
-    "ccvl-targets",
     "ccvl-cv",
     "ccvl-apply",
     "ccvl-interview",
@@ -35,8 +33,8 @@
   ],
   "documents": {
     "cv": {
-      "de-CH": "cvl/cv/de-ch/main.typ",
-      "en-CH": "cvl/cv/en-ch/main.typ",
+      "de-CH": "cvl/de-ch/cv.typ",
+      "en-CH": "cvl/en-ch/cv.typ",
       "presets": [2, 3, 4],
       "summary_lines": 5,
       "layout_contract": {
@@ -50,8 +48,8 @@
       }
     },
     "cover_letter": {
-      "de-CH": "cvl/cl/de-ch/main.typ",
-      "en-CH": "cvl/cl/en-ch/main.typ",
+      "de-CH": "cvl/de-ch/cl.typ",
+      "en-CH": "cvl/en-ch/cl.typ",
       "paragraphs": [
         {
           "number": 1,
