@@ -64,9 +64,16 @@ impl Compiler {
 
     pub fn render(&self, workspace: &Workspace, spec: &DocumentSpec) -> Result<PathBuf> {
         let document = self.compile(workspace, spec)?;
+        self.export(spec, &document)
+    }
+
+    /// Export an already compiled document to the spec output. Lets the check
+    /// gate measure metrics off the first compilation and export its PDF from
+    /// the same document instead of compiling a third time.
+    pub fn export(&self, spec: &DocumentSpec, document: &Document) -> Result<PathBuf> {
         let bytes = self
             .engine
-            .pdf(&document, source_date_epoch()?)
+            .pdf(document, source_date_epoch()?)
             .with_context(|| format!("cannot export {}", spec.name))?;
         ensure!(
             bytes.starts_with(b"%PDF-"),
@@ -179,14 +186,6 @@ pub fn cl_spec(
         ]),
         expected_pages: 1,
     })
-}
-
-pub fn compile_document(workspace: &Workspace, spec: &DocumentSpec) -> Result<Document> {
-    Compiler::new(workspace)?.compile(workspace, spec)
-}
-
-pub fn render_spec(workspace: &Workspace, spec: &DocumentSpec) -> Result<PathBuf> {
-    Compiler::new(workspace)?.render(workspace, spec)
 }
 
 pub fn render_cvl(workspace: &Workspace) -> Result<Vec<PathBuf>> {

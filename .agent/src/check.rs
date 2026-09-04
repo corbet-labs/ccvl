@@ -1,6 +1,7 @@
 use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
 use std::fs;
+use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
 use crate::application;
@@ -23,12 +24,6 @@ pub fn run(workspace: &Workspace) -> Result<()> {
     format::format_typst(workspace, true)?;
     stations::validate_interview(workspace, true)?;
     validate_embedded_fonts(workspace)?;
-    let failures = measure::measure(workspace, &measure::cvl_specs(workspace)?, false, false)?;
-    ensure!(
-        failures.is_empty(),
-        "line measurement failed: {}",
-        failures.join("; ")
-    );
     render_and_verify(workspace)
 }
 
@@ -253,23 +248,23 @@ fn render_and_verify(workspace: &Workspace) -> Result<()> {
     for locale in ["de-ch", "en-ch"] {
         let mut verified = Vec::new();
         for pages in [2, 3, 4] {
-            let mut one = cvl_cv_spec(workspace, locale, pages)?;
-            one.output = first.join(format!("cv-{locale}-{pages}.pdf"));
-            let mut two = one.clone();
-            two.output = second.join(format!("cv-{locale}-{pages}.pdf"));
-            compiler.render(workspace, &one)?;
-            compiler.render(workspace, &two)?;
-            ensure!(
-                fs::read(&one.output)? == fs::read(&two.output)?,
-                "CV build is not byte-reproducible: {locale} {pages} pages"
-            );
+            let spec = cvl_cv_spec(workspace, locale, pages)?;
+            let first_output = render_pair(
+                workspace,
+                &compiler,
+                &spec,
+                &first.join(format!("cv-{locale}-{pages}.pdf")),
+                &second.join(format!("cv-{locale}-{pages}.pdf")),
+                &format!("CV build is not byte-reproducible: {locale} {pages} pages"),
+                pages == 4,
+            )?;
             let tracked = workspace.path(format!("cvl/{locale}/output/cv-{pages}.pdf"));
             require_semantic_pdf_match(
-                &one.output,
+                &first_output,
                 &tracked,
                 &format!("CV output: {locale} {pages} pages"),
             )?;
-            verified.push(pdf::verify(&one.output, pages, &contacts, false)?);
+            verified.push(pdf::verify(&first_output, pages, &contacts, false)?);
         }
         for page in [1, 2] {
             let baseline = verified[0].page_content(page)?;
@@ -279,25 +274,74 @@ fn render_and_verify(workspace: &Workspace) -> Result<()> {
                 "shared CV page changed across presets: {locale} page {page}"
             );
         }
-        let mut one = cvl_cl_spec(workspace, locale)?;
-        one.output = first.join(format!("cl-{locale}.pdf"));
-        let mut two = one.clone();
-        two.output = second.join(format!("cl-{locale}.pdf"));
-        compiler.render(workspace, &one)?;
-        compiler.render(workspace, &two)?;
-        ensure!(
-            fs::read(&one.output)? == fs::read(&two.output)?,
-            "cover-letter build is not byte-reproducible: {locale}"
-        );
+        let spec = cvl_cl_spec(workspace, locale)?;
+        let first_output = render_pair(
+            workspace,
+            &compiler,
+            &spec,
+            &first.join(format!("cl-{locale}.pdf")),
+            &second.join(format!("cl-{locale}.pdf")),
+            &format!("cover-letter build is not byte-reproducible: {locale}"),
+            true,
+        )?;
         let tracked = workspace.path(format!("cvl/{locale}/output/cl.pdf"));
         require_semantic_pdf_match(
-            &one.output,
+            &first_output,
             &tracked,
             &format!("cover-letter output: {locale}"),
         )?;
-        pdf::verify(&one.output, 1, &contacts, true)?;
+        pdf::verify(&first_output, 1, &contacts, true)?;
     }
     Ok(())
+}
+
+/// Render one spec twice for byte-reproducibility. When `measured`, the first
+/// build runs in report mode so its document serves both the line-measurement
+/// gate and the first PDF; the enforce-mode second build stays the backstop
+/// and proves both modes emit identical bytes. Unmeasured presets compile in
+/// enforce mode twice, as before.
+fn render_pair(
+    workspace: &Workspace,
+    compiler: &Compiler,
+    spec: &DocumentSpec,
+    first: &Path,
+    second: &Path,
+    repro_label: &str,
+    measured: bool,
+) -> Result<PathBuf> {
+    let mut one = spec.clone();
+    one.output = first.to_path_buf();
+    let mut two = spec.clone();
+    two.output = second.to_path_buf();
+    if measured {
+        let mut report = one.clone();
+        report
+            .inputs
+            .insert("line-contracts".to_owned(), "report".to_owned());
+        let document = compiler.compile(workspace, &report)?;
+        let metrics = measure::document_metrics(workspace, &one, &document)?;
+        let mut failures = Vec::new();
+        for (index, metric) in metrics.iter().enumerate() {
+            if let Some(failure) = measure::line_failure(&one, index, metric)? {
+                failures.push(failure);
+            }
+        }
+        let _advisories = measure::preference_warnings(workspace, &one, &metrics)?;
+        ensure!(
+            failures.is_empty(),
+            "line measurement failed: {}",
+            failures.join("; ")
+        );
+        compiler.export(&one, &document)?;
+    } else {
+        compiler.render(workspace, &one)?;
+    }
+    compiler.render(workspace, &two)?;
+    ensure!(
+        fs::read(&one.output)? == fs::read(&two.output)?,
+        "{repro_label}"
+    );
+    Ok(one.output.clone())
 }
 
 fn require_semantic_pdf_match(
@@ -309,23 +353,6 @@ fn require_semantic_pdf_match(
         pdf::semantic_signature(generated)? == pdf::semantic_signature(tracked)?,
         "tracked {label} is stale or platform-dependent"
     );
-    Ok(())
-}
-
-pub fn check_one_pdf(workspace: &Workspace, spec: &DocumentSpec) -> Result<()> {
-    let compiler = Compiler::new(workspace)?;
-    compiler.render(workspace, spec)?;
-    let profile = workspace.read_json("cvl/profile.json")?;
-    let contacts = ["name", "email", "phone_label"]
-        .into_iter()
-        .filter_map(|key| profile.get(key).and_then(Value::as_str).map(str::to_owned))
-        .collect::<Vec<_>>();
-    pdf::verify(
-        &spec.output,
-        spec.expected_pages,
-        &contacts,
-        spec.expected_pages == 1,
-    )?;
     Ok(())
 }
 

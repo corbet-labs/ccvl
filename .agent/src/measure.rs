@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::sync::OnceLock;
 
 use anyhow::{Context, Result, ensure};
+use ctypst::Document;
 use serde_json::Value;
 
 use crate::render::{
@@ -46,15 +48,49 @@ fn evaluate_with(
     spec: &DocumentSpec,
 ) -> Result<Vec<Value>> {
     let document = compiler.compile(workspace, spec)?;
+    document_metrics(workspace, spec, &document)
+}
+
+/// Query the line/layout metrics of an already compiled document and enforce
+/// the structural metric set. Lets callers reuse one compilation for both
+/// measurement and PDF export instead of compiling twice.
+pub fn document_metrics(
+    workspace: &Workspace,
+    spec: &DocumentSpec,
+    document: &Document,
+) -> Result<Vec<Value>> {
     let mut metrics = Vec::new();
     for label_name in ["ccvl-line", "ccvl-layout"] {
         metrics.extend(
-            ctypst::query_json(&document, label_name)
+            ctypst::query_json(document, label_name)
                 .with_context(|| format!("cannot query {} metrics", spec.name))?,
         );
     }
     validate_metric_set(workspace, spec, &metrics)?;
     Ok(metrics)
+}
+
+/// Format the fill violation of one measured line, if any. Shared by the
+/// standalone `measure` command and the fused check gate so both report the
+/// same failure text.
+pub fn line_failure(
+    spec: &DocumentSpec,
+    index: usize,
+    metric: &Value,
+) -> Result<Option<String>> {
+    violation(metric).map(|state| {
+        state.map(|state| {
+            format!(
+                "{} #{} {state}: {:.1} outside {}–{}",
+                spec.name,
+                index + 1,
+                number_field(metric, "actual_fill")
+                    .expect("violation implies numeric actual_fill"),
+                number_field(metric, "min_fill").expect("violation implies numeric min_fill"),
+                number_field(metric, "max_fill").expect("violation implies numeric max_fill"),
+            )
+        })
+    })
 }
 
 pub fn measure(
@@ -91,15 +127,8 @@ pub fn measure(
                     compact_text(metric.get("text").unwrap_or(&Value::Null))
                 );
             }
-            if let Some(state) = state {
-                document_failures.push(format!(
-                    "{} #{} {state}: {:.1} outside {}–{}",
-                    spec.name,
-                    index + 1,
-                    number_field(metric, "actual_fill")?,
-                    number_field(metric, "min_fill")?,
-                    number_field(metric, "max_fill")?
-                ));
+            if let Some(failure) = line_failure(spec, index, metric)? {
+                document_failures.push(failure);
             }
         }
         failures.extend(document_failures.iter().cloned());
@@ -223,8 +252,15 @@ fn validate_metric_set(
     Ok(())
 }
 
+fn paragraph_pattern() -> &'static regex::Regex {
+    static PATTERN: OnceLock<regex::Regex> = OnceLock::new();
+    PATTERN.get_or_init(|| {
+        regex::Regex::new(r"^cl\.paragraph\.(\d+)\.(\d+)$").expect("fixed metric id pattern")
+    })
+}
+
 fn paragraph_counts(spec: &DocumentSpec, metrics: &[Value]) -> Result<Vec<usize>> {
-    let pattern = regex::Regex::new(r"^cl\.paragraph\.(\d+)\.(\d+)$")?;
+    let pattern = paragraph_pattern();
     let mut counts = vec![0; 6];
     for metric in metrics
         .iter()
@@ -245,7 +281,10 @@ fn paragraph_counts(spec: &DocumentSpec, metrics: &[Value]) -> Result<Vec<usize>
     Ok(counts)
 }
 
-fn preference_warnings(
+/// Accepted-but-dispreferred line totals per cover-letter region. Spelled out
+/// as warnings rather than failures; the fused check gate calls this for its
+/// error propagation even when it discards the advisories.
+pub fn preference_warnings(
     workspace: &Workspace,
     spec: &DocumentSpec,
     metrics: &[Value],
