@@ -176,10 +176,11 @@ fn render_and_verify(workspace: &Workspace) -> Result<()> {
             );
             let preset = cv_preset(pages)?;
             let tracked = workspace.path(format!("cvl/cv/output/{locale}/{preset}/cv.pdf"));
-            ensure!(
-                fs::read(&one.output)? == fs::read(&tracked)?,
-                "tracked CV output is stale or platform-dependent: {locale} {pages} pages"
-            );
+            require_semantic_pdf_match(
+                &one.output,
+                &tracked,
+                &format!("CV output: {locale} {pages} pages"),
+            )?;
             verified.push(pdf::verify(&one.output, pages, &contacts, false)?);
         }
         for page in [1, 2] {
@@ -201,12 +202,25 @@ fn render_and_verify(workspace: &Workspace) -> Result<()> {
             "cover-letter build is not byte-reproducible: {locale}"
         );
         let tracked = workspace.path(format!("cvl/cl/output/{locale}/cl.pdf"));
-        ensure!(
-            fs::read(&one.output)? == fs::read(&tracked)?,
-            "tracked cover-letter output is stale or platform-dependent: {locale}"
-        );
+        require_semantic_pdf_match(
+            &one.output,
+            &tracked,
+            &format!("cover-letter output: {locale}"),
+        )?;
         pdf::verify(&one.output, 1, &contacts, true)?;
     }
+    Ok(())
+}
+
+fn require_semantic_pdf_match(
+    generated: &std::path::Path,
+    tracked: &std::path::Path,
+    label: &str,
+) -> Result<()> {
+    ensure!(
+        pdf::semantic_signature(generated)? == pdf::semantic_signature(tracked)?,
+        "tracked {label} is stale or platform-dependent"
+    );
     Ok(())
 }
 

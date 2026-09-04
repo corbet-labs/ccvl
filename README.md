@@ -3,10 +3,11 @@
 [![CI](https://github.com/corbet-labs/ccvl/actions/workflows/ci.yml/badge.svg)](https://github.com/corbet-labs/ccvl/actions/workflows/ci.yml)
 [![Skill evaluation](https://github.com/corbet-labs/ccvl/actions/workflows/skill-eval.yml/badge.svg)](https://github.com/corbet-labs/ccvl/actions/workflows/skill-eval.yml)
 
-ccvl is a local-first, forkable CV and application system built with Typst. It
-ships a real bilingual career profile as its working example, a controllable
-Harvard-style presentation layer, strict document checks, and portable agent
-skills for the complete application loop.
+ccvl is a local-first, forkable CV and application system built as a native
+Rust binary with an embedded Typst engine. It ships a real bilingual career
+profile as its working example, a controllable Harvard-style presentation
+layer, strict document checks, and portable agent skills for the complete
+application loop.
 
 The showcase is intentionally a real CV rather than fictional sample data. It
 serves two purposes: demonstrating the system at production quality and making
@@ -73,9 +74,10 @@ PowerShell:
 
 Generated PDFs are written below `cvl/cv/output/` and `cvl/cl/output/`.
 The same commands work in a downloaded source archive; Git knowledge is not
-required. Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows
-x86_64/ARM64 use pinned native tools. Existing POSIX Just users may use the
-equivalent `just` recipes.
+required. On Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows
+x86_64/ARM64, setup builds a repository-local binary from Rust source with the
+locked Cargo dependency graph. Typst, Typstyle, and the font pack are embedded.
+Existing POSIX Just users may use the equivalent `just` recipes.
 
 ## Make it yours
 

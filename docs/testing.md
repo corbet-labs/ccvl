@@ -18,8 +18,8 @@ It verifies:
 
 - the workspace manifest, JSON schemas, applications, profile, skill manifest,
   Claude adapters, AI cases, and local Markdown links;
-- all Python evaluator unit tests, shell syntax, Typst formatting, and clean
-  Git whitespace;
+- the Rust-native evaluator and workspace contracts, embedded Typst formatting,
+  and clean Git whitespace;
 - binary asset integrity and all four bundled Archivo variants;
 - all six CV variants and both cover letters with zero Typst diagnostics;
 - exactly five Summary lines, six cover-letter paragraphs with 25–28 body
@@ -44,10 +44,12 @@ It verifies:
 
 The same suite runs natively on Linux x86_64/aarch64, macOS x86_64/aarch64,
 and Windows x86_64/aarch64 in GitHub Actions. It also proves that the freshly
-rendered PDFs are byte-identical to the tracked outputs on every OS. Linux CI
-adds independent Poppler, QPDF, and pixel comparisons. `public-check` adds
-private-root, symlink, secret-pattern, LFS-pointer, and private-workspace checks.
-Actions also runs ShellCheck, Actionlint, and REUSE licensing validation.
+rendered PDFs are byte-reproducible and semantically identical to the tracked
+outputs on every OS, excluding only the PDF rendition identifier. Linux CI adds
+the locked Rust unit suite plus independent Poppler, QPDF, and pixel comparisons.
+`public-check` adds private-root, symlink, secret-pattern, LFS-pointer, and
+private-workspace checks. Actions also runs ShellCheck, Actionlint, and REUSE
+licensing validation.
 
 The same line contract is available directly with `bash ./ccvl measure` or
 `.\ccvl.cmd measure`. It reports all violations in one pass so underfill or
@@ -73,7 +75,7 @@ To run the same evaluation outside Actions, set `GROQ_API_KEY` without writing
 it to the repository, then run:
 
 ```sh
-python3 scripts/ai_skill_eval.py
+cargo "+1.94.0" run --quiet --locked -- skill-eval
 ```
 
 The report is written to the ignored `tmp/ai-skill-eval/report.json` path.

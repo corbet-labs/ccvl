@@ -6,7 +6,10 @@ on:
     paths:
       - ".agents/skills/**"
       - ".github/workflows/skill-eval.yml"
-      - "scripts/ai_skill_eval.py"
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "rust-toolchain.toml"
+      - "src/**"
       - "tests/skill-cases.json"
   workflow_dispatch:
 
@@ -22,31 +25,34 @@ jobs:
     name: Small-model behavioural evaluation
     if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 60
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.0.0
-        with:
-          python-version: "3.13"
+      - name: Install exact Rust toolchain
+        env:
+          RUST_TOOLCHAIN: 1.94.0
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          test "$(rustc "+$RUST_TOOLCHAIN" --version | awk '{print $2}')" = "$RUST_TOOLCHAIN"
 
       - name: Validate evaluator and skill contracts
-        run: |
-          python3 scripts/validate_workspace.py
-          python3 -m unittest discover -s tests -p 'test_*.py'
+        env:
+          RUST_TOOLCHAIN: 1.94.0
+        run: cargo "+$RUST_TOOLCHAIN" test --locked --all-features
 
       - name: Evaluate every skill with a small free model
         id: evaluation
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GROQ_MODEL: openai/gpt-oss-20b
+          RUST_TOOLCHAIN: 1.94.0
         run: |
           set +e
-          python3 scripts/ai_skill_eval.py \
+          cargo "+$RUST_TOOLCHAIN" run --quiet --locked -- skill-eval \
             --output tmp/ai-skill-eval/report.json \
             --summary "$GITHUB_STEP_SUMMARY"
           status=$?
@@ -73,6 +79,10 @@ jobs:
               ;;
             1)
               echo "::error::The model selected a forbidden action or missed a required action."
+              exit 1
+              ;;
+            2)
+              echo "::error::The evaluator input or configuration was invalid."
               exit 1
               ;;
             75)

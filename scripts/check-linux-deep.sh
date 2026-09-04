@@ -1,49 +1,46 @@
 #!/usr/bin/env bash
-# Linux-only secondary checks using Poppler and QPDF.
+# Linux-only secondary checks using file, Poppler, and QPDF.
 set -euo pipefail
 export LC_ALL=C
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-export PATH="$repo_root/.cache/ccvl/bin:$PATH"
-managed_python="$repo_root/.cache/ccvl/venv/bin/python3"
+binary="$repo_root/.cache/ccvl/bin/ccvl"
 validation_dir="$(mktemp -d "${TMPDIR:-/tmp}/ccvl-check.XXXXXXXX")"
 trap 'rm -rf -- "$validation_dir"' EXIT
 
 cd "$repo_root"
-
-bash scripts/doctor.sh >/dev/null
-bash scripts/check-fonts.sh
-"$managed_python" scripts/validate_workspace.py
-"$managed_python" scripts/station_plan.py --verify-sources
-"$managed_python" -m unittest discover -s tests -p 'test_*.py'
-bash tests/test_bootstrap.sh
-for shell_script in scripts/*.sh; do
-  bash -n "$shell_script"
-done
-typstyle --check --line-width 120 cvl
-
-profile_value() {
-  "$managed_python" - "$1" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-print(json.loads(Path("cvl/general/profile.json").read_text(encoding="utf-8"))[sys.argv[1]])
-PY
+[[ -x "$binary" ]] || {
+  printf 'The repository-local ccvl binary is missing. Run bash ./ccvl setup first.\n' >&2
+  exit 2
 }
 
-same_document() {
-  PYTHONPATH="$repo_root/scripts" "$managed_python" - "$1" "$2" <<'PY'
-import sys
-from pathlib import Path
+"$binary" doctor >/dev/null
+"$binary" check
+bash tests/test_bootstrap.sh
+for shell_script in scripts/*.sh tests/*.sh ccvl; do
+  bash -n "$shell_script"
+done
+"$binary" fmt --check
 
-from check import semantic_pdf_signature
+for filename in Archivo-Bold.ttf Archivo-Italic.ttf Archivo-Medium.ttf Archivo-Regular.ttf; do
+  path="$repo_root/cvl/shared/fonts/$filename"
+  if ! file --brief -- "$path" | grep -Eq 'TrueType|OpenType'; then
+    printf 'Bundled font is missing, unresolved, or invalid: %s\n' "$path" >&2
+    exit 1
+  fi
+done
 
-raise SystemExit(
-    semantic_pdf_signature(Path(sys.argv[1]))
-    != semantic_pdf_signature(Path(sys.argv[2]))
-)
-PY
+profile_value() {
+  local key="$1"
+  local value
+  value="$(sed -n \
+    "s/^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\",\{0,1\}[[:space:]]*$/\\1/p" \
+    cvl/general/profile.json)"
+  [[ -n "$value" ]] || {
+    printf 'Could not read %s from cvl/general/profile.json\n' "$key" >&2
+    return 1
+  }
+  printf '%s\n' "$value"
 }
 
 public_name="$(profile_value name)"
@@ -109,26 +106,52 @@ check_pdf() {
     fi
   done
 
-  if pdffonts "$pdf" | tail -n +3 | awk 'NF && $5 != "yes" { exit 1 }'; then
-    :
-  else
+  if ! pdffonts "$pdf" | tail -n +3 | awk 'NF && $5 != "yes" { exit 1 }'; then
     printf '%s contains a font that is not embedded\n' "$pdf" >&2
     return 1
   fi
 
-  if [[ "$require_image" == yes ]] && ! pdfimages -list "$pdf" | awk 'NR > 2 && $3 == "image" { found = 1 } END { exit !found }'; then
+  if [[ "$require_image" == yes ]] \
+    && ! pdfimages -list "$pdf" | awk 'NR > 2 && $3 == "image" { found = 1 } END { exit !found }'; then
     printf '%s is missing its rendered signature image\n' "$pdf" >&2
     return 1
   fi
 
-  if pdffonts "$pdf" | tail -n +3 | awk '
+  if ! pdffonts "$pdf" | tail -n +3 | awk '
     NF && ($1 !~ /^[A-Z]+[+]Archivo-/ || $5 != "yes" || $6 != "yes" || $7 != "yes") { exit 1 }
   '; then
-    :
-  else
     printf '%s contains a fallback, unembedded, unsubstituted, or unmapped font\n' "$pdf" >&2
     return 1
   fi
+}
+
+comparison_count=0
+same_document() {
+  local left="$1"
+  local right="$2"
+  local left_dir
+  local right_dir
+  local left_count
+  local right_count
+  local left_page
+  local page_name
+
+  ((comparison_count += 1))
+  left_dir="$validation_dir/comparison-$comparison_count-left"
+  right_dir="$validation_dir/comparison-$comparison_count-right"
+  mkdir -p "$left_dir" "$right_dir"
+  pdftoppm -png -r 144 "$left" "$left_dir/page" >/dev/null 2>&1
+  pdftoppm -png -r 144 "$right" "$right_dir/page" >/dev/null 2>&1
+  left_count="$(find "$left_dir" -type f -name 'page-*.png' | wc -l)"
+  right_count="$(find "$right_dir" -type f -name 'page-*.png' | wc -l)"
+  [[ "$left_count" == "$right_count" && "$left_count" -gt 0 ]] || return 1
+  for left_page in "$left_dir"/page-*.png; do
+    page_name="${left_page##*/}"
+    cmp --silent "$left_page" "$right_dir/$page_name" || return 1
+  done
+  pdftotext "$left" "$left_dir/text.txt"
+  pdftotext "$right" "$right_dir/text.txt"
+  cmp --silent "$left_dir/text.txt" "$right_dir/text.txt"
 }
 
 render_suite() {
@@ -138,18 +161,18 @@ render_suite() {
 
   for locale in de-ch en-ch; do
     for pages in 2 3 4; do
-      bash scripts/render.sh cv \
+      "$binary" build-cv \
         "$locale" \
         "$pages" \
-        "cvl/general/$locale/application.json" \
-        "cvl/general/profile.json" \
-        "$destination/cv-$locale-$pages.pdf" >/dev/null
+        --application "cvl/general/$locale/application.json" \
+        --profile cvl/general/profile.json \
+        --output "$destination/cv-$locale-$pages.pdf" >/dev/null
     done
-    bash scripts/render.sh cl \
+    "$binary" build-cl \
       "$locale" \
-      "cvl/general/$locale/application.json" \
-      "cvl/general/profile.json" \
-      "$destination/cl-$locale.pdf" >/dev/null
+      --application "cvl/general/$locale/application.json" \
+      --profile cvl/general/profile.json \
+      --output "$destination/cl-$locale.pdf" >/dev/null
   done
 }
 
@@ -168,24 +191,28 @@ for locale in de-ch en-ch; do
       *) printf 'Unsupported CV page count: %s\n' "$pages" >&2; exit 1 ;;
     esac
     pdf="$first_build/cv-$locale-$pages.pdf"
+    tracked="cvl/cv/output/$locale/$preset/cv.pdf"
     check_pdf "$pdf" "$pages"
+    check_pdf "$tracked" "$pages"
     cmp --silent "$pdf" "$second_build/cv-$locale-$pages.pdf" || {
       printf 'CV build is not byte-reproducible: %s %s pages\n' "$locale" "$pages" >&2
       exit 1
     }
-    same_document "$pdf" "cvl/cv/output/$locale/$preset/cv.pdf" || {
+    same_document "$pdf" "$tracked" || {
       printf 'Tracked CV output is stale: %s %s pages\n' "$locale" "$pages" >&2
       exit 1
     }
   done
 
   pdf="$first_build/cl-$locale.pdf"
+  tracked="cvl/cl/output/$locale/cl.pdf"
   check_pdf "$pdf" 1 yes
+  check_pdf "$tracked" 1 yes
   cmp --silent "$pdf" "$second_build/cl-$locale.pdf" || {
     printf 'Cover-letter build is not byte-reproducible: %s\n' "$locale" >&2
     exit 1
   }
-  same_document "$pdf" "cvl/cl/output/$locale/cl.pdf" || {
+  same_document "$pdf" "$tracked" || {
     printf 'Tracked cover-letter output is stale: %s\n' "$locale" >&2
     exit 1
   }
@@ -215,4 +242,4 @@ for locale in de-ch en-ch; do
   done
 done
 
-printf 'All data, station, source, skill, font, reproducibility, CV, and cover-letter checks passed.\n'
+printf 'Rust, data, font, PDF, reproducibility, CV, and cover-letter checks passed.\n'

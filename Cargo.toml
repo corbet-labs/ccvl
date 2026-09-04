@@ -2,7 +2,7 @@
 name = "ccvl"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.92"
+rust-version = "1.94"
 description = "Local-first, deterministic CV and cover-letter compiler"
 license = "FSL-1.1-ALv2"
 repository = "https://github.com/corbet-labs/ccvl"

@@ -11,7 +11,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.92.0
+  RUST_TOOLCHAIN: 1.94.0
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -53,7 +53,7 @@ jobs:
     if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04
     container: ubuntu:24.04
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - name: Download source without assuming Git
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
@@ -78,7 +78,7 @@ jobs:
     name: Native Linux (aarch64) bootstrap and documents
     if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 15
+    timeout-minutes: 60
     env:
       CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
     steps:
@@ -91,15 +91,18 @@ jobs:
         run: |
           plan="$(bash ./ccvl bootstrap)"
           printf '%s\n' "$plan"
-          grep -Fq 'pinned local tools: typst typstyle uv' <<<"$plan"
+          grep -Fq 'Rust toolchain: install 1.94.0 with pinned rustup-init 1.29.1' <<<"$plan"
+          grep -Fq 'ccvl binary: install' <<<"$plan"
           bash ./ccvl setup
           complete="$(bash ./ccvl bootstrap)"
-          grep -Fq 'pinned local tools: none' <<<"$complete"
-          mv .cache/ccvl/bin/typst "$RUNNER_TEMP/typst"
+          grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$complete"
+          grep -Fq 'ccvl binary: ready' <<<"$complete"
+          mv .cache/ccvl/bin/ccvl "$RUNNER_TEMP/ccvl"
           partial="$(bash ./ccvl bootstrap)"
           printf '%s\n' "$partial"
-          grep -Fq 'pinned local tools: typst' <<<"$partial"
-          mv "$RUNNER_TEMP/typst" .cache/ccvl/bin/typst
+          grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$partial"
+          grep -Fq 'ccvl binary: install' <<<"$partial"
+          mv "$RUNNER_TEMP/ccvl" .cache/ccvl/bin/ccvl
           bash ./ccvl public-check
 
   macos-native:
@@ -114,7 +117,7 @@ jobs:
           - arch: x86_64
             runner: macos-15-intel
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 15
+    timeout-minutes: 60
     env:
       CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
     steps:
@@ -127,15 +130,18 @@ jobs:
         run: |
           plan="$(bash ./ccvl bootstrap)"
           printf '%s\n' "$plan"
-          grep -Fq 'pinned local tools: typst typstyle uv' <<<"$plan"
+          grep -Fq 'Rust toolchain: install 1.94.0 with Homebrew rustup' <<<"$plan"
+          grep -Fq 'ccvl binary: install' <<<"$plan"
           bash ./ccvl setup
           complete="$(bash ./ccvl bootstrap)"
-          grep -Fq 'pinned local tools: none' <<<"$complete"
-          mv .cache/ccvl/bin/typst "$RUNNER_TEMP/typst"
+          grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$complete"
+          grep -Fq 'ccvl binary: ready' <<<"$complete"
+          mv .cache/ccvl/bin/ccvl "$RUNNER_TEMP/ccvl"
           partial="$(bash ./ccvl bootstrap)"
           printf '%s\n' "$partial"
-          grep -Fq 'pinned local tools: typst' <<<"$partial"
-          mv "$RUNNER_TEMP/typst" .cache/ccvl/bin/typst
+          grep -Fq 'Rust toolchain: managed 1.94.0' <<<"$partial"
+          grep -Fq 'ccvl binary: install' <<<"$partial"
+          mv "$RUNNER_TEMP/ccvl" .cache/ccvl/bin/ccvl
           bash ./ccvl public-check
 
   windows-native:
@@ -150,7 +156,7 @@ jobs:
           - arch: arm64
             runner: windows-11-arm
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 15
+    timeout-minutes: 60
     env:
       CCVL_BOOTSTRAP_FORCE_LOCAL: "1"
     defaults:
@@ -166,22 +172,25 @@ jobs:
         run: |
           $Plan = (& .\scripts\bootstrap.ps1 plan | Out-String)
           Write-Host $Plan
-          if (-not $Plan.Contains("pinned local tools: typst typstyle uv")) {
+          if ((-not $Plan.Contains("Rust toolchain: install 1.94.0 with pinned rustup-init 1.29.1")) -or
+              (-not $Plan.Contains("ccvl binary: install"))) {
             throw "empty Windows bootstrap plan was incomplete"
           }
           & .\ccvl.cmd setup
           if ($LASTEXITCODE -ne 0) { throw "native Windows setup failed" }
           $Complete = (& .\scripts\bootstrap.ps1 plan | Out-String)
-          if (-not $Complete.Contains("pinned local tools: none")) {
+          if ((-not $Complete.Contains("Rust toolchain: managed 1.94.0")) -or
+              (-not $Complete.Contains("ccvl binary: ready"))) {
             throw "complete Windows environment was not a no-op"
           }
-          Move-Item .cache\ccvl\bin\typst.exe "$env:RUNNER_TEMP\typst.exe"
+          Move-Item .cache\ccvl\bin\ccvl.exe "$env:RUNNER_TEMP\ccvl.exe"
           $Partial = (& .\scripts\bootstrap.ps1 plan | Out-String)
           Write-Host $Partial
-          if (-not $Partial.Contains("pinned local tools: typst")) {
+          if ((-not $Partial.Contains("Rust toolchain: managed 1.94.0")) -or
+              (-not $Partial.Contains("ccvl binary: install"))) {
             throw "partial Windows environment was not detected"
           }
-          Move-Item "$env:RUNNER_TEMP\typst.exe" .cache\ccvl\bin\typst.exe
+          Move-Item "$env:RUNNER_TEMP\ccvl.exe" .cache\ccvl\bin\ccvl.exe
           & .\ccvl.cmd public-check
           if ($LASTEXITCODE -ne 0) { throw "native Windows public check failed" }
 
@@ -189,14 +198,14 @@ jobs:
     name: Linux release and independent PDF verification
     if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Set up the pinned ccvl runtime
+      - name: Set up the pinned native ccvl binary
         run: bash ./ccvl setup
 
       - name: Install secondary test tools
@@ -232,13 +241,10 @@ jobs:
         if: always()
         run: |
           {
-            echo "## Mechanical toolchain"
+            echo "## Native runtime and independent verification"
             echo
             echo '```text'
-            .cache/ccvl/bin/typst --version || typst --version
-            .cache/ccvl/bin/typstyle --version || typstyle --version
-            .cache/ccvl/bin/uv --version || uv --version
-            .cache/ccvl/bin/uv run --frozen --no-dev python --version
+            bash ./ccvl doctor
             actionlint --version
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

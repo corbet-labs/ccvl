@@ -465,3 +465,269 @@ fn string<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
         .and_then(Value::as_str)
         .with_context(|| format!("missing string field {key}"))
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    use tempfile::tempdir_in;
+
+    use super::*;
+
+    fn workspace() -> Workspace {
+        Workspace::at(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap()
+    }
+
+    fn station(index: usize, page: Option<u8>, status: &str, experience: bool) -> Value {
+        json!({
+            "id": format!("station-{index}"),
+            "label": format!("Station {index}"),
+            "anchor": "Example context | 2020–2021",
+            "kind": if experience { "employment" } else { "education" },
+            "status": status,
+            "page": page,
+            "section": match page {
+                Some(1) => "experience",
+                Some(2) => "education",
+                _ => "",
+            },
+            "experience_eligible": experience,
+            "facts": [{"id": format!("fact-{index}"), "text": format!("Fact {index}")}],
+            "source_refs": ["user-confirmed:2026-09-03"]
+        })
+    }
+
+    fn plan(page_one: usize, page_two: usize) -> Value {
+        let mut stations = (1..=page_one)
+            .map(|index| station(index, Some(1), "verified", true))
+            .collect::<Vec<_>>();
+        stations
+            .extend((1..=page_two).map(|index| station(100 + index, Some(2), "verified", false)));
+        json!({"schema_version": 1, "updated": "2026-09-03", "stations": stations})
+    }
+
+    fn source_entry(marker: &str, identifier: &str, bullets: usize) -> String {
+        let mut content = vec![
+            format!("// ccvl-{marker}: {identifier}"),
+            format!("#cv-h[{identifier}]"),
+        ];
+        content.extend((0..bullets).map(|index| format!("#cv-b[Bullet {index}]")));
+        content.join("\n")
+    }
+
+    fn source_document(
+        page_two_entries: usize,
+        page_two_bullets: usize,
+        projects: usize,
+        project_bullets: usize,
+        competency_groups: &[usize],
+        competency_bullets: usize,
+    ) -> String {
+        let page_one = (0..6)
+            .map(|index| source_entry("station", &format!("experience-{index}"), 1))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let page_two = (0..page_two_entries)
+            .map(|index| source_entry("station", &format!("support-{index}"), page_two_bullets))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let page_three = (0..projects)
+            .map(|index| source_entry("project", &format!("project-{index}"), project_bullets))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut competency_index = 0;
+        let groups = competency_groups
+            .iter()
+            .enumerate()
+            .map(|(group_index, size)| {
+                let mut entries = vec![format!("#cv-spacious-heading[Group {group_index}]")];
+                for _ in 0..*size {
+                    entries.push(source_entry(
+                        "competency",
+                        &format!("competency-{competency_index}"),
+                        competency_bullets,
+                    ));
+                    competency_index += 1;
+                }
+                entries.join("\n")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        format!(
+            "{page_one}\n#cv-pagebreak()\n{page_two}\n#cv-pagebreak()\n{page_three}\n#cv-pagebreak()\n{groups}"
+        )
+    }
+
+    fn validate_source(source: &str) -> Result<SourceLayout> {
+        let workspace = workspace();
+        let directory = tempdir_in(workspace.root()).unwrap();
+        let path = directory.path().join("cv.typ");
+        fs::write(&path, source).unwrap();
+        validate_typst_layout(&workspace, &path)
+    }
+
+    #[test]
+    fn six_to_eight_and_exactly_ten_are_ready() {
+        let workspace = workspace();
+        for page_one in [6, 7, 8] {
+            assert!(
+                assess(&workspace, &plan(page_one, 10), "fixture")
+                    .unwrap()
+                    .ready()
+            );
+        }
+    }
+
+    #[test]
+    fn underfilled_and_overcrowded_pages_require_iteration() {
+        let workspace = workspace();
+        for (page_one, page_two, phrase) in [
+            (5, 10, "page 1 is underfilled"),
+            (9, 10, "page 1 is overcrowded"),
+            (7, 9, "page 2 is underfilled"),
+            (7, 11, "page 2 is overcrowded"),
+        ] {
+            let result = assess(&workspace, &plan(page_one, page_two), "fixture").unwrap();
+            assert!(!result.ready());
+            assert!(
+                result
+                    .problems
+                    .iter()
+                    .any(|problem| problem.contains(phrase))
+            );
+        }
+    }
+
+    #[test]
+    fn only_verified_assigned_stations_count() {
+        let workspace = workspace();
+        let mut document = plan(6, 10);
+        document["stations"][0]["status"] = json!("unverified");
+        let result = assess(&workspace, &document, "fixture").unwrap();
+        assert_eq!(result.page_counts[&1], 5);
+        assert_eq!(result.unresolved_assigned, ["station-1"]);
+        assert!(!result.ready());
+    }
+
+    #[test]
+    fn unassigned_experience_candidates_are_reported() {
+        let workspace = workspace();
+        let mut document = plan(5, 10);
+        document["stations"]
+            .as_array_mut()
+            .unwrap()
+            .push(station(999, None, "verified", true));
+        let result = assess(&workspace, &document, "fixture").unwrap();
+        assert_eq!(result.experience_candidates, ["station-999"]);
+        assert!(
+            format_report(&workspace, &result)
+                .unwrap()
+                .contains("station-999")
+        );
+    }
+
+    #[test]
+    fn facts_have_one_owner_and_page_section_move_together() {
+        let workspace = workspace();
+        let mut duplicate = plan(6, 10);
+        duplicate["stations"][1]["facts"][0]["id"] = json!("fact-1");
+        let error = assess(&workspace, &duplicate, "fixture")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("MECE assignment requires one owner"));
+
+        let mut missing_section = plan(6, 10);
+        missing_section["stations"][0]["section"] = json!("");
+        let error = assess(&workspace, &missing_section, "fixture")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("page and section must be assigned together"));
+    }
+
+    #[test]
+    fn compact_headings_do_not_count_and_full_entries_need_markers() {
+        let source = "// ccvl-station: one\n#cv-h[One]\n#cv-hu[Compact]\n";
+        assert_eq!(marked_entries(source, "station").unwrap().len(), 1);
+        assert!(marked_entries("#cv-h[Unmarked]\n", "station").is_err());
+    }
+
+    #[test]
+    fn fixed_four_page_layout_is_accepted() {
+        let layout = validate_source(&source_document(10, 2, 10, 2, &[3, 3, 3], 3)).unwrap();
+        assert_eq!(layout.station_ids[&2].len(), 10);
+        assert_eq!(layout.project_ids.len(), 10);
+        assert_eq!(
+            layout
+                .competency_groups
+                .iter()
+                .map(Vec::len)
+                .collect::<Vec<_>>(),
+            [3, 3, 3]
+        );
+    }
+
+    #[test]
+    fn page_two_and_three_counts_and_bullets_are_fixed() {
+        for (source, expected) in [
+            (
+                source_document(9, 2, 10, 2, &[3, 3, 3], 3),
+                "page 2 has 9 full entries; exactly 10 required",
+            ),
+            (
+                source_document(11, 2, 10, 2, &[3, 3, 3], 3),
+                "page 2 has 11 full entries; exactly 10 required",
+            ),
+            (
+                source_document(10, 1, 10, 2, &[3, 3, 3], 3),
+                "page 2 stations must each have exactly 2 bullets",
+            ),
+            (
+                source_document(10, 2, 9, 2, &[3, 3, 3], 3),
+                "page 3 has 9 full entries; exactly 10 required",
+            ),
+            (
+                source_document(10, 2, 10, 3, &[3, 3, 3], 3),
+                "page 3 projects must each have exactly 2 bullets",
+            ),
+        ] {
+            let error = validate_source(&source).unwrap_err().to_string();
+            assert!(error.contains(expected), "unexpected error: {error}");
+        }
+    }
+
+    #[test]
+    fn page_four_is_three_groups_of_three_three_bullet_blocks() {
+        for (source, expected) in [
+            (
+                source_document(10, 2, 10, 2, &[3, 3], 3),
+                "page 4 has 6 full entries; exactly 9 required",
+            ),
+            (
+                source_document(10, 2, 10, 2, &[2, 4, 3], 3),
+                "competency group 1 has 2 blocks; exactly 3 required",
+            ),
+            (
+                source_document(10, 2, 10, 2, &[3, 3, 3], 2),
+                "page 4 competency blocks must each have exactly 3 bullets",
+            ),
+        ] {
+            let error = validate_source(&source).unwrap_err().to_string();
+            assert!(error.contains(expected), "unexpected error: {error}");
+        }
+    }
+
+    #[test]
+    fn entry_markers_cannot_be_reused_across_pages() {
+        let source = source_document(10, 2, 10, 2, &[3, 3, 3], 3).replace(
+            "// ccvl-project: project-0",
+            "// ccvl-project: experience-0",
+        );
+        let error = validate_source(&source).unwrap_err().to_string();
+        assert!(error.contains("every visible entry needs one unique owner"));
+    }
+
+    #[test]
+    fn checked_in_general_plan_matches_both_locales() {
+        let result = validate_general(&workspace(), true).unwrap();
+        assert_eq!(result.page_counts, BTreeMap::from([(1, 8), (2, 10)]));
+    }
+}

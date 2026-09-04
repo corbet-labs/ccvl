@@ -43,10 +43,7 @@ pub fn public_files(workspace: &Workspace) -> Result<Vec<PathBuf>> {
             EXCLUDED_ROOTS
                 .iter()
                 .any(|excluded| part.as_os_str() == *excluded)
-        }) || relative
-            .components()
-            .any(|part| part.as_os_str() == "__pycache__")
-        {
+        }) {
             continue;
         }
         files.push(entry.into_path());
@@ -56,8 +53,63 @@ pub fn public_files(workspace: &Workspace) -> Result<Vec<PathBuf>> {
 }
 
 pub fn validate_repository(workspace: &Workspace) -> Result<()> {
+    validate_no_python_artifacts(workspace)?;
     validate_markdown_links(workspace)?;
     validate_text_files(workspace)
+}
+
+fn validate_no_python_artifacts(workspace: &Workspace) -> Result<()> {
+    let mut offenders = public_files(workspace)?
+        .into_iter()
+        .filter_map(|path| {
+            workspace
+                .relative(&path)
+                .ok()
+                .filter(|relative| is_python_artifact(relative))
+        })
+        .collect::<BTreeSet<_>>();
+    for entry in WalkDir::new(workspace.root()).follow_links(false) {
+        let entry = entry?;
+        if !entry.file_type().is_dir() {
+            continue;
+        }
+        let relative = workspace.relative(entry.path())?;
+        let excluded = relative.components().next().is_some_and(|part| {
+            EXCLUDED_ROOTS
+                .iter()
+                .any(|excluded| part.as_os_str() == *excluded)
+        });
+        if !excluded && is_python_artifact(&relative) {
+            offenders.insert(relative);
+        }
+    }
+    ensure!(
+        offenders.is_empty(),
+        "public repository contains forbidden Python source or toolchain metadata: {}",
+        offenders
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
+    Ok(())
+}
+
+fn is_python_artifact(path: &Path) -> bool {
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| {
+            ["py", "pyc", "pyo"]
+                .iter()
+                .any(|candidate| extension.eq_ignore_ascii_case(candidate))
+        })
+        || path
+            .components()
+            .any(|part| part.as_os_str() == "__pycache__")
+        || path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| matches!(name, "pyproject.toml" | "uv.lock" | ".python-version"))
 }
 
 pub fn validate_boundary(workspace: &Workspace) -> Result<()> {
@@ -144,8 +196,7 @@ pub fn validate_boundary(workspace: &Workspace) -> Result<()> {
                 "potential secret found: {}",
                 relative.display()
             );
-            let declares_public_identifiers = relative == Path::new("PUBLIC_IDENTIFIERS.md")
-                || relative == Path::new("scripts/public_check.py");
+            let declares_public_identifiers = relative == Path::new("PUBLIC_IDENTIFIERS.md");
             if !declares_public_identifiers {
                 ensure!(
                     !private.is_match(&text),
@@ -253,4 +304,48 @@ fn validate_text_files(workspace: &Workspace) -> Result<()> {
         bail!("text hygiene failures: {}", errors.join(", "));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::tempdir;
+
+    use super::*;
+
+    #[test]
+    fn python_source_and_toolchain_metadata_are_forbidden() {
+        for path in [
+            "script.py",
+            "scripts/check.PY",
+            "scripts/check.pyc",
+            "scripts/check.PYO",
+            "scripts/__pycache__",
+            "scripts/__pycache__/check.cpython-314.pyc",
+            "pyproject.toml",
+            "uv.lock",
+            ".python-version",
+        ] {
+            assert!(is_python_artifact(Path::new(path)), "{path} was accepted");
+        }
+        for path in [
+            "Cargo.toml",
+            "Cargo.lock",
+            "src/main.rs",
+            "scripts/check.sh",
+        ] {
+            assert!(!is_python_artifact(Path::new(path)), "{path} was rejected");
+        }
+    }
+
+    #[test]
+    fn empty_python_cache_directory_is_rejected_on_the_public_surface() {
+        let directory = tempdir().unwrap();
+        fs::write(directory.path().join("ccvl.json"), "{}\n").unwrap();
+        fs::create_dir_all(directory.path().join("scripts/__pycache__")).unwrap();
+        let workspace = Workspace::at(directory.path()).unwrap();
+        let error = validate_no_python_artifacts(&workspace)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("scripts/__pycache__"));
+    }
 }

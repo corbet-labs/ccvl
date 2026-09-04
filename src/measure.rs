@@ -332,3 +332,111 @@ fn compact_text(value: &Value) -> String {
         format!("{}…", compact.chars().take(119).collect::<String>())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::{Path, PathBuf};
+
+    use serde_json::json;
+
+    use super::*;
+
+    fn workspace() -> Workspace {
+        Workspace::at(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap()
+    }
+
+    fn cover_letter_spec() -> DocumentSpec {
+        DocumentSpec {
+            name: "fixture".to_owned(),
+            kind: DocumentKind::CoverLetter,
+            source: PathBuf::from("fixture.typ"),
+            output: PathBuf::from("fixture.pdf"),
+            inputs: std::collections::BTreeMap::new(),
+            expected_pages: 1,
+        }
+    }
+
+    fn metric(kind: &str, identifier: &str) -> Value {
+        json!({"kind": kind, "id": identifier})
+    }
+
+    fn metric_set(paragraph_lengths: &[usize]) -> Vec<Value> {
+        let mut metrics = paragraph_lengths
+            .iter()
+            .enumerate()
+            .flat_map(|(paragraph, length)| {
+                (1..=*length).map(move |line| {
+                    metric("cl-body", &format!("cl.paragraph.{}.{line}", paragraph + 1))
+                })
+            })
+            .collect::<Vec<_>>();
+        metrics
+            .extend((1..=5).map(|index| metric("cl-highlight", &format!("cl.highlight.{index}"))));
+        metrics.push(metric("cl-vertical-gap", "cl.vertical-gap"));
+        metrics.push(metric("cl-highlight-center", "cl.highlight-center"));
+        metrics
+    }
+
+    #[test]
+    fn underfill_and_overflow_are_both_failures_for_any_unit() {
+        let base = json!({"min_fill": 60, "target_fill": 80, "max_fill": 95});
+        let mut metric = base.clone();
+        metric["actual_fill"] = json!(59.9);
+        assert_eq!(violation(&metric).unwrap(), Some("too short"));
+        metric["actual_fill"] = json!(80.0);
+        assert_eq!(violation(&metric).unwrap(), None);
+        metric["actual_fill"] = json!(95.1);
+        assert_eq!(violation(&metric).unwrap(), Some("too long"));
+
+        metric["unit"] = json!("pt");
+        metric["min_fill"] = json!(12);
+        metric["target_fill"] = json!(20);
+        metric["max_fill"] = json!(30);
+        metric["actual_fill"] = json!(11.9);
+        assert_eq!(violation(&metric).unwrap(), Some("too short"));
+        metric["actual_fill"] = json!(24.1);
+        assert_eq!(violation(&metric).unwrap(), None);
+        metric["actual_fill"] = json!(30.1);
+        assert_eq!(violation(&metric).unwrap(), Some("too long"));
+    }
+
+    #[test]
+    fn cover_letter_metric_set_requires_structure_and_layout_metrics() {
+        let workspace = workspace();
+        let spec = cover_letter_spec();
+        let complete = metric_set(&[3, 6, 6, 5, 5, 3]);
+        validate_metric_set(&workspace, &spec, &complete).unwrap();
+        assert!(
+            preference_warnings(&workspace, &spec, &complete)
+                .unwrap()
+                .is_empty()
+        );
+
+        let dispreferred = metric_set(&[3, 5, 6, 5, 5, 3]);
+        validate_metric_set(&workspace, &spec, &dispreferred).unwrap();
+        let warnings = preference_warnings(&workspace, &spec, &dispreferred).unwrap();
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("paragraphs 2–3 use 11 lines"));
+
+        let shorter_close = metric_set(&[3, 5, 5, 5, 5, 2]);
+        validate_metric_set(&workspace, &spec, &shorter_close).unwrap();
+        assert_eq!(
+            preference_warnings(&workspace, &spec, &shorter_close).unwrap(),
+            [
+                "fixture: paragraph 6 uses 2 lines; accepted, but 3 is preferred to mirror paragraph 1"
+            ]
+        );
+
+        for missing_kind in ["cl-vertical-gap", "cl-highlight-center"] {
+            let incomplete = complete
+                .iter()
+                .filter(|item| item["kind"].as_str() != Some(missing_kind))
+                .cloned()
+                .collect::<Vec<_>>();
+            let error = validate_metric_set(&workspace, &spec, &incomplete)
+                .unwrap_err()
+                .to_string();
+            assert!(error.contains("vertical-gap and one highlight-position"));
+        }
+    }
+}

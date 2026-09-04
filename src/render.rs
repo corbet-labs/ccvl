@@ -32,6 +32,13 @@ pub struct Compiler {
     engine: Engine,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct OpportunityOptions {
+    locale: &'static str,
+    pages: usize,
+    cover_letter: bool,
+}
+
 impl Compiler {
     pub fn new(workspace: &Workspace) -> Result<Self> {
         let engine = Engine::builder()
@@ -221,22 +228,10 @@ pub fn opportunity_specs(
         &workspace.relative(&application)?.display().to_string(),
         true,
     )?;
-    let locale = normalize_locale(
-        document
-            .pointer("/job/language")
-            .and_then(Value::as_str)
-            .unwrap_or_default(),
-    )?;
-    let pages = usize::try_from(
-        document
-            .pointer("/tailored_cv/pages")
-            .and_then(Value::as_u64)
-            .context("tailored_cv.pages is missing")?,
-    )?;
-    let cover_enabled = document
-        .pointer("/tailored_cl/enabled")
-        .and_then(Value::as_bool)
-        .context("tailored_cl.enabled is missing")?;
+    let options = opportunity_options(&document)?;
+    let locale = options.locale;
+    let pages = options.pages;
+    let cover_enabled = options.cover_letter;
     let output = application
         .parent()
         .context("application record has no parent")?
@@ -265,6 +260,30 @@ pub fn opportunity_specs(
     Ok(specs)
 }
 
+fn opportunity_options(document: &Value) -> Result<OpportunityOptions> {
+    let locale = normalize_locale(
+        document
+            .pointer("/job/language")
+            .and_then(Value::as_str)
+            .unwrap_or_default(),
+    )?;
+    let pages = usize::try_from(
+        document
+            .pointer("/tailored_cv/pages")
+            .and_then(Value::as_u64)
+            .context("tailored_cv.pages is missing")?,
+    )?;
+    let cover_enabled = document
+        .pointer("/tailored_cl/enabled")
+        .and_then(Value::as_bool)
+        .context("tailored_cl.enabled is missing")?;
+    Ok(OpportunityOptions {
+        locale,
+        pages,
+        cover_letter: cover_enabled,
+    })
+}
+
 pub fn render_opportunity(
     workspace: &Workspace,
     organisation: &str,
@@ -275,15 +294,12 @@ pub fn render_opportunity(
         .parent()
         .context("record has no parent")?
         .join("output");
-    if !specs
-        .iter()
-        .any(|spec| spec.kind == DocumentKind::CoverLetter)
-    {
-        let stale = output_dir.join("cl.pdf");
-        if stale.is_file() {
-            fs::remove_file(stale)?;
-        }
-    }
+    remove_stale_cover_letter(
+        &output_dir,
+        specs
+            .iter()
+            .any(|spec| spec.kind == DocumentKind::CoverLetter),
+    )?;
     let compiler = Compiler::new(workspace)?;
     specs
         .iter()
@@ -291,8 +307,20 @@ pub fn render_opportunity(
         .collect()
 }
 
+fn remove_stale_cover_letter(output_dir: &Path, cover_enabled: bool) -> Result<()> {
+    if !cover_enabled {
+        let stale = output_dir.join("cl.pdf");
+        if stale.is_file() {
+            fs::remove_file(stale)?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
+    use tempfile::tempdir;
+
     use super::*;
 
     #[test]
@@ -302,5 +330,37 @@ mod tests {
         assert_eq!(cv_preset(4).unwrap(), "fourpager");
         assert!(cv_preset(1).is_err());
         assert!(cv_preset(5).is_err());
+    }
+
+    #[test]
+    fn opportunity_record_selects_its_locale_pages_and_documents() {
+        let workspace = Workspace::at(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap();
+        let mut document = workspace
+            .read_json("cvl/general/en-ch/application.json")
+            .unwrap();
+        document["job"]["language"] = "en-CH".into();
+        document["tailored_cv"]["pages"] = 3.into();
+        document["tailored_cl"] = serde_json::json!({"enabled": false});
+        assert_eq!(
+            opportunity_options(&document).unwrap(),
+            OpportunityOptions {
+                locale: "en-ch",
+                pages: 3,
+                cover_letter: false,
+            }
+        );
+    }
+
+    #[test]
+    fn disabled_cover_letter_removes_stale_output() {
+        let directory = tempdir().unwrap();
+        let stale = directory.path().join("cl.pdf");
+        fs::write(&stale, b"stale").unwrap();
+        remove_stale_cover_letter(directory.path(), false).unwrap();
+        assert!(!stale.exists());
+
+        fs::write(&stale, b"current").unwrap();
+        remove_stale_cover_letter(directory.path(), true).unwrap();
+        assert!(stale.exists());
     }
 }

@@ -147,23 +147,79 @@ mod tests {
 
     use super::*;
 
+    fn schema() -> Value {
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "count", "values", "state"],
+            "properties": {
+                "name": {"type": "string", "pattern": "^[a-z-]+$"},
+                "count": {"type": "integer", "minimum": 1, "maximum": 3},
+                "values": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "items": {"$ref": "#/$defs/value"}
+                },
+                "state": {"enum": ["ready", "blocked"]},
+                "empty": {"const": null}
+            },
+            "$defs": {"value": {"type": ["string", "null"]}}
+        })
+    }
+
+    fn assert_invalid(value: &Value) {
+        let schema = schema();
+        assert!(validate_schema(value, &schema, &schema, "fixture").is_err());
+    }
+
     #[test]
-    fn schema_subset_rejects_unknown_and_bounds() {
-        let schema = json!({
-            "type": "object", "additionalProperties": false, "required": ["count"],
-            "properties": {"count": {"type": "integer", "minimum": 1, "maximum": 3}}
-        });
-        assert!(validate_schema(&json!({"count": 2}), &schema, &schema, "fixture").is_ok());
-        assert!(validate_schema(&json!({"count": 0}), &schema, &schema, "fixture").is_err());
-        assert!(
-            validate_schema(
-                &json!({"count": 2, "other": 1}),
-                &schema,
-                &schema,
-                "fixture"
-            )
-            .is_err()
-        );
-        assert!(validate_schema(&json!({"count": true}), &schema, &schema, "fixture").is_err());
+    fn valid_nested_document_and_local_reference_are_accepted() {
+        let schema = schema();
+        validate_schema(
+            &json!({
+                "name": "valid-name",
+                "count": 1,
+                "values": ["one", null],
+                "state": "ready",
+                "empty": null
+            }),
+            &schema,
+            &schema,
+            "fixture",
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn required_and_additional_properties_are_enforced() {
+        assert_invalid(&json!({"name": "valid", "count": 1, "values": ["one"]}));
+        assert_invalid(&json!({
+            "name": "valid", "count": 1, "values": ["one"], "state": "ready", "other": 1
+        }));
+    }
+
+    #[test]
+    fn booleans_and_integers_remain_distinct_json_types() {
+        assert_invalid(&json!({
+            "name": "valid", "count": true, "values": ["one"], "state": "ready"
+        }));
+        let boolean = json!({"type": "boolean"});
+        validate_schema(&json!(true), &boolean, &boolean, "fixture").unwrap();
+        assert!(validate_schema(&json!(1), &boolean, &boolean, "fixture").is_err());
+    }
+
+    #[test]
+    fn pattern_numeric_enum_and_array_bounds_are_enforced() {
+        for document in [
+            json!({"name": "NOT VALID", "count": 1, "values": ["one"], "state": "ready"}),
+            json!({"name": "valid", "count": 0, "values": ["one"], "state": "ready"}),
+            json!({"name": "valid", "count": 4, "values": ["one"], "state": "ready"}),
+            json!({"name": "valid", "count": 1, "values": [], "state": "ready"}),
+            json!({"name": "valid", "count": 1, "values": ["one", "two", "three"], "state": "ready"}),
+            json!({"name": "valid", "count": 1, "values": ["one"], "state": "unknown"}),
+        ] {
+            assert_invalid(&document);
+        }
     }
 }

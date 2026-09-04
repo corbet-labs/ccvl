@@ -1,8 +1,15 @@
 use std::path::Path;
+use std::sync::LazyLock;
 
 use anyhow::{Context, Result, ensure};
 use lopdf::{Dictionary, Document, Object, ObjectId};
-use regex::Regex;
+use regex::{Regex, bytes::Regex as BytesRegex};
+use sha2::{Digest, Sha256};
+
+static INSTANCE_ID: LazyLock<BytesRegex> = LazyLock::new(|| {
+    BytesRegex::new(r"(<xmpMM:InstanceID>)[^<]*(</xmpMM:InstanceID>)")
+        .expect("the rendition identifier pattern is valid")
+});
 
 pub struct VerifiedPdf {
     document: Document,
@@ -143,6 +150,104 @@ pub fn verify(
     Ok(VerifiedPdf { document })
 }
 
+pub fn semantic_signature(path: &Path) -> Result<Vec<u8>> {
+    let document =
+        Document::load(path).with_context(|| format!("cannot parse {}", path.display()))?;
+    let mut digest = Sha256::new();
+    digest.update(b"ccvl-semantic-pdf-v1");
+    if let Ok(identifiers) = document.trailer.get(b"ID").and_then(Object::as_array)
+        && let Some(document_identifier) = identifiers.first()
+    {
+        hash_object(&mut digest, document_identifier)?;
+    }
+    for ((object_number, generation), object) in &document.objects {
+        digest.update(object_number.to_be_bytes());
+        digest.update(generation.to_be_bytes());
+        hash_object(&mut digest, object)?;
+    }
+    Ok(digest.finalize().to_vec())
+}
+
+fn hash_object(digest: &mut Sha256, object: &Object) -> Result<()> {
+    match object {
+        Object::Null => digest.update(b"null"),
+        Object::Boolean(value) => {
+            digest.update(b"boolean");
+            digest.update([u8::from(*value)]);
+        }
+        Object::Integer(value) => {
+            digest.update(b"integer");
+            digest.update(value.to_be_bytes());
+        }
+        Object::Real(value) => {
+            digest.update(b"real");
+            digest.update(value.to_bits().to_be_bytes());
+        }
+        Object::Name(value) => {
+            digest.update(b"name");
+            hash_bytes(digest, value);
+        }
+        Object::String(value, _) => {
+            digest.update(b"string");
+            hash_bytes(digest, value);
+        }
+        Object::Array(values) => {
+            digest.update(b"array");
+            digest.update((values.len() as u64).to_be_bytes());
+            for value in values {
+                hash_object(digest, value)?;
+            }
+        }
+        Object::Dictionary(dictionary) => {
+            digest.update(b"dictionary");
+            hash_dictionary(digest, dictionary, false)?;
+        }
+        Object::Stream(stream) => {
+            digest.update(b"stream");
+            hash_dictionary(digest, &stream.dict, true)?;
+            let content = stream
+                .get_plain_content()
+                .context("cannot decode a PDF stream for semantic comparison")?;
+            let normalized =
+                INSTANCE_ID.replace_all(&content, b"${1}CCVL-DETERMINISTIC-INSTANCE${2}");
+            hash_bytes(digest, &normalized);
+        }
+        Object::Reference((object_number, generation)) => {
+            digest.update(b"reference");
+            digest.update(object_number.to_be_bytes());
+            digest.update(generation.to_be_bytes());
+        }
+    }
+    Ok(())
+}
+
+fn hash_dictionary(digest: &mut Sha256, dictionary: &Dictionary, stream: bool) -> Result<()> {
+    let mut entries = dictionary
+        .iter()
+        .filter(|(key, _)| {
+            !stream
+                || ![
+                    b"DecodeParms".as_slice(),
+                    b"Filter".as_slice(),
+                    b"Length".as_slice(),
+                ]
+                .contains(&key.as_slice())
+        })
+        .collect::<Vec<_>>();
+    entries.sort_by_key(|(key, _)| *key);
+    digest.update((entries.len() as u64).to_be_bytes());
+    for (key, value) in entries {
+        hash_bytes(digest, key);
+        hash_object(digest, value)?;
+    }
+    Ok(())
+}
+
+fn hash_bytes(digest: &mut Sha256, value: &[u8]) {
+    digest.update((value.len() as u64).to_be_bytes());
+    digest.update(value);
+}
+
 fn object_dictionary(object: &Object) -> Option<&Dictionary> {
     match object {
         Object::Dictionary(dictionary) => Some(dictionary),
@@ -175,10 +280,57 @@ fn inherited<'a>(document: &'a Document, mut id: ObjectId, key: &[u8]) -> Option
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
     use super::*;
 
     #[test]
     fn missing_pdf_is_rejected() {
         assert!(verify(Path::new("definitely-missing.pdf"), 1, &[], false).is_err());
+    }
+
+    #[test]
+    fn rendition_identifier_is_not_document_content() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let original = root.join("cvl/cv/output/de-ch/twopager/cv.pdf");
+        let original_bytes = fs::read(&original).unwrap();
+        let trailer_id = BytesRegex::new(r"(/ID\[\([^)]*\)\()[^)]*(\)\]\s*>>)").unwrap();
+        let changed = INSTANCE_ID
+            .replace_all(&original_bytes, b"${1}AAAAAAAAAAAAAAAAAAAAAA==${2}")
+            .into_owned();
+        let changed = trailer_id
+            .replace_all(&changed, b"${1}AAAAAAAAAAAAAAAAAAAAAA==${2}")
+            .into_owned();
+        assert_ne!(original_bytes, changed);
+
+        let directory = tempdir().unwrap();
+        let equivalent = directory.path().join("equivalent.pdf");
+        fs::write(&equivalent, changed).unwrap();
+        assert_eq!(
+            semantic_signature(&original).unwrap(),
+            semantic_signature(&equivalent).unwrap()
+        );
+    }
+
+    #[test]
+    fn metadata_change_is_detected() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let original = root.join("cvl/cv/output/de-ch/twopager/cv.pdf");
+        let original_bytes = fs::read(&original).unwrap();
+        let metadata = BytesRegex::new("<dc:language>").unwrap();
+        let changed = metadata
+            .replacen(&original_bytes, 1, b"<dc:languagf>")
+            .into_owned();
+        assert_ne!(original_bytes, changed);
+
+        let directory = tempdir().unwrap();
+        let modified = directory.path().join("modified.pdf");
+        fs::write(&modified, changed).unwrap();
+        assert_ne!(
+            semantic_signature(&original).unwrap(),
+            semantic_signature(&modified).unwrap()
+        );
     }
 }

@@ -5,20 +5,26 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$LocalBin = Join-Path $RepoRoot ".cache\ccvl\bin"
-$PythonVersion = (Get-Content -Raw (Join-Path $RepoRoot ".python-version")).Trim()
-$Pyproject = Get-Content -Raw (Join-Path $RepoRoot "pyproject.toml")
-if ($Pyproject -notmatch '"pypdf==([^"\r\n]+)"') {
-    throw "pyproject.toml does not pin pypdf"
+$CacheRoot = if (Test-Path Env:CCVL_BOOTSTRAP_CACHE_ROOT) {
+    $env:CCVL_BOOTSTRAP_CACHE_ROOT
 }
-$PypdfVersion = $Matches[1]
-$env:PATH = "$LocalBin;$env:PATH"
-$env:UV_PROJECT_ENVIRONMENT = Join-Path $RepoRoot ".cache\ccvl\venv"
-$env:UV_CACHE_DIR = Join-Path $RepoRoot ".cache\ccvl\uv-cache"
-$env:UV_PYTHON_INSTALL_DIR = Join-Path $RepoRoot ".cache\ccvl\python"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+else {
+    Join-Path $RepoRoot ".cache\ccvl"
+}
+$LocalBin = Join-Path $CacheRoot "bin"
+$CargoHome = Join-Path $CacheRoot "cargo"
+$RustupHome = Join-Path $CacheRoot "rustup"
+$TargetDir = Join-Path $CacheRoot "target"
+$Binary = Join-Path $LocalBin "ccvl.exe"
+$InstallStamp = Join-Path $CacheRoot "install.sha256"
+$ToolchainFile = Get-Content -Raw (Join-Path $RepoRoot "rust-toolchain.toml")
+if ($ToolchainFile -notmatch '(?m)^\s*channel\s*=\s*"([^"]+)"') {
+    throw "rust-toolchain.toml does not declare a Rust channel"
+}
+$RustVersion = $Matches[1]
 
 function Get-PlatformKey {
     $Architecture = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
@@ -29,104 +35,253 @@ function Get-PlatformKey {
     }
 }
 
-function Get-ToolPath([string]$Tool) {
-    $LocalPath = Join-Path $LocalBin "$Tool.exe"
-    if (Test-Path -LiteralPath $LocalPath -PathType Leaf) {
-        return $LocalPath
-    }
-    if ($env:CCVL_BOOTSTRAP_FORCE_LOCAL -eq "1") {
+function Get-CommandPath([string]$Name) {
+    $Command = Get-Command $Name -CommandType Application -ErrorAction SilentlyContinue
+    if ($null -eq $Command) {
         return $null
     }
-    $Command = Get-Command $Tool -CommandType Application -ErrorAction SilentlyContinue
-    if ($null -ne $Command) {
-        return $Command.Source
-    }
-    return $null
+    return $Command.Source
 }
 
-function Test-ToolVersion([string]$Tool, [string]$Expected) {
-    $Path = Get-ToolPath $Tool
-    if ($null -eq $Path) {
+function Test-RustVersion([string]$Output) {
+    return $Output -eq "rustc $RustVersion" -or $Output.StartsWith("rustc $RustVersion ")
+}
+
+function Invoke-OutsideRepository([string]$Executable, [string[]]$Arguments) {
+    Push-Location ([IO.Path]::GetTempPath())
+    try {
+        $Output = (& $Executable @Arguments 2>&1 | Out-String).Trim()
+        if ($LASTEXITCODE -ne 0) {
+            return $null
+        }
+        return $Output
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Invoke-ManagedRustup([string[]]$Arguments) {
+    $Rustup = Join-Path $CargoHome "bin\rustup.exe"
+    if (-not (Test-Path -LiteralPath $Rustup -PathType Leaf)) {
+        return $null
+    }
+    $OldCargoHome = $env:CARGO_HOME
+    $OldRustupHome = $env:RUSTUP_HOME
+    try {
+        $env:CARGO_HOME = $CargoHome
+        $env:RUSTUP_HOME = $RustupHome
+        return Invoke-OutsideRepository $Rustup $Arguments
+    }
+    finally {
+        $env:CARGO_HOME = $OldCargoHome
+        $env:RUSTUP_HOME = $OldRustupHome
+    }
+}
+
+function Test-ManagedRust {
+    $Rustc = Invoke-ManagedRustup @("run", $RustVersion, "rustc", "--version")
+    if ($null -eq $Rustc -or -not (Test-RustVersion $Rustc)) {
         return $false
     }
-    $Output = (& $Path --version 2>&1 | Out-String)
-    return $LASTEXITCODE -eq 0 -and $Output.Contains($Expected)
+    return $null -ne (Invoke-ManagedRustup @("run", $RustVersion, "cargo", "--version"))
 }
 
-function Install-Tool($Asset, [string]$TemporaryRoot) {
-    $Download = Join-Path $TemporaryRoot $Asset.asset
-    Write-Host "Downloading pinned $($Asset.tool) $($Asset.version)"
-    Invoke-WebRequest -UseBasicParsing -Uri $Asset.url -OutFile $Download
-    $ActualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Download).Hash.ToLowerInvariant()
-    if ($ActualHash -ne $Asset.sha256) {
-        throw "Checksum mismatch for $($Asset.asset)"
-    }
-
-    $Destination = Join-Path $LocalBin "$($Asset.tool).exe"
-    if ($Asset.kind -eq "file") {
-        Copy-Item -LiteralPath $Download -Destination $Destination -Force
-    }
-    elseif ($Asset.kind -eq "archive" -and $Asset.asset.EndsWith(".zip")) {
-        $Extracted = Join-Path $TemporaryRoot $Asset.tool
-        Expand-Archive -LiteralPath $Download -DestinationPath $Extracted -Force
-        $Candidate = Get-ChildItem -Path $Extracted -Recurse -File -Filter "$($Asset.tool).exe" |
-            Select-Object -First 1
-        if ($null -eq $Candidate) {
-            throw "$($Asset.tool).exe was not found in $($Asset.asset)"
+function Get-SourceFingerprint {
+    if ($env:CCVL_BOOTSTRAP_TESTING -eq "1") {
+        if (Test-Path Env:CCVL_BOOTSTRAP_TEST_FINGERPRINT) {
+            return $env:CCVL_BOOTSTRAP_TEST_FINGERPRINT
         }
-        Copy-Item -LiteralPath $Candidate.FullName -Destination $Destination -Force
+        return "test-fingerprint"
     }
-    else {
-        throw "Unsupported Windows asset format: $($Asset.asset)"
+    $Files = @(
+        Get-Item -LiteralPath (Join-Path $RepoRoot "Cargo.toml")
+        Get-Item -LiteralPath (Join-Path $RepoRoot "Cargo.lock")
+        Get-Item -LiteralPath (Join-Path $RepoRoot "rust-toolchain.toml")
+        Get-ChildItem -LiteralPath (Join-Path $RepoRoot "src") -Recurse -File -Filter "*.rs" |
+            Sort-Object FullName
+    )
+    $Lines = foreach ($File in $Files) {
+        $Relative = $File.FullName.Substring($RepoRoot.Length + 1).Replace("\", "/")
+        $Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $File.FullName).Hash.ToLowerInvariant()
+        "$Relative $Hash"
     }
-    Unblock-File -LiteralPath $Destination
+    $Bytes = [Text.UTF8Encoding]::new($false).GetBytes(($Lines -join "`n") + "`n")
+    $Hasher = [Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($Hasher.ComputeHash($Bytes))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        $Hasher.Dispose()
+    }
 }
 
 $Platform = Get-PlatformKey
-$Assets = Import-Csv (Join-Path $PSScriptRoot "tool-assets.csv") |
-    Where-Object { $_.platform -eq $Platform }
-$ExpectedTools = @("typst", "typstyle", "uv")
-if (@($Assets).Count -ne $ExpectedTools.Count) {
-    throw "Incomplete tool asset table for $Platform"
+$Assets = @(Import-Csv (Join-Path $PSScriptRoot "tool-assets.csv") |
+    Where-Object { $_.tool -eq "rustup-init" -and $_.platform -eq $Platform })
+if ($Assets.Count -ne 1) {
+    throw "Incomplete rustup-init asset table for $Platform"
+}
+$Asset = $Assets[0]
+
+$Fingerprint = Get-SourceFingerprint
+$BinaryState = "install"
+if ((Test-Path -LiteralPath $Binary -PathType Leaf) -and
+    (Test-Path -LiteralPath $InstallStamp -PathType Leaf) -and
+    ((Get-Content -Raw -LiteralPath $InstallStamp).Trim() -eq $Fingerprint)) {
+    $BinaryState = "ready"
 }
 
-$Missing = @()
-foreach ($Tool in $ExpectedTools) {
-    $Asset = $Assets | Where-Object { $_.tool -eq $Tool }
-    $ExpectedVersion = switch ($Tool) {
-        "typst" { "typst $($Asset.version)" }
-        "uv" { "uv $($Asset.version)" }
-        default { $Asset.version }
+$SystemKind = "none"
+$SystemCargo = $null
+$SystemRustup = $null
+if ($env:CCVL_BOOTSTRAP_FORCE_LOCAL -ne "1") {
+    $CandidateRustup = Get-CommandPath "rustup"
+    if ($null -ne $CandidateRustup) {
+        $CandidateRustc = Invoke-OutsideRepository $CandidateRustup @("run", $RustVersion, "rustc", "--version")
+        $CandidateCargo = Invoke-OutsideRepository $CandidateRustup @("run", $RustVersion, "cargo", "--version")
+        if ($null -ne $CandidateRustc -and (Test-RustVersion $CandidateRustc) -and
+            $null -ne $CandidateCargo) {
+            $SystemKind = "rustup"
+            $SystemRustup = $CandidateRustup
+        }
     }
-    if (-not (Test-ToolVersion $Tool $ExpectedVersion)) {
-        $Missing += $Tool
+    if ($SystemKind -eq "none" -and $null -eq $CandidateRustup) {
+        $CandidateRustcPath = Get-CommandPath "rustc"
+        $CandidateCargoPath = Get-CommandPath "cargo"
+        if ($null -ne $CandidateRustcPath -and $null -ne $CandidateCargoPath) {
+            $CandidateRustc = Invoke-OutsideRepository $CandidateRustcPath @("--version")
+            if ($null -ne $CandidateRustc -and (Test-RustVersion $CandidateRustc)) {
+                $SystemKind = "standalone"
+                $SystemCargo = $CandidateCargoPath
+            }
+        }
     }
+}
+
+$ToolchainState = "install"
+if (Test-ManagedRust) {
+    $ToolchainState = "managed"
+}
+elseif ($SystemKind -ne "none") {
+    $ToolchainState = "system"
 }
 
 Write-Output "ccvl bootstrap plan"
 Write-Output "  platform: $Platform"
-Write-Output "  pinned local tools: $(if ($Missing.Count) { $Missing -join ' ' } else { 'none' })"
-$RuntimeState = "synchronize"
-$RuntimePython = Join-Path $env:UV_PROJECT_ENVIRONMENT "Scripts\python.exe"
-if (Test-Path -LiteralPath $RuntimePython -PathType Leaf) {
-    & $RuntimePython -c "import platform,pypdf,sys;sys.exit(platform.python_version()!=sys.argv[1] or pypdf.__version__!=sys.argv[2])" $PythonVersion $PypdfVersion
-    if ($LASTEXITCODE -eq 0) { $RuntimeState = "ready" }
+switch ($ToolchainState) {
+    "managed" { Write-Output "  Rust toolchain: managed $RustVersion" }
+    "system" { Write-Output "  Rust toolchain: system $RustVersion" }
+    default {
+        Write-Output "  Rust toolchain: install $RustVersion with pinned rustup-init $($Asset.version)"
+    }
 }
-Write-Output "  managed runtime: $RuntimeState (Python $PythonVersion with frozen uv.lock)"
+Write-Output "  ccvl binary: $BinaryState"
+Write-Output "  missing bootstrap commands: none"
 Write-Output "  host packages: none"
+if ($BinaryState -eq "ready") {
+    Write-Output "No ccvl build changes required."
+}
 
 if ($Mode -eq "plan") {
     Write-Output "No changes made. Run .\ccvl.cmd setup to execute this plan."
     return
 }
 
-New-Item -ItemType Directory -Force -Path $LocalBin | Out-Null
 $TemporaryRoot = Join-Path ([IO.Path]::GetTempPath()) "ccvl-bootstrap-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $TemporaryRoot | Out-Null
 try {
-    foreach ($Tool in $Missing) {
-        $Asset = $Assets | Where-Object { $_.tool -eq $Tool }
-        Install-Tool $Asset $TemporaryRoot
+    if ($ToolchainState -eq "install") {
+        New-Item -ItemType Directory -Force -Path $CargoHome, $RustupHome | Out-Null
+        $Download = Join-Path $TemporaryRoot $Asset.asset
+        Write-Output "Downloading pinned rustup-init $($Asset.version)"
+        Invoke-WebRequest -UseBasicParsing -Uri $Asset.url -OutFile $Download
+        $ActualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Download).Hash.ToLowerInvariant()
+        if ($ActualHash -ne $Asset.sha256) {
+            throw "Checksum mismatch for $($Asset.asset)"
+        }
+        Unblock-File -LiteralPath $Download
+        $OldCargoHome = $env:CARGO_HOME
+        $OldRustupHome = $env:RUSTUP_HOME
+        try {
+            $env:CARGO_HOME = $CargoHome
+            $env:RUSTUP_HOME = $RustupHome
+            & $Download -y --no-modify-path --profile minimal --default-toolchain $RustVersion
+            if ($LASTEXITCODE -ne 0) {
+                throw "rustup-init failed with exit code $LASTEXITCODE"
+            }
+        }
+        finally {
+            $env:CARGO_HOME = $OldCargoHome
+            $env:RUSTUP_HOME = $OldRustupHome
+        }
+        if (-not (Test-ManagedRust)) {
+            throw "Managed Rust $RustVersion is unavailable after installation"
+        }
+        $ToolchainState = "managed"
+    }
+
+    if ($BinaryState -eq "install") {
+        New-Item -ItemType Directory -Force -Path $CacheRoot, $CargoHome, $TargetDir | Out-Null
+        $CargoArguments = @(
+            "install", "--locked", "--force", "--path", $RepoRoot, "--root", $CacheRoot
+        )
+        $OldCargoHome = $env:CARGO_HOME
+        $OldRustupHome = $env:RUSTUP_HOME
+        $OldTargetDir = $env:CARGO_TARGET_DIR
+        try {
+            $env:CARGO_HOME = $CargoHome
+            $env:CARGO_TARGET_DIR = $TargetDir
+            Push-Location $TemporaryRoot
+            try {
+                switch ($ToolchainState) {
+                    "managed" {
+                        $env:RUSTUP_HOME = $RustupHome
+                        $Rustup = Join-Path $CargoHome "bin\rustup.exe"
+                        & $Rustup run $RustVersion cargo @CargoArguments
+                    }
+                    "system" {
+                        if ($SystemKind -eq "rustup") {
+                            & $SystemRustup run $RustVersion cargo @CargoArguments
+                        }
+                        else {
+                            & $SystemCargo @CargoArguments
+                        }
+                    }
+                }
+                if ($LASTEXITCODE -ne 0) {
+                    throw "cargo install failed with exit code $LASTEXITCODE"
+                }
+            }
+            finally {
+                Pop-Location
+            }
+        }
+        finally {
+            $env:CARGO_HOME = $OldCargoHome
+            $env:RUSTUP_HOME = $OldRustupHome
+            $env:CARGO_TARGET_DIR = $OldTargetDir
+        }
+        if (-not (Test-Path -LiteralPath $Binary -PathType Leaf)) {
+            throw "cargo install did not produce $Binary"
+        }
+        $Fingerprint = Get-SourceFingerprint
+        [IO.File]::WriteAllText(
+            $InstallStamp,
+            "$Fingerprint`n",
+            [Text.UTF8Encoding]::new($false)
+        )
+    }
+
+    Push-Location $RepoRoot
+    try {
+        & $Binary setup
+        if ($LASTEXITCODE -ne 0) {
+            throw "ccvl setup verification failed with exit code $LASTEXITCODE"
+        }
+    }
+    finally {
+        Pop-Location
     }
 }
 finally {
@@ -134,19 +289,4 @@ finally {
         [IO.Directory]::Delete($TemporaryRoot, $true)
     }
 }
-
-$UvPath = Get-ToolPath "uv"
-if ($null -eq $UvPath) {
-    throw "uv is unavailable after bootstrap"
-}
-Push-Location $RepoRoot
-try {
-    & $UvPath sync --frozen --no-dev --python $PythonVersion
-    if ($LASTEXITCODE -ne 0) { throw "uv sync failed" }
-    & $UvPath run --frozen --no-dev --python $PythonVersion python (Join-Path $PSScriptRoot "doctor.py")
-    if ($LASTEXITCODE -ne 0) { throw "ccvl doctor failed" }
-}
-finally {
-    Pop-Location
-}
-Write-Output "Bootstrap complete. Managed runtime ready; downloaded assets remain below .cache/ccvl/."
+Write-Output "Setup complete. The repository-local binary is $Binary."

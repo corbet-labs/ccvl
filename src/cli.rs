@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::ExitCode;
 use std::thread;
 use std::time::Duration;
 
@@ -132,9 +133,10 @@ enum Command {
     },
 }
 
-pub fn run() -> Result<()> {
+pub fn run() -> Result<ExitCode> {
     let args = Args::parse();
     let workspace = Workspace::discover(args.root.as_deref())?;
+    let mut exit_code = ExitCode::SUCCESS;
     match args.command {
         Command::Setup => {
             doctor(&workspace)?;
@@ -286,7 +288,7 @@ pub fn run() -> Result<()> {
             let model = model
                 .or_else(|| std::env::var("GROQ_MODEL").ok())
                 .unwrap_or_else(|| skills::DEFAULT_MODEL.to_owned());
-            let passed = skills::run_hosted_evaluation(
+            let outcome = skills::run_hosted_evaluation(
                 &workspace,
                 &cases,
                 &skills_root,
@@ -298,12 +300,12 @@ pub fn run() -> Result<()> {
             println!(
                 "Skill evaluation report: {} ({})",
                 output.display(),
-                if passed { "passed" } else { "failed" }
+                outcome.status()
             );
-            ensure!(passed, "skill evaluation failed");
+            exit_code = ExitCode::from(outcome.exit_code());
         }
     }
-    Ok(())
+    Ok(exit_code)
 }
 
 fn doctor(workspace: &Workspace) -> Result<()> {

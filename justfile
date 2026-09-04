@@ -3,6 +3,12 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 default:
     @just --list
 
+bootstrap:
+    bash ./ccvl bootstrap
+
+setup:
+    bash ./ccvl setup
+
 doctor:
     bash ./ccvl doctor
 
@@ -28,10 +34,18 @@ new-opportunity organisation-key position-key:
     bash ./ccvl new-opportunity "{{organisation-key}}" "{{position-key}}"
 
 build-cv locale pages="4" application="" profile="":
-    scripts/render.sh cv "{{locale}}" "{{pages}}" "{{application}}" "{{profile}}"
+    #!/usr/bin/env bash
+    args=(build-cv "{{locale}}" "{{pages}}")
+    [[ -z "{{application}}" ]] || args+=(--application "{{application}}")
+    [[ -z "{{profile}}" ]] || args+=(--profile "{{profile}}")
+    bash ./ccvl "${args[@]}"
 
 build-cl locale application="" profile="":
-    scripts/render.sh cl "{{locale}}" "{{application}}" "{{profile}}"
+    #!/usr/bin/env bash
+    args=(build-cl "{{locale}}")
+    [[ -z "{{application}}" ]] || args+=(--application "{{application}}")
+    [[ -z "{{profile}}" ]] || args+=(--profile "{{profile}}")
+    bash ./ccvl "${args[@]}"
 
 build-opportunity organisation-key position-key:
     bash ./ccvl build-opportunity "{{organisation-key}}" "{{position-key}}"
@@ -40,4 +54,7 @@ watch-cv locale pages="4":
     bash ./ccvl watch-cv "{{locale}}" "{{pages}}"
 
 fmt:
-    typstyle --inplace --line-width 120 cvl
+    bash ./ccvl fmt
+
+fmt-check:
+    bash ./ccvl fmt --check

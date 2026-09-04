@@ -8,7 +8,6 @@ path = [
   ".github/**",
   ".vscode/**",
   ".zed/**",
-  ".python-version",
   ".gitattributes",
   ".gitignore",
   "AGENTS.md",
@@ -19,13 +18,11 @@ path = [
   "ccvl.json",
   "ccvl.ps1",
   "justfile",
-  "pyproject.toml",
   "rust-toolchain.toml",
   "schemas/**",
   "scripts/**",
   "src/**",
   "tests/**",
-  "uv.lock",
   "cvl/**/*.typ",
 ]
 precedence = "override"

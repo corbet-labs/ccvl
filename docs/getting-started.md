@@ -1,8 +1,8 @@
 # Getting started
 
-You can use ccvl without knowing Git, Typst, Python, or package managers. You
-need a folder that a coding agent can read and a terminal it can use. Native
-Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows x86_64/ARM64 are
+You can use ccvl without knowing Git, Rust, Typst, or package managers. You need
+a folder that a coding agent can read and a terminal it can use. Native Linux
+x86_64/aarch64, macOS Intel/Apple Silicon, and Windows x86_64/ARM64 are
 supported.
 
 ## With a coding agent
@@ -26,17 +26,16 @@ plan. Because the prompt explicitly requests setup, it may then run the matching
 `setup` command. Setup:
 
 - detects empty, partial, and already complete environments on the current OS;
-- reuses exact matching Typst, Typstyle, and uv versions when present, or
-  downloads pinned native releases into `.cache/ccvl/bin` and verifies their
-  published SHA-256 digests;
-- uses uv to install the pinned Python runtime and hash-locked PDF dependency
-  below `.cache/ccvl/`, leaving global versions untouched;
-- installs only a missing downloader or XZ support on minimal Linux; native
-  Windows and macOS need no package-manager bootstrap;
+- reuses the exact Rust 1.94.0 toolchain when present, or installs it below
+  `.cache/ccvl/` through the checksum-pinned bootstrap;
+- builds the repository-local `ccvl` binary from `Cargo.lock`; the document
+  compiler, formatter, and font pack are embedded in that binary;
+- limits host-level changes to bootstrap commands or compiler support reported
+  by the plan, and keeps the managed toolchain and binary repository-local;
 - runs the full deterministic suite before declaring success.
 
-Re-running setup is safe. If the correct tools are already present, it makes no
-changes and performs the same verification.
+Re-running setup is safe. If the exact toolchain and binary are already ready,
+it makes no changes and performs the same verification.
 
 ## From a terminal
 

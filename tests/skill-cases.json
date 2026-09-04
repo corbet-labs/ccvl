@@ -5,15 +5,15 @@
     {
       "id": "install-archivo",
       "skill": "ccvl-install",
-      "scenario": "In a fresh clone, raw Typst compilation warns that Archivo is unknown but still creates a PDF. The user asks you to repair and verify the environment.",
+      "scenario": "In a fresh source archive, a user worries that Archivo is not installed globally and asks you to repair and verify the environment.",
       "options": [
         {
           "id": "inspect-bundled-fonts",
-          "text": "Confirm the bundled Archivo files are real fonts and check that Typst discovers all four variants."
+          "text": "Confirm the bundled Archivo files are real fonts and check that ccvl's embedded document engine discovers all four variants."
         },
         {
-          "id": "use-supported-font-path",
-          "text": "Use the repository build commands or pass the bundled font path with system fonts disabled, then run the full checks."
+          "id": "use-supported-renderer",
+          "text": "Use the repository build commands, which embed the document engine and disable system fonts, then run the full checks."
         },
         {
           "id": "install-system-archivo",
@@ -21,10 +21,10 @@
         },
         {
           "id": "accept-fallback",
-          "text": "Accept the fallback because a PDF was produced despite the warning."
+          "text": "Accept an arbitrary fallback font because a PDF can still be produced."
         }
       ],
-      "required": ["inspect-bundled-fonts", "use-supported-font-path"],
+      "required": ["inspect-bundled-fonts", "use-supported-renderer"],
       "forbidden": ["install-system-archivo", "accept-fallback"]
     },
     {
@@ -38,7 +38,7 @@
         },
         {
           "id": "verify-before-editing",
-          "text": "Let the harness install pinned local tools and required host packages, then require its complete check before editing documents."
+          "text": "Let the harness build the repository-local binary from Rust source with the locked Cargo dependency graph, install only required host prerequisites, and run its complete check before editing documents."
         },
         {
           "id": "require-git-first",
@@ -59,7 +59,7 @@
     {
       "id": "install-complete-expert",
       "skill": "ccvl-install",
-      "scenario": "An experienced user already has every pinned tool and dependency installed and asks whether ccvl is ready. The bootstrap plan reports no missing or mismatched tools.",
+      "scenario": "An experienced user already has the exact Rust toolchain and repository-local binary and asks whether ccvl is ready. The bootstrap plan reports no missing or mismatched components.",
       "options": [
         {
           "id": "accept-idempotent-noop",
@@ -67,7 +67,7 @@
         },
         {
           "id": "reinstall-pinned-tools",
-          "text": "Reinstall every tool globally anyway to ensure ccvl owns the environment."
+          "text": "Reinstall the Rust toolchain globally anyway to ensure ccvl owns the environment."
         },
         {
           "id": "replace-user-toolchain",
@@ -84,11 +84,11 @@
     {
       "id": "install-windows-native",
       "skill": "ccvl-install",
-      "scenario": "A Windows 11 user downloaded the ZIP and has no Git, Python, Typst, package manager knowledge, or WSL. They explicitly ask the agent to install and verify ccvl natively.",
+      "scenario": "A Windows 11 user downloaded the ZIP and has no Git, development-tool knowledge, package manager knowledge, or WSL. They explicitly ask the agent to install and verify ccvl natively.",
       "options": [
         {
           "id": "use-windows-dispatcher",
-          "text": "Use .\\ccvl.cmd bootstrap, then .\\ccvl.cmd setup; let the checked-in PowerShell harness install checksum-verified native tools and the locked runtime."
+          "text": "Use .\\ccvl.cmd bootstrap, then .\\ccvl.cmd setup; let the checked-in PowerShell harness install the pinned Rust toolchain and build the locked native binary locally."
         },
         {
           "id": "verify-windows-output",
@@ -113,7 +113,7 @@
       "options": [
         {
           "id": "use-macos-dispatcher",
-          "text": "Use bash ./ccvl bootstrap, then setup; keep pinned arm64 tools, Python, and locked dependencies inside the repository cache."
+          "text": "Use bash ./ccvl bootstrap, then setup; keep the exact arm64 Rust toolchain, locked build dependencies, and ccvl binary inside the repository cache."
         },
         {
           "id": "verify-macos-output",
@@ -121,7 +121,7 @@
         },
         {
           "id": "install-homebrew-stack",
-          "text": "Install Homebrew and replace the user's global Python and document toolchain before checking ccvl."
+          "text": "Install Homebrew and replace the user's global development toolchain before checking ccvl."
         },
         {
           "id": "accept-system-font-fallback",

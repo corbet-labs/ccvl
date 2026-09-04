@@ -9,8 +9,8 @@
 
 # Local build state
 /.cache/
-/__pycache__/
-**/__pycache__/
+__pycache__/
+*.py[cod]
 /result
 /target/
 /tmp/
