@@ -1,0 +1,85 @@
+name: Verified private downstream sync
+
+clone:
+  - name: clone
+    image: codefloe.com/crow-plugins/clone
+    settings:
+      partial: false
+
+when:
+  - event: push
+    branch: main
+
+steps:
+  - name: build-current-gate
+    image: bash
+    commands:
+      - |
+        set -euo pipefail
+        test "$CI_REPO" = "corbet-labs/ccvl"
+        test "$CI_COMMIT_BRANCH" = "$CI_REPO_DEFAULT_BRANCH"
+        test "$(git rev-parse HEAD)" = "$CI_COMMIT_SHA"
+        cargo build --locked --release
+
+  - name: merge-verify-publish
+    image: bash
+    environment:
+      DOWNSTREAM_PUSH_KEY:
+        from_secret: ccvl_downstream_push_key
+      DOWNSTREAM_SSH_URL:
+        from_secret: ccvl_downstream_ssh_url
+    commands:
+      - |
+        set -euo pipefail
+        test "$CI_REPO" = "corbet-labs/ccvl"
+        test "$CI_COMMIT_BRANCH" = "$CI_REPO_DEFAULT_BRANCH"
+        test "$(git rev-parse HEAD)" = "$CI_COMMIT_SHA"
+        command -v flock >/dev/null
+
+        exec 9>/workspaces/ccvl-private-downstream.lock
+        flock 9
+
+        credential_dir="$(mktemp -d)"
+        downstream_dir="$(mktemp -d)"
+        key_path="$credential_dir/id_ed25519"
+        known_hosts_path="$credential_dir/known_hosts"
+        cleanup() {
+          if test -f "$key_path"; then
+            shred -u -- "$key_path"
+          fi
+          rm -rf -- "$downstream_dir"
+          rm -f -- "$known_hosts_path"
+          rmdir -- "$credential_dir"
+        }
+        trap cleanup EXIT
+
+        install -m 600 /dev/null "$key_path"
+        printf '%s\n' "$DOWNSTREAM_PUSH_KEY" > "$key_path"
+        export GIT_SSH_COMMAND="ssh -i $key_path -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=$known_hosts_path"
+
+        git clone --quiet "$DOWNSTREAM_SSH_URL" "$downstream_dir"
+        cd "$downstream_dir"
+        git remote add upstream https://github.com/corbet-labs/ccvl.git
+        git fetch --quiet --no-tags "$CI_WORKSPACE" HEAD
+        test "$(git rev-parse FETCH_HEAD)" = "$CI_COMMIT_SHA"
+        git update-ref refs/remotes/upstream/main "$CI_COMMIT_SHA"
+
+        if git merge-base --is-ancestor "$CI_COMMIT_SHA" HEAD; then
+          echo "Private downstream already contains $CI_COMMIT_SHA."
+          exit 0
+        fi
+
+        git config user.name "ccvl downstream sync"
+        git config user.email "ccvl-downstream-sync@users.noreply.github.com"
+        git merge --no-edit refs/remotes/upstream/main
+
+        gate="$CI_WORKSPACE/target/release/ccvl"
+        "$gate" downstream-check \
+          --policy ccvl-downstream.json \
+          --upstream-ref refs/remotes/upstream/main
+        "$gate" check
+
+        git push --porcelain origin HEAD:main
+        expected_head="$(git rev-parse HEAD)"
+        remote_head="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+        test "$remote_head" = "$expected_head"

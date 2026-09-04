@@ -4,6 +4,7 @@ version = 1
 path = [
   ".agents/**",
   ".claude/**",
+  ".crow/**",
   ".github/**",
   ".vscode/**",
   ".zed/**",

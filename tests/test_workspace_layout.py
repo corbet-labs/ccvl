@@ -54,6 +54,18 @@ class WorkspaceLayoutTests(unittest.TestCase):
         self.assertEqual(zed_tinymist["fontPaths"], ["cvl/shared/fonts"])
         self.assertFalse(zed_tinymist["systemFonts"])
 
+    def test_private_downstream_sync_is_push_driven_and_gated(self) -> None:
+        workflow = (ROOT / ".crow" / "private-downstream.yaml").read_text(encoding="utf-8")
+        self.assertIn("event: push", workflow)
+        self.assertIn("branch: main", workflow)
+        self.assertNotIn("event: cron", workflow)
+        self.assertNotIn("event: manual", workflow)
+        self.assertIn("downstream-check", workflow)
+        self.assertIn('"$gate" check', workflow)
+        push = workflow.index("git push --porcelain")
+        self.assertLess(workflow.index("downstream-check"), push)
+        self.assertLess(workflow.index('"$gate" check'), push)
+
     def test_opportunity_keys_resolve_to_one_canonical_record(self) -> None:
         expected = ROOT / "opportunities" / "acme" / "strategy-lead" / "application.json"
         self.assertEqual(opportunity.record_path("acme", "strategy-lead", require_exists=False), expected)
