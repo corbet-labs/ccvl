@@ -1,0 +1,76 @@
+name: Binaries
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binaries-${{ github.workflow }}-${{ github.event.workflow_run.head_sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Release binary (${{ matrix.os }} ${{ matrix.arch }})
+    if: github.repository == 'corbet-labs/ccvl' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: x86_64
+            runner: ubuntu-24.04
+            exe: ccvl
+          - os: linux
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+            exe: ccvl
+          - os: macos
+            arch: arm64
+            runner: macos-15
+            exe: ccvl
+          - os: macos
+            arch: x86_64
+            runner: macos-15-intel
+            exe: ccvl
+          - os: windows
+            arch: x86_64
+            runner: windows-2025
+            exe: ccvl.exe
+          - os: windows
+            arch: arm64
+            runner: windows-11-arm
+            exe: ccvl.exe
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      RUST_TOOLCHAIN: 1.94.0
+    steps:
+      - name: Check out the green source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install exact Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          test "$(rustc "+$RUST_TOOLCHAIN" --version | awk '{print $2}')" = "$RUST_TOOLCHAIN"
+
+      - name: Build locked release binary
+        shell: bash
+        run: cargo "+$RUST_TOOLCHAIN" build --locked --release
+
+      - name: Upload platform binary
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: ccvl-${{ matrix.os }}-${{ matrix.arch }}
+          path: target/release/${{ matrix.exe }}
+          if-no-files-found: error
+          retention-days: 30

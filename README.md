@@ -90,7 +90,8 @@ Opportunity-specific documents are written beside their job record under
 The same commands work in a downloaded source archive; Git knowledge is not
 required. On Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows
 x86_64/ARM64, setup builds a repository-local binary from the locked Rust
-dependency graph. Typst, Typstyle, and the font pack are embedded.
+dependency graph. Prebuilt binaries for the same six platforms are attached
+to every green `main` commit by the Binaries workflow. Typst, Typstyle, and the font pack are embedded.
 
 ## Make it yours
 
