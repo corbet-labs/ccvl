@@ -68,6 +68,11 @@
   target-fill,
   max-fill,
   source-text: none,
+  // Pre-measured lines (wrap-exact output) render in a box fixed to their
+  // natural width. An auto-width box re-wraps any spill past 100% onto a new
+  // visual line, which silently adds lines the metric gate approved. A fixed
+  // box spills at most `max-fill` invisibly into the margin instead.
+  exact-width: false,
 ) = layout(size => {
   [
     #line-contract-marker(
@@ -80,11 +85,15 @@
       size.width,
       source-text: source-text,
     )
-    #box(body)
+    #if exact-width {
+      box(width: measure(body).width, body)
+    } else {
+      box(body)
+    }
   ]
 })
 
-#let measured-line(id, kind, contract) = measured-content-line(
+#let measured-line(id, kind, contract, exact-width: false) = measured-content-line(
   id,
   kind,
   text(contract.text),
@@ -92,11 +101,12 @@
   contract.target_fill,
   contract.max_fill,
   source-text: contract.text,
+  exact-width: exact-width,
 )
 
-#let measured-lines(id, kind, lines) = {
+#let measured-lines(id, kind, lines, exact-width: false) = {
   for (index, line) in lines.enumerate() {
-    measured-line(id + "." + str(index + 1), kind, line)
+    measured-line(id + "." + str(index + 1), kind, line, exact-width: exact-width)
     if index < lines.len() - 1 {
       linebreak()
     }

@@ -168,7 +168,9 @@
         max_fill: if index + 1 == lines.len() { last-line-maximum } else { fill.maximum },
       )
     })
-    measured-lines("cv.summary", "cv-summary", mapped)
+    // Pre-measured summary lines render at exact width so an approved
+    // closing-line spill stays invisibly in the margin instead of wrapping.
+    measured-lines("cv.summary", "cv-summary", mapped, exact-width: true)
   })
 ]
 

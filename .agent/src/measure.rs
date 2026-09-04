@@ -579,6 +579,47 @@ mod tests {
     }
 
     #[test]
+    fn closing_line_spill_renders_without_wrapping() {
+        // A closing line at 100.8% (inside the 102 maximum) must stay one
+        // visual line: exact-width boxes spill into the margin instead of
+        // re-wrapping, which previously added a sixth summary line and
+        // overflowed the page despite green metrics. Five repeated spill
+        // lines fit one 60mm page exactly; with auto-width boxes they wrap
+        // to ten lines over two pages.
+        let engine = ctypst::Engine::builder()
+            .root(std::path::Path::new(env!("CARGO_MANIFEST_DIR")))
+            .fonts(ctypst::fonts::documents())
+            .build()
+            .unwrap();
+        let spill = "Damit unterstütze ich Leverage Experts pragmatisch in Performance-, Portfolio- und Transformationsmandaten.";
+        let source = format!(
+            "#import \"/.agent/typst/line-contract.typ\": measured-lines\n\
+             #import \"/.agent/typst/styles/document.typ\": document-style\n\
+             #show: document-style.with(locale: \"de-ch\")\n\
+             #set page(height: 60mm)\n\
+             #set text(hyphenate: false)\n\
+             #let spill = \"{spill}\"\n\
+             #measured-lines(\"t\", \"x\", range(5).map(i => (text: spill, min_fill: 60, target_fill: 82, max_fill: 102)), exact-width: true)"
+        );
+        let output = engine
+            .compile(
+                ctypst::CompileRequest::new("spill.typ")
+                    .source_file("spill.typ", source)
+                    .pages(ctypst::PageConstraint::Exactly(1)),
+            )
+            .unwrap();
+        let metrics = ctypst::query_json(&output.document, "ccvl-line").unwrap();
+        assert_eq!(metrics.len(), 5);
+        for metric in &metrics {
+            let fill = metric["actual_fill"].as_f64().unwrap();
+            assert!(
+                fill > 100.0 && fill <= 102.0,
+                "want a real spill, got {fill}"
+            );
+        }
+    }
+
+    #[test]
     fn underfill_and_overflow_are_both_failures_for_any_unit() {
         let base = json!({"min_fill": 60, "target_fill": 80, "max_fill": 95});
         let mut metric = base.clone();
