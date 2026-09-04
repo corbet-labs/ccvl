@@ -20,6 +20,7 @@ concurrency:
 jobs:
   rust-native:
     name: Native Rust compiler and document contracts
+    if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -49,6 +50,7 @@ jobs:
 
   bootstrap-clean:
     name: Bootstrap from a minimal Linux archive
+    if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04
     container: ubuntu:24.04
     timeout-minutes: 15
@@ -74,6 +76,7 @@ jobs:
 
   linux-arm-native:
     name: Native Linux (aarch64) bootstrap and documents
+    if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     env:
@@ -101,6 +104,7 @@ jobs:
 
   macos-native:
     name: Native macOS (${{ matrix.arch }}) bootstrap and documents
+    if: github.repository == 'corbet-labs/ccvl'
     strategy:
       fail-fast: false
       matrix:
@@ -136,6 +140,7 @@ jobs:
 
   windows-native:
     name: Native Windows (${{ matrix.arch }}) bootstrap and documents
+    if: github.repository == 'corbet-labs/ccvl'
     strategy:
       fail-fast: false
       matrix:
@@ -182,6 +187,7 @@ jobs:
 
   verify:
     name: Linux release and independent PDF verification
+    if: github.repository == 'corbet-labs/ccvl'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
