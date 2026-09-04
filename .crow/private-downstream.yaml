@@ -13,13 +13,15 @@ when:
 steps:
   - name: build-current-gate
     image: bash
+    environment:
+      CARGO_TARGET_DIR: /caches/cargo/targets/ccvl
     commands:
       - |
         set -euo pipefail
         test "$CI_REPO" = "corbet-labs/ccvl"
         test "$CI_COMMIT_BRANCH" = "$CI_REPO_DEFAULT_BRANCH"
         test "$(git rev-parse HEAD)" = "$CI_COMMIT_SHA"
-        cargo build --locked --release
+        cargo build --locked
 
   - name: merge-verify-publish
     image: bash
@@ -28,6 +30,7 @@ steps:
         from_secret: ccvl_downstream_push_key
       DOWNSTREAM_SSH_URL:
         from_secret: ccvl_downstream_ssh_url
+      CARGO_TARGET_DIR: /caches/cargo/targets/ccvl
     commands:
       - |
         set -euo pipefail
@@ -73,7 +76,7 @@ steps:
         git config user.email "ccvl-downstream-sync@users.noreply.github.com"
         git merge --no-edit refs/remotes/upstream/main
 
-        gate="$CI_WORKSPACE/target/release/ccvl"
+        gate="$CARGO_TARGET_DIR/debug/ccvl"
         "$gate" downstream-check \
           --policy ccvl-downstream.json \
           --upstream-ref refs/remotes/upstream/main
