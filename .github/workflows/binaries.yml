@@ -67,11 +67,22 @@ jobs:
         shell: bash
         run: cargo "+$RUST_TOOLCHAIN" build --locked --release
 
+      - name: Stage named binary and checksum
+        shell: bash
+        run: |
+          name="ccvl-${{ matrix.os }}-${{ matrix.arch }}"
+          case "${{ matrix.exe }}" in
+            *.exe) name="$name.exe" ;;
+          esac
+          mkdir -p dist
+          cp "target/release/${{ matrix.exe }}" "dist/$name"
+          (cd dist && sha256sum "$name" > "$name.sha256")
+
       - name: Upload platform binary
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: ccvl-${{ matrix.os }}-${{ matrix.arch }}
-          path: target/release/${{ matrix.exe }}
+          path: dist/*
           if-no-files-found: error
           retention-days: 7
 

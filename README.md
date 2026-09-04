@@ -89,11 +89,11 @@ Opportunity-specific documents are written beside their job record under
 
 The same commands work in a downloaded source archive; Git knowledge is not
 required. On Linux x86_64/aarch64, macOS Intel/Apple Silicon, and Windows
-x86_64/ARM64, setup builds a repository-local binary from the locked Rust
-dependency graph. If you'd rather skip the toolchain, grab the prebuilt
-binary for your platform from the rolling `continuous` release and drop it
-next to a workspace checkout before running setup. Typst, Typstyle, and the
-font pack are embedded.
+x86_64/ARM64, setup fetches the checksum-verified prebuilt binary for the
+current platform, so first setup takes seconds. The same six binaries ride
+the rolling `continuous` release. Only when the fetch is unavailable does
+setup fall back to building a repository-local binary from the locked Rust
+dependency graph. Typst, Typstyle, and the font pack are embedded.
 
 ## Make it yours
 

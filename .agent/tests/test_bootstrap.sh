@@ -209,4 +209,60 @@ grep -Fxq \
   'No supported package manager found for missing bootstrap commands: checksum compiler downloader' \
   "$scratch/no-manager-error"
 
+fetch_bin="$scratch/fetch-bin"
+fetch_fixtures="$scratch/fetch-fixtures"
+fetch_cache="$scratch/fetch-cache"
+mkdir -p "$fetch_bin" "$fetch_fixtures"
+create_fake "$fetch_bin" cc
+if command -v sha256sum >/dev/null 2>&1; then
+  ln -s "$(command -v sha256sum)" "$fetch_bin/sha256sum"
+else
+  ln -s "$(command -v shasum)" "$fetch_bin/shasum"
+fi
+printf '#!/bin/sh\nprintf "ccvl 0.1.0\\n"\n' > "$fetch_fixtures/ccvl-linux-x86_64"
+chmod 0755 "$fetch_fixtures/ccvl-linux-x86_64"
+if command -v sha256sum >/dev/null 2>&1; then
+  fixture_hash="$(sha256sum "$fetch_fixtures/ccvl-linux-x86_64" | awk '{ print $1 }')"
+else
+  fixture_hash="$(shasum -a 256 "$fetch_fixtures/ccvl-linux-x86_64" | awk '{ print $1 }')"
+fi
+printf '%s  %s\n' "$fixture_hash" "ccvl-linux-x86_64" > "$fetch_fixtures/ccvl-linux-x86_64.sha256"
+cat > "$fetch_bin/curl" <<EOF
+#!/bin/sh
+out=""
+url=""
+prev=""
+for arg in "\$@"; do
+  if [ "\$prev" = "--output" ]; then out="\$arg"; fi
+  case "\$arg" in https://*) url="\$arg" ;; esac
+  prev="\$arg"
+done
+cp "$fetch_fixtures/\${url##*/}" "\$out"
+EOF
+chmod 0755 "$fetch_bin/curl"
+fetch_plan="$(
+  CCVL_BOOTSTRAP_PROBE_PATH="$fetch_bin" \
+  CCVL_BOOTSTRAP_CACHE_ROOT="$fetch_cache" \
+  CCVL_BOOTSTRAP_TEST_PLATFORM=Linux-x86_64 \
+  CCVL_BOOTSTRAP_TEST_MANAGER=apt \
+    bash "$repo_root/.agent/scripts/bootstrap.sh" plan
+)"
+[[ "$fetch_plan" == *'ccvl binary: install'* ]]
+[[ "$fetch_plan" == *'prebuilt binary: ccvl-linux-x86_64 (source build on fetch failure)'* ]]
+CCVL_BOOTSTRAP_PROBE_PATH="$fetch_bin" \
+CCVL_BOOTSTRAP_CACHE_ROOT="$fetch_cache" \
+CCVL_BOOTSTRAP_TEST_PLATFORM=Linux-x86_64 \
+CCVL_BOOTSTRAP_TEST_MANAGER=apt \
+  bash "$repo_root/.agent/scripts/bootstrap.sh" install >/dev/null
+[[ -x "$fetch_cache/bin/ccvl" ]]
+[[ -f "$fetch_cache/install-prebuilt.sha256" ]]
+fetch_ready="$(
+  CCVL_BOOTSTRAP_PROBE_PATH="$fetch_bin" \
+  CCVL_BOOTSTRAP_CACHE_ROOT="$fetch_cache" \
+  CCVL_BOOTSTRAP_TEST_PLATFORM=Linux-x86_64 \
+  CCVL_BOOTSTRAP_TEST_MANAGER=apt \
+    bash "$repo_root/.agent/scripts/bootstrap.sh" plan
+)"
+[[ "$fetch_ready" == *'ccvl binary: ready'* ]]
+
 printf 'POSIX bootstrap handles Linux and macOS empty, partial, complete, unsupported, and manager-less states.\n'

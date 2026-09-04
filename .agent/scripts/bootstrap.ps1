@@ -20,6 +20,13 @@ $RustupHome = Join-Path $CacheRoot "rustup"
 $TargetDir = Join-Path $CacheRoot "target"
 $Binary = Join-Path $LocalBin "ccvl.exe"
 $InstallStamp = Join-Path $CacheRoot "install.sha256"
+$PrebuiltStamp = Join-Path $CacheRoot "install-prebuilt.sha256"
+$ReleaseBase = if (Test-Path Env:CCVL_RELEASE_BASE) {
+    $env:CCVL_RELEASE_BASE
+}
+else {
+    "https://github.com/corbet-labs/ccvl/releases/download/continuous"
+}
 $ToolchainFile = Get-Content -Raw (Join-Path $RepoRoot "rust-toolchain.toml")
 if ($ToolchainFile -notmatch '(?m)^\s*channel\s*=\s*"([^"]+)"') {
     throw "rust-toolchain.toml does not declare a Rust channel"
@@ -117,6 +124,11 @@ function Get-SourceFingerprint {
 }
 
 $Platform = Get-PlatformKey
+$ReleaseAsset = switch ($Platform) {
+    "Windows-x86_64" { "ccvl-windows-x86_64.exe" }
+    "Windows-aarch64" { "ccvl-windows-arm64.exe" }
+}
+$FetchEnabled = $null -ne $ReleaseAsset -and $env:CCVL_BOOTSTRAP_FORCE_LOCAL -ne "1"
 $Assets = @(Import-Csv (Join-Path $PSScriptRoot "tool-assets.csv") |
     Where-Object { $_.tool -eq "rustup-init" -and $_.platform -eq $Platform })
 if ($Assets.Count -ne 1) {
@@ -130,6 +142,14 @@ if ((Test-Path -LiteralPath $Binary -PathType Leaf) -and
     (Test-Path -LiteralPath $InstallStamp -PathType Leaf) -and
     ((Get-Content -Raw -LiteralPath $InstallStamp).Trim() -eq $Fingerprint)) {
     $BinaryState = "ready"
+}
+elseif ((Test-Path -LiteralPath $Binary -PathType Leaf) -and
+    (Test-Path -LiteralPath $PrebuiltStamp -PathType Leaf)) {
+    $PrebuiltRecord = ((Get-Content -Raw -LiteralPath $PrebuiltStamp).Trim() -split "\s+", 2)
+    if ($PrebuiltRecord.Count -eq 2 -and $PrebuiltRecord[1] -eq $Fingerprint -and
+        ((Get-FileHash -Algorithm SHA256 -LiteralPath $Binary).Hash.ToLowerInvariant() -eq $PrebuiltRecord[0])) {
+        $BinaryState = "ready"
+    }
 }
 
 $SystemKind = "none"
@@ -177,6 +197,9 @@ switch ($ToolchainState) {
     }
 }
 Write-Output "  ccvl binary: $BinaryState"
+if ($BinaryState -eq "install" -and $FetchEnabled) {
+    Write-Output "  prebuilt binary: $ReleaseAsset (source build on fetch failure)"
+}
 Write-Output "  missing bootstrap commands: none"
 Write-Output "  host packages: none"
 if ($BinaryState -eq "ready") {
@@ -191,7 +214,37 @@ if ($Mode -eq "plan") {
 $TemporaryRoot = Join-Path ([IO.Path]::GetTempPath()) "ccvl-bootstrap-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $TemporaryRoot | Out-Null
 try {
-    if ($ToolchainState -eq "install") {
+    $FetchedBinary = $false
+    if ($BinaryState -eq "install" -and $FetchEnabled) {
+        try {
+            $Staged = Join-Path $TemporaryRoot $ReleaseAsset
+            Invoke-WebRequest -UseBasicParsing -Uri "$ReleaseBase/$ReleaseAsset" -OutFile $Staged
+            Invoke-WebRequest -UseBasicParsing -Uri "$ReleaseBase/$ReleaseAsset.sha256" -OutFile "$Staged.sha256"
+            $ExpectedHash = ((Get-Content -Raw -LiteralPath "$Staged.sha256").Trim() -split "\s+")[0]
+            if ([string]::IsNullOrEmpty($ExpectedHash)) {
+                throw "Empty checksum sidecar for $ReleaseAsset"
+            }
+            $ActualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Staged).Hash.ToLowerInvariant()
+            if ($ActualHash -ne $ExpectedHash.ToLowerInvariant()) {
+                throw "Checksum mismatch for $ReleaseAsset"
+            }
+            Unblock-File -LiteralPath $Staged
+            New-Item -ItemType Directory -Force -Path $LocalBin | Out-Null
+            Copy-Item -LiteralPath $Staged -Destination $Binary -Force
+            $Fingerprint = Get-SourceFingerprint
+            [IO.File]::WriteAllText(
+                $PrebuiltStamp,
+                "$ActualHash $Fingerprint`n",
+                [Text.UTF8Encoding]::new($false)
+            )
+            $FetchedBinary = $true
+        }
+        catch {
+            Write-Output "Prebuilt binary unavailable; falling back to a source build."
+        }
+    }
+
+    if ($ToolchainState -eq "install" -and -not $FetchedBinary) {
         New-Item -ItemType Directory -Force -Path $CargoHome, $RustupHome | Out-Null
         $Download = Join-Path $TemporaryRoot $Asset.asset
         Write-Output "Downloading pinned rustup-init $($Asset.version)"
@@ -221,7 +274,7 @@ try {
         $ToolchainState = "managed"
     }
 
-    if ($BinaryState -eq "install") {
+    if ($BinaryState -eq "install" -and -not $FetchedBinary) {
         New-Item -ItemType Directory -Force -Path $CacheRoot, $CargoHome, $TargetDir | Out-Null
         $CargoArguments = @(
             "install", "--locked", "--force", "--path", $RepoRoot, "--root", $CacheRoot

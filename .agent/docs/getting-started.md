@@ -27,12 +27,16 @@ plan. Because the prompt explicitly requests setup, it may then run the matching
 `setup` command. Setup:
 
 - detects empty, partial, and already complete environments on the current OS;
-- reuses the exact Rust 1.94.0 toolchain when present, or installs it in the
-  repository-local `.agent/cache/ccvl/` through the checksum-pinned bootstrap;
-- builds the repository-local `ccvl` binary from `Cargo.lock`; the document
-  compiler, formatter, and font pack are embedded in that binary;
-- limits host-level changes to bootstrap commands or compiler support reported
-  by the plan, and keeps the managed toolchain and binary repository-local;
+- fetches the prebuilt `ccvl` binary for the current platform from the
+  rolling release and verifies its checksum, so first setup takes seconds;
+  only when the fetch is unavailable (offline, or forced local) does it
+  install the exact Rust 1.94.0 toolchain in the repository-local
+  `.agent/cache/ccvl/` through the checksum-pinned bootstrap and build from
+  `Cargo.lock`;
+- keeps the managed toolchain and binary repository-local and limits
+  host-level changes to bootstrap commands or compiler support reported
+  by the plan; the document compiler, formatter, and font pack are
+  embedded in the binary;
 - runs the full deterministic suite before declaring success.
 
 Re-running setup is safe. If the exact toolchain and binary are already ready,

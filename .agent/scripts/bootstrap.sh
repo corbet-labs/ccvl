@@ -9,6 +9,8 @@ rustup_home="$cache_root/rustup"
 target_dir="$cache_root/target"
 binary="$local_bin/ccvl"
 install_stamp="$cache_root/install.sha256"
+prebuilt_stamp="$cache_root/install-prebuilt.sha256"
+release_base="${CCVL_RELEASE_BASE:-https://github.com/corbet-labs/ccvl/releases/download/continuous}"
 rust_version="$(sed -n 's/^[[:space:]]*channel[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$repo_root/rust-toolchain.toml")"
 
 # shellcheck source=.agent/scripts/tool-versions.sh
@@ -57,6 +59,14 @@ if ! ccvl_select_rustup_asset "$platform"; then
     "$platform" >&2
   exit 2
 fi
+
+release_asset=""
+case "$platform" in
+  Linux-x86_64) release_asset=ccvl-linux-x86_64 ;;
+  Linux-aarch64) release_asset=ccvl-linux-aarch64 ;;
+  Darwin-aarch64) release_asset=ccvl-macos-arm64 ;;
+  Darwin-x86_64) release_asset=ccvl-macos-x86_64 ;;
+esac
 
 version_matches() {
   local output="$1"
@@ -184,9 +194,18 @@ source_fingerprint() {
 
 binary_state=install
 fingerprint="$(source_fingerprint 2>/dev/null)" || fingerprint=
-if [[ -x "$binary" && -n "$fingerprint" && -f "$install_stamp" ]] \
-  && [[ "$(<"$install_stamp")" == "$fingerprint" ]]; then
-  binary_state=ready
+if [[ -x "$binary" && -n "$fingerprint" ]]; then
+  if [[ -f "$install_stamp" ]] && [[ "$(<"$install_stamp")" == "$fingerprint" ]]; then
+    binary_state=ready
+  elif [[ -f "$prebuilt_stamp" ]]; then
+    prebuilt_record="$(<"$prebuilt_stamp")"
+    prebuilt_bin="${prebuilt_record%% *}"
+    prebuilt_fp="${prebuilt_record#* }"
+    if [[ -n "$prebuilt_bin" && -n "$prebuilt_fp" && "$prebuilt_fp" == "$fingerprint" ]] \
+      && [[ "$(hash_file "$binary" 2>/dev/null)" == "$prebuilt_bin" ]]; then
+      binary_state=ready
+    fi
+  fi
 fi
 
 toolchain_state=install
@@ -194,6 +213,17 @@ if managed_rust_matches; then
   toolchain_state=managed
 elif [[ "$system_kind" != none ]]; then
   toolchain_state=system
+fi
+
+# A prebuilt binary needs no toolchain and no compiler: it downloads in
+# seconds while a source build takes minutes. Fetch is the primary path
+# whenever the platform asset is known and a downloader plus checksum
+# verifier exist; the source build remains the offline fallback.
+fetch_enabled=0
+if [[ -n "$release_asset" && "${CCVL_BOOTSTRAP_FORCE_LOCAL:-0}" != 1 ]] \
+  && { probe curl >/dev/null || probe wget >/dev/null; } \
+  && { probe sha256sum >/dev/null || probe shasum >/dev/null; }; then
+  fetch_enabled=1
 fi
 
 manager="${CCVL_BOOTSTRAP_TEST_MANAGER:-}"
@@ -226,19 +256,18 @@ if [[ "$binary_state" == install || "$toolchain_state" == install ]]; then
     missing_bootstrap+=(checksum)
   fi
 fi
-if [[ "$binary_state" == install ]]; then
+if [[ "$binary_state" == install && "$fetch_enabled" == 0 ]]; then
   if ! probe cc >/dev/null && [[ "$platform" != Darwin-* ]]; then
     missing_bootstrap+=(compiler)
   fi
 fi
 
+if [[ "$platform" == Linux-* && "$toolchain_state" == install ]] \
+  && ! probe curl >/dev/null && ! probe wget >/dev/null; then
+  missing_bootstrap+=(downloader)
+fi
 if [[ "$toolchain_state" == install ]]; then
   case "$platform" in
-    Linux-*)
-      if ! probe curl >/dev/null && ! probe wget >/dev/null; then
-        missing_bootstrap+=(downloader)
-      fi
-      ;;
     Darwin-*)
       if ! find_brew >/dev/null; then
         missing_bootstrap+=(homebrew)
@@ -287,6 +316,9 @@ case "$toolchain_state" in
     ;;
 esac
 printf '  ccvl binary: %s\n' "$binary_state"
+if [[ "$binary_state" == install && "$fetch_enabled" == 1 ]]; then
+  printf '  prebuilt binary: %s (source build on fetch failure)\n' "$release_asset"
+fi
 printf '  missing bootstrap commands: %s\n' "$missing_display"
 printf '  package manager: %s\n' "${manager:-none}"
 printf '  host packages: %s\n' "$host_packages_display"
@@ -346,10 +378,11 @@ trap 'rm -rf -- "$bootstrap_tmp"' EXIT
 fetch() {
   local url="$1"
   local output="$2"
-  if command -v curl >/dev/null 2>&1; then
-    curl --fail --location --proto '=https' --tlsv1.2 "$url" --output "$output"
-  elif command -v wget >/dev/null 2>&1; then
-    wget --https-only --output-document="$output" "$url"
+  local downloader=
+  if downloader="$(probe curl 2>/dev/null)" && [[ -n "$downloader" ]]; then
+    "$downloader" --fail --location --proto '=https' --tlsv1.2 "$url" --output "$output"
+  elif downloader="$(probe wget 2>/dev/null)" && [[ -n "$downloader" ]]; then
+    "$downloader" --https-only --output-document="$output" "$url"
   else
     printf 'curl or wget is required to download a bootstrap asset.\n' >&2
     return 1
@@ -374,7 +407,40 @@ verify_sha256() {
   }
 }
 
-if [[ "$toolchain_state" == install ]]; then
+fetch_prebuilt() {
+  local staged="$bootstrap_tmp/$release_asset"
+  local staged_checksum="$staged.sha256"
+  local expected bin_sha current
+  fetch "$release_base/$release_asset" "$staged" || return 1
+  fetch "$release_base/$release_asset.sha256" "$staged_checksum" || return 1
+  expected="$(awk '{ print $1 }' "$staged_checksum")" || return 1
+  [[ -n "$expected" ]] || return 1
+  verify_sha256 "$expected" "$staged" || return 1
+  chmod 0755 "$staged" || return 1
+  mkdir -p "$local_bin" || return 1
+  cp "$staged" "$binary" || return 1
+  bin_sha="$(hash_file "$binary")" || return 1
+  current="$(source_fingerprint)" || return 1
+  printf '%s %s\n' "$bin_sha" "$current" > "$prebuilt_stamp" || return 1
+}
+
+fetched_binary=0
+if [[ "$binary_state" == install && -n "$release_asset" && "${CCVL_BOOTSTRAP_FORCE_LOCAL:-0}" != 1 ]] \
+  && { probe curl >/dev/null || probe wget >/dev/null; } \
+  && { probe sha256sum >/dev/null || probe shasum >/dev/null; }; then
+  if fetch_prebuilt; then
+    fetched_binary=1
+  else
+    printf 'Prebuilt binary unavailable; falling back to a source build.\n' >&2
+    if ! probe cc >/dev/null && [[ "$platform" != Darwin-* ]]; then
+      printf 'Source-build fallback needs a C compiler (cc).\n' >&2
+      printf 'Install a compiler or provide network access to %s.\n' "$release_base" >&2
+      exit 2
+    fi
+  fi
+fi
+
+if [[ "$toolchain_state" == install && "$fetched_binary" == 0 ]]; then
   mkdir -p "$cargo_home" "$rustup_home"
   if [[ "$platform" == Darwin-* ]]; then
     brew="$(find_brew)" || brew=
@@ -413,7 +479,7 @@ if [[ "$toolchain_state" == install ]]; then
   toolchain_state=managed
 fi
 
-if [[ "$binary_state" == install ]]; then
+if [[ "$binary_state" == install && "$fetched_binary" == 0 ]]; then
   mkdir -p "$cache_root" "$cargo_home" "$target_dir"
   cargo_args=(install --locked --force --path "$repo_root" --root "$cache_root")
   case "$toolchain_state" in

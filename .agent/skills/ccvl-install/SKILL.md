@@ -13,11 +13,13 @@ rendering the checked-in general CVL.
 1. Detect the host. Run `bash ./ccvl bootstrap` on Linux/macOS or
    `.\ccvl.cmd bootstrap` on native Windows. Do not improvise a parallel
    installer, require Git knowledge, or route Windows users through WSL.
-2. If it reports that the exact Rust toolchain and repository-local binary are
-   ready, run the matching platform `check` command and stop changing the
-   environment.
+2. If it reports that the prebuilt binary or the exact Rust toolchain plus
+   repository-local binary are ready, run the matching platform `check`
+   command and stop changing the environment.
 3. If the user explicitly requested setup or installation, run the matching
-   platform `setup` command. Otherwise show the plan before its changes.
+   platform `setup` command: it fetches the checksum-verified prebuilt
+   binary first and only builds from source (installing the toolchain)
+   when the fetch is unavailable. Otherwise show the plan before its changes.
 4. If the harness cannot support the platform, report its exact boundary and
    use `.agent/docs/tooling.md`; do not guess package names.
 5. Do not replace an existing package strategy or working global toolchain. The
