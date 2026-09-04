@@ -66,6 +66,11 @@ remote unchanged. `.github/workflows/downstream-sync.yml` provides the generic
 GitHub workflow, while the maintainer's self-hosted Crow workflow keeps private
 target and opportunity data off hosted runners.
 
+Keep its credentials in Crow's repository-scoped secret store and restrict
+them to push events. Crow image filters apply only to plugin steps; attaching
+one to a normal command step is a workflow compilation error, so a command
+step's secret boundary is the repository plus the allowed event.
+
 If private commits are already ahead, use a normal merge. Reserve a deliberate
 history rewrite for the one-time conversion of an existing standalone
 repository, protect the former tip with a remote tag first, and review the
