@@ -350,7 +350,34 @@
 
   #cv-superheading[Capabilities & AI Keywords]
   #block(breakable: false)[
-    #cv-spacious-heading[Innovation, AI & Technology]
+    #cv-spacious-heading[AI, Data & Technology]
+    // ccvl-competency: ai-products-tooling
+    #cv-h[AI Products, Tooling & Model Ecosystems]
+    #v(7.35pt)
+    #cv-b[US AI Tooling: Anthropic Claude Code | Claude Desktop | OpenAI Codex | ChatGPT Desktop | Copilot]
+    #v(8.4pt)
+    #cv-b[Open Source AI Tooling: OpenCode | Ollama | vLLM | llama.cpp | Open WebUI | Hugging Face | Langfuse]
+    #v(8.4pt)
+    #cv-b[Open Model Ecosystems: GLM | DeepSeek | Qwen | Kimi | MiniMax | MiMo | Llama | Mistral | Gemma]
+    #cv-entry-gap()
+    // ccvl-competency: applied-ai-data
+    #cv-h[AI Engineering, Data Science & Automation]
+    #v(7.35pt)
+    #cv-b[AI Engineering: Large Language Models (LLMs) | Retrieval-Augmented Generation (RAG) | Embeddings]
+    #v(8.4pt)
+    #cv-b[Agentic Systems: AI Agents | Multi-Agent Systems | Model Context Protocol (MCP) | Agent SDKs]
+    #v(8.4pt)
+    #cv-b[Data Science & ML: Statistics | Machine Learning | Time Series | Predictive Modelling | Experiments | R]
+    #cv-entry-gap()
+    // ccvl-competency: software-infrastructure
+    #cv-h[Software Engineering, Web & Infrastructure]
+    #v(7.35pt)
+    #cv-b[Software Engineering: Python | Rust | Go | Java | APIs | Git | CI/CD | Systems Programming | Testing]
+    #v(8.4pt)
+    #cv-b[Web Development & Publishing: TypeScript | JavaScript | Svelte | Astro | HTML | CSS | Markdown | Typst]
+    #v(8.4pt)
+    #cv-b[Data & Infrastructure: SQL | Data Pipelines | Linux | Kubernetes | GitOps | Infrastructure as Code (IaC)]
+    #cv-spacious-heading[Strategy, Innovation & Transformation]
     // ccvl-competency: innovation-management
     #cv-h[Innovation Management & Emerging Technologies]
     #v(7.35pt)
@@ -360,24 +387,6 @@
     #v(8.4pt)
     #cv-b[Product Innovation: Product Discovery | Prototyping | Proof of Concept (PoC) | MVP | Market Validation]
     #cv-entry-gap()
-    // ccvl-competency: applied-ai-data
-    #cv-h[Applied AI, Data & Intelligent Automation]
-    #v(7.35pt)
-    #cv-b[Generative AI: Large Language Models (LLMs) | Retrieval-Augmented Generation (RAG) | AI Assistants]
-    #v(8.4pt)
-    #cv-b[Agentic AI: AI Agents | Multi-Agent Systems | Model Context Protocol (MCP) | Intelligent Automation]
-    #v(8.4pt)
-    #cv-b[Data Science: Statistics | Machine Learning (ML) | Time Series | Predictive Modelling | Experiments | R]
-    #cv-entry-gap()
-    // ccvl-competency: software-infrastructure
-    #cv-h[Software Engineering, Data Platforms & Infrastructure]
-    #v(7.35pt)
-    #cv-b[Software Engineering: Python | Rust | Go | Java | APIs | Open Source | Systems Programming | Testing]
-    #v(8.4pt)
-    #cv-b[Data Platforms: SQL | Data Pipelines | Data Modelling | Distributed Systems | Vector Search | Observability]
-    #v(8.4pt)
-    #cv-b[Digital Infrastructure: Cloud | Data Centres | Linux | Kubernetes | GitOps | Infrastructure as Code (IaC)]
-    #cv-spacious-heading[Strategy & Transformation]
     // ccvl-competency: strategy
     #cv-h[Corporate, Growth & Technology Strategy]
     #v(7.35pt)
@@ -387,23 +396,14 @@
     #v(8.4pt)
     #cv-b[Technology Strategy: AI Strategy | Roadmaps | Business Cases | Enterprise Architecture | TCO | FinOps]
     #cv-entry-gap()
-    // ccvl-competency: transformation
-    #cv-h[Transformation, Operating Models & Value Creation]
+    // ccvl-competency: transformation-governance
+    #cv-h[Transformation, Operating Models & Governance]
     #v(7.35pt)
     #cv-b[Operating Models: Target Operating Model (TOM) | Organisational Design | Decision Rights | Role Design]
     #v(8.4pt)
-    #cv-b[Change & Adoption: AI Adoption | Change Management | Programme Delivery | Benefits Realisation]
+    #cv-b[Change & Value Creation: AI Adoption | Change Management | Benefits Realisation | Cost Transformation]
     #v(8.4pt)
-    #cv-b[Value Creation: Operational Excellence | Cost Transformation | KPI Design | Turnaround | Restructuring]
-    #cv-entry-gap()
-    // ccvl-competency: governance
-    #cv-h[Policy, Regulation & Technology Governance]
-    #v(7.35pt)
-    #cv-b[Public Policy & Regulatory Affairs: Energy Policy | AI Policy | Defence Procurement | Competition Policy]
-    #v(8.4pt)
-    #cv-b[Financial & Digital Regulation: DORA | Operational Resilience | ICT Third-Party Risk | T+1 Settlement]
-    #v(8.4pt)
-    #cv-b[AI & Data Governance: EU AI Act | Responsible AI | Model Risk | Human Oversight | Data Protection | GDPR]
+    #cv-b[AI Governance: EU AI Act | Responsible AI | Model Risk | DORA | Operational Resilience | GDPR]
     #cv-spacious-heading[Finance, Investments & Markets]
     // ccvl-competency: finance-ma
     #cv-h[Finance Transformation, Corporate Finance & M&A]
