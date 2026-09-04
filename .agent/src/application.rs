@@ -87,12 +87,18 @@ pub fn validate_all(workspace: &Workspace) -> Result<()> {
         )?;
         let relative = workspace.relative(&path)?;
         if relative == std::path::Path::new("cvl/de-ch/application.toml")
-            && application.pointer("/options/language").and_then(Value::as_str) != Some("de-CH")
+            && application
+                .pointer("/options/language")
+                .and_then(Value::as_str)
+                != Some("de-CH")
         {
             bail!("{}: expected de-CH language", relative.display());
         }
         if relative == std::path::Path::new("cvl/en-ch/application.toml")
-            && application.pointer("/options/language").and_then(Value::as_str) != Some("en-CH")
+            && application
+                .pointer("/options/language")
+                .and_then(Value::as_str)
+                != Some("en-CH")
         {
             bail!("{}: expected en-CH language", relative.display());
         }
@@ -128,11 +134,7 @@ fn validate_profile(profile: &Value, location: &str) -> Result<()> {
             .get(locale)
             .and_then(Value::as_object)
             .with_context(|| format!("{location}.localized.{locale} is missing"))?;
-        ensure_no_unknown(
-            table,
-            &["nationality_and_permit", "availability"],
-            location,
-        )?;
+        ensure_no_unknown(table, &["nationality_and_permit", "availability"], location)?;
         for field in ["nationality_and_permit", "availability"] {
             table
                 .get(field)
@@ -166,7 +168,11 @@ pub fn validate_record(
     require_text: bool,
 ) -> Result<()> {
     let object = object_at(application, "")?;
-    ensure_no_unknown(object, &["schema_version", "revision", "options", "job", "cv", "cl"], location)?;
+    ensure_no_unknown(
+        object,
+        &["schema_version", "revision", "options", "job", "cv", "cl"],
+        location,
+    )?;
     ensure!(
         u64_at(application, "/schema_version")? == RECORD_VERSION,
         "{location}: unsupported application schema version"
@@ -345,9 +351,9 @@ pub fn validate_record(
         highlights.len()
     );
     for (index, highlight) in highlights.iter().enumerate() {
-        let text = highlight.as_str().with_context(|| {
-            format!("{location}.cl.highlights[{}] is not text", index + 1)
-        })?;
+        let text = highlight
+            .as_str()
+            .with_context(|| format!("{location}.cl.highlights[{}] is not text", index + 1))?;
         ensure!(
             !require_text || !text.trim().is_empty(),
             "{location}.cl.highlights[{}]: a rendered highlight cannot be empty",
@@ -521,13 +527,8 @@ mod tests {
                             && (20..=22).contains(&middle.iter().sum::<usize>());
                         let lengths = [3, second, third, fourth, fifth, 3];
                         assert_eq!(
-                            validate_record(
-                                &workspace,
-                                &application(&lengths),
-                                "fixture",
-                                true,
-                            )
-                            .is_ok(),
+                            validate_record(&workspace, &application(&lengths), "fixture", true,)
+                                .is_ok(),
                             valid,
                             "unexpected result for {middle:?}"
                         );

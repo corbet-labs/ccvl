@@ -37,20 +37,16 @@ pub fn create_record(workspace: &Workspace, organisation: &str, position: &str) 
             workspace.relative(&destination)?.display()
         );
     }
-    let mut document: toml::Value =
-        toml::from_str(&fs::read_to_string(
-            &workspace.path(".agent/scaffolds/opportunity/application.toml"),
-        )?)
-        .context("invalid scaffold application.toml")?;
+    let mut document: toml::Value = toml::from_str(&fs::read_to_string(
+        workspace.path(".agent/scaffolds/opportunity/application.toml"),
+    )?)
+    .context("invalid scaffold application.toml")?;
     document["job"]["id"] = toml::Value::String(format!("{organisation}--{position}"));
     let parent = destination
         .parent()
         .context("opportunity path has no parent")?;
     fs::create_dir_all(parent)?;
-    fs::write(
-        &destination,
-        format!("{}\n", toml::to_string(&document)?),
-    )?;
+    fs::write(&destination, format!("{}\n", toml::to_string(&document)?))?;
     Ok(destination)
 }
 

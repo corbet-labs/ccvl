@@ -73,19 +73,14 @@ pub fn document_metrics(
 /// Format the fill violation of one measured line, if any. Shared by the
 /// standalone `measure` command and the fused check gate so both report the
 /// same failure text.
-pub fn line_failure(
-    spec: &DocumentSpec,
-    index: usize,
-    metric: &Value,
-) -> Result<Option<String>> {
+pub fn line_failure(spec: &DocumentSpec, index: usize, metric: &Value) -> Result<Option<String>> {
     violation(metric).map(|state| {
         state.map(|state| {
             format!(
                 "{} #{} {state}: {:.1} outside {}–{}",
                 spec.name,
                 index + 1,
-                number_field(metric, "actual_fill")
-                    .expect("violation implies numeric actual_fill"),
+                number_field(metric, "actual_fill").expect("violation implies numeric actual_fill"),
                 number_field(metric, "min_fill").expect("violation implies numeric min_fill"),
                 number_field(metric, "max_fill").expect("violation implies numeric max_fill"),
             )

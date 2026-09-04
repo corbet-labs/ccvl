@@ -103,8 +103,8 @@ pub fn read_json(path: &Path) -> Result<Value> {
 pub fn read_toml_value(path: &Path) -> Result<Value> {
     let text = fs::read_to_string(path)
         .with_context(|| format!("cannot read TOML file {}", path.display()))?;
-    let value: toml::Value = toml::from_str(&text)
-        .with_context(|| format!("invalid TOML in {}", path.display()))?;
+    let value: toml::Value =
+        toml::from_str(&text).with_context(|| format!("invalid TOML in {}", path.display()))?;
     serde_json::to_value(&value)
         .with_context(|| format!("unsupported TOML data in {}", path.display()))
 }

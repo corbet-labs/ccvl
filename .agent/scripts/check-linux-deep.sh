@@ -34,7 +34,7 @@ profile_value() {
   local key="$1"
   local value
   value="$(sed -n \
-    "s/^[[:space:]]*$key[[:space:]]*=[[:space:]]*\"\([^\"]*\)\"[[:space:]]*$/\1/p" \
+    "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*\"\([^\"]*\)\"[[:space:]]*$/\1/p" \
     cvl/profile.toml)"
   [[ -n "$value" ]] || {
     printf 'Could not read %s from cvl/profile.toml\n' "$key" >&2
