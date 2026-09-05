@@ -204,7 +204,18 @@
     }
     #set par(justify: justify)
     #for (index, line) in lines.enumerate() {
-      text(line.text)
+      // A closing line past 100% carries an approved spill (up to its
+      // maximum): fix its box so the spill extends invisibly into the
+      // margin. Flowing text would re-wrap it when justification cannot
+      // shrink the spaces enough, silently adding a line the metric gate
+      // approved. Lines at or below 100% keep flowing text, so green
+      // documents render exactly as before.
+      let spill = calc.round(1000 * measure(text(line.text)).width / size.width) / 10 > 100
+      if index + 1 == lines.len() and spill {
+        box(width: measure(text(line.text)).width, text(line.text))
+      } else {
+        text(line.text)
+      }
       if index < lines.len() - 1 {
         linebreak()
       }

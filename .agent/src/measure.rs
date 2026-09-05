@@ -620,6 +620,53 @@ mod tests {
     }
 
     #[test]
+    fn paragraph_closing_spill_renders_without_wrapping() {
+        // Cover-letter closing lines share the 102 maximum, so a spill
+        // with too few spaces to justify away must still stay one visual
+        // line: three paragraphs with a short line plus a 102.0% closing
+        // line fit one 60mm page; with flowing text the closings re-wrap
+        // to nine lines over two pages.
+        let engine = ctypst::Engine::builder()
+            .root(std::path::Path::new(env!("CARGO_MANIFEST_DIR")))
+            .fonts(ctypst::fonts::documents())
+            .build()
+            .unwrap();
+        let short = "Kurz und gut geschrieben steht hier.";
+        let spill = "Donaudampfschifffahrtsgesellschaftskapitän Gioacchino Rossini encountered extraordinary circumstances daily.";
+        let source = format!(
+            "#import \"/.agent/typst/line-contract.typ\": measured-paragraph\n\
+             #import \"/.agent/typst/styles/document.typ\": document-style\n\
+             #show: document-style.with(locale: \"de-ch\")\n\
+             #set page(height: 60mm)\n\
+             #set text(hyphenate: false)\n\
+             #let short = \"{short}\"\n\
+             #let spill = \"{spill}\"\n\
+             #for p in range(3) {{\n\
+             block(breakable: false)[#measured-paragraph(\"t.\" + str(p), \"x\", ((text: short, min_fill: 1, target_fill: 82, max_fill: 100), (text: spill, min_fill: 60, target_fill: 82, max_fill: 102)), justify: true)]\n\
+             }}"
+        );
+        let output = engine
+            .compile(
+                ctypst::CompileRequest::new("spill-cl.typ")
+                    .source_file("spill-cl.typ", source)
+                    .pages(ctypst::PageConstraint::Exactly(1)),
+            )
+            .unwrap();
+        let metrics = ctypst::query_json(&output.document, "ccvl-line").unwrap();
+        assert_eq!(metrics.len(), 6);
+        for metric in metrics
+            .iter()
+            .filter(|metric| metric["max_fill"].as_f64() == Some(102.0))
+        {
+            let fill = metric["actual_fill"].as_f64().unwrap();
+            assert!(
+                fill > 100.0 && fill <= 102.0,
+                "want a real spill, got {fill}"
+            );
+        }
+    }
+
+    #[test]
     fn underfill_and_overflow_are_both_failures_for_any_unit() {
         let base = json!({"min_fill": 60, "target_fill": 80, "max_fill": 95});
         let mut metric = base.clone();
