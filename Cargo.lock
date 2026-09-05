@@ -658,10 +658,11 @@ dependencies = [
 
 [[package]]
 name = "ctypst"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49290701f35312db9e3350d40ee57bf509e183179b71979b43ef4222cf23d8c9"
+checksum = "22aa4146c3c7cce9bdc8247ec4a50535eb6073be95463c2206567dfce6c3e930"
 dependencies = [
+ "serde",
  "serde_json",
  "thiserror",
  "time",
