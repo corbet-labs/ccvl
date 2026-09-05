@@ -84,7 +84,8 @@ salutation uses the recipient name.
 The `name` field of `job.cl_recipient` holds the full address form, e.g.
 `"Frau Dr. Müller"` or `"Herr Müller"`. Only the honorific, academic titles,
 and surname render; first names never appear in a formal salutation. The
-rules live in the `cgreet` library (`.agent/cgreet/src/lib.rs`, re-exported
+rules live in the `cgreet` library
+(`https://github.com/corbet-labs/cgreet`, re-exported
 for compatibility via `ccvl::application`) and are mirrored for the renderer
 in `.agent/typst/application.typ` (`salutation-honorific`,
 `salutation-titles`, `salutation-surname`, `de-salutation`); `en-ch`

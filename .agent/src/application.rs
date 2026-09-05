@@ -53,7 +53,8 @@ const PROFILE_TOP: &[&str] = &[
     "localized",
 ];
 
-/// Greeting rules live in the `cgreet` library (mirrored for the renderer in
+/// Greeting rules live in the `cgreet` library
+/// (`https://github.com/corbet-labs/cgreet`, mirrored for the renderer in
 /// `.agent/typst/application.typ`) and are re-exported here so existing paths
 /// keep working.
 pub use cgreet::{
