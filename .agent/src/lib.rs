@@ -7,6 +7,7 @@ pub mod downstream;
 pub mod format;
 pub mod measure;
 pub mod opportunity;
+pub mod ownership;
 pub mod pdf;
 pub mod public;
 pub mod render;
